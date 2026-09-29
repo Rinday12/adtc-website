@@ -1,0 +1,259 @@
+<%- include('../../layout/header', { title, adminUser, currentPath }) %>
+
+<div class="max-w-6xl mx-auto">
+
+  <!-- Page Header -->
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-800">Manajemen Pelatihan</h1>
+      <p class="text-gray-500 text-sm mt-1">Kelola program pelatihan dan grup WhatsApp peserta</p>
+    </div>
+    <div class="flex items-center gap-3">
+      <a
+        href="/admin/dashboard"
+        class="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-800 transition-colors border border-gray-300 hover:border-gray-400 rounded-lg px-4 py-2"
+      >
+        &larr; Dashboard
+      </a>
+      <a
+        href="/admin/trainings/create"
+        class="inline-flex items-center gap-2 text-sm text-white bg-navy-700 hover:bg-navy-800 transition-colors rounded-lg px-4 py-2 font-medium shadow-sm"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        Tambah Pelatihan
+      </a>
+    </div>
+  </div>
+
+  <!-- Filter Section -->
+  <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 mb-6">
+    <h2 class="text-base font-semibold text-gray-800 mb-4">Filter Pelatihan</h2>
+    <form method="GET" action="/admin/trainings" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <!-- Search -->
+      <div>
+        <label class="block text-xs font-medium text-gray-600 mb-1">Cari</label>
+        <input type="text" name="search" value="<%= filters.search %>" placeholder="Judul atau kategori..."
+          class="w-full rounded-lg border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
+      </div>
+
+      <!-- Status -->
+      <div>
+        <label class="block text-xs font-medium text-gray-600 mb-1">Status</label>
+        <select name="status" class="w-full rounded-lg border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
+          <option value="all" <%= filters.status === 'all' ? 'selected' : '' %>>Semua</option>
+          <option value="active" <%= filters.status === 'active' ? 'selected' : '' %>>Aktif</option>
+          <option value="full" <%= filters.status === 'full' ? 'selected' : '' %>>Penuh</option>
+          <option value="inactive" <%= filters.status === 'inactive' ? 'selected' : '' %>>Nonaktif</option>
+        </select>
+      </div>
+
+      <!-- Category -->
+      <div>
+        <label class="block text-xs font-medium text-gray-600 mb-1">Kategori</label>
+        <select name="category" class="w-full rounded-lg border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
+          <% allCategories.forEach(function(cat) { %>
+            <option value="<%= cat %>" <%= filters.category === cat ? 'selected' : '' %>>
+              <%= cat === 'all' ? 'Semua Kategori' : cat %>
+            </option>
+          <% }) %>
+        </select>
+      </div>
+
+      <!-- Time Filter -->
+      <div>
+        <label class="block text-xs font-medium text-gray-600 mb-1">Waktu</label>
+        <select name="time_filter" class="w-full rounded-lg border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
+          <option value="all" <%= filters.time_filter === 'all' ? 'selected' : '' %>>Semua</option>
+          <option value="upcoming" <%= filters.time_filter === 'upcoming' ? 'selected' : '' %>>Akan Datang</option>
+          <option value="completed" <%= filters.time_filter === 'completed' ? 'selected' : '' %>>Selesai</option>
+        </select>
+      </div>
+
+      <!-- Date From -->
+      <div>
+        <label class="block text-xs font-medium text-gray-600 mb-1">Tanggal Mulai Dari</label>
+        <input type="date" name="start_date_from" value="<%= filters.start_date_from %>"
+          class="w-full rounded-lg border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
+      </div>
+
+      <!-- Date To -->
+      <div>
+        <label class="block text-xs font-medium text-gray-600 mb-1">Tanggal Mulai Sampai</label>
+        <input type="date" name="start_date_to" value="<%= filters.start_date_to %>"
+          class="w-full rounded-lg border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
+      </div>
+
+      <!-- Quota Filter -->
+      <div>
+        <label class="block text-xs font-medium text-gray-600 mb-1">Kuota</label>
+        <select name="quota_filter" class="w-full rounded-lg border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
+          <option value="all" <%= filters.quota_filter === 'all' ? 'selected' : '' %>>Semua</option>
+          <option value="available" <%= filters.quota_filter === 'available' ? 'selected' : '' %>>Masih Tersedia</option>
+          <option value="full" <%= filters.quota_filter === 'full' ? 'selected' : '' %>>Sudah Penuh</option>
+        </select>
+      </div>
+
+      <!-- Buttons -->
+      <div class="flex items-end gap-2">
+        <button type="submit" class="flex-1 bg-navy-700 hover:bg-navy-800 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
+          Terapkan Filter
+        </button>
+        <a href="/admin/trainings" class="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg transition-colors">
+          Reset
+        </a>
+      </div>
+    </form>
+  </div>
+
+  <!-- Import Section -->
+  <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 mb-6">
+    <div class="flex items-start gap-4">
+      <div class="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center flex-shrink-0">
+        <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+      </div>
+      <div class="flex-1">
+        <h2 class="text-base font-semibold text-gray-800">Import dari Excel</h2>
+        <p class="text-sm text-gray-500 mt-1">Unggah file Excel (.xlsx/.xls) untuk membuat banyak pelatihan sekaligus. Kolom yang dibutuhkan: <code class="bg-gray-100 px-1 py-0.5 rounded text-xs">title</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-xs">category</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-xs">price_general</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-xs">price_student_uad</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-xs">price_employee_uad</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-xs">quota</code>.</p>
+        <form method="POST" action="/admin/trainings/import" enctype="multipart/form-data" class="mt-3 flex items-center gap-3">
+          <input type="file" name="training_excel" accept=".xlsx,.xls" class="text-sm text-gray-500 file:mr-4 file:py-1.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100">
+          <button type="submit" class="inline-flex items-center gap-2 text-sm font-medium text-green-700 hover:text-green-800 transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+            </svg>
+            Upload & Import
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Trainings Table -->
+  <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+    <% if (trainings && trainings.length > 0) { %>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm text-left">
+          <thead class="bg-gray-50 border-b border-gray-200 text-gray-600 uppercase text-xs tracking-wide">
+            <tr>
+              <th class="px-5 py-3 font-semibold">Cover</th>
+              <th class="px-5 py-3 font-semibold">Judul</th>
+              <th class="px-5 py-3 font-semibold">Kategori</th>
+              <th class="px-5 py-3 font-semibold">Harga</th>
+              <th class="px-5 py-3 font-semibold">Kuota</th>
+              <th class="px-5 py-3 font-semibold">Pendaftaran</th>
+              <th class="px-5 py-3 font-semibold">Status</th>
+              <th class="px-5 py-3 font-semibold">Link WA Grup</th>
+              <th class="px-5 py-3 font-semibold sr-only">Aksi</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+            <% trainings.forEach(function(t) { %>
+              <tr class="hover:bg-gray-50 transition-colors">
+                <td class="px-5 py-4">
+                  <% if (t.cover_image) { %>
+                    <img src="/<%= t.cover_image %>" alt="Cover <%= t.title %>" class="w-12 h-8 object-cover rounded border border-gray-200">
+                  <% } else { %>
+                    <div class="w-12 h-8 bg-gray-100 rounded border border-gray-200 flex items-center justify-center">
+                      <svg class="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    </div>
+                  <% } %>
+                </td>
+                <td class="px-5 py-4 font-medium text-gray-900"><%= t.title %></td>
+                <td class="px-5 py-4 text-gray-600"><%= t.category %></td>
+                <td class="px-5 py-4 text-gray-700 whitespace-nowrap">
+                  <%= new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(t.price_general) %>
+                </td>
+                <td class="px-5 py-4 text-gray-700">
+                  <div class="flex flex-col gap-1">
+                    <span class="font-medium"><%= t.quota %></span>
+                    <div class="w-full bg-gray-200 rounded-full h-1.5">
+                      <div class="bg-brand-500 h-1.5 rounded-full" style="width: <%= Math.min(100, ((t.registered_count || 0) / t.quota) * 100) %>%"></div>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-5 py-4">
+                  <div class="flex flex-col gap-1">
+                    <span class="font-medium text-gray-900"><%= t.registered_count || 0 %>/<%= t.quota %></span>
+                    <% if ((t.registered_count || 0) >= t.quota) { %>
+                      <span class="text-xs text-red-600 font-medium">Penuh</span>
+                    <% } else { %>
+                      <span class="text-xs text-green-600"><%= t.quota - (t.registered_count || 0) %> slot tersisa</span>
+                    <% } %>
+                  </div>
+                </td>
+                <td class="px-5 py-4">
+                  <%
+                    const isFull = (t.registered_count || 0) >= t.quota;
+                    const isInactive = t.status === 'inactive';
+                    const isCompleted = t.start_date && new Date(t.start_date) < new Date();
+                  %>
+                  <% if (isCompleted) { %>
+                    <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold border bg-blue-100 text-blue-800 border-blue-200">Selesai</span>
+                  <% } else if (isInactive) { %>
+                    <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold border bg-gray-100 text-gray-600 border-gray-200">Nonaktif</span>
+                  <% } else if (isFull) { %>
+                    <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold border bg-yellow-100 text-yellow-800 border-yellow-200">Penuh</span>
+                  <% } else { %>
+                    <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold border bg-green-100 text-green-800 border-green-200">Aktif</span>
+                  <% } %>
+                </td>
+                <td class="px-5 py-4 text-gray-600 max-w-xs">
+                  <% if (t.whatsapp_group_link) { %>
+                    <a href="<%= t.whatsapp_group_link %>" target="_blank" rel="noopener noreferrer" class="text-brand-500 hover:underline truncate block max-w-[200px]" title="<%= t.whatsapp_group_link %>">
+                      <%= t.whatsapp_group_link.substring(0, 30) %><% if (t.whatsapp_group_link.length > 30) { %>&hellip;<% } %>
+                    </a>
+                  <% } else { %>
+                    <span class="text-gray-400 italic">-</span>
+                  <% } %>
+                </td>
+                <td class="px-5 py-4">
+                  <div class="flex items-center gap-3">
+                    <a
+                      href="/admin/trainings/<%= t.id %>/edit"
+                      class="text-brand-500 hover:text-navy-800 hover:underline font-medium text-sm whitespace-nowrap"
+                    >
+                      Edit
+                    </a>
+                    <form method="POST" action="/admin/trainings/<%= t.id %>/delete">
+                      <button
+                        type="submit"
+                        class="text-red-600 hover:text-red-800 hover:underline font-medium text-sm whitespace-nowrap"
+                        onclick="return confirm('Hapus pelatihan ini beserta semua pendaftaran terkait?')"
+                      >
+                        Hapus
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+      <div class="px-5 py-3 bg-gray-50 border-t border-gray-200 text-xs text-gray-500 flex justify-between items-center">
+        <span>Menampilkan <span class="font-medium text-gray-700"><%= trainings.length %></span> dari <%= allCategories.length - 1 %> kategori</span>
+        <% if (filters.search || filters.status !== 'all' || filters.category !== 'all' || filters.time_filter !== 'all' || filters.quota_filter !== 'all' || filters.start_date_from || filters.start_date_to) { %>
+          <a href="/admin/trainings" class="text-brand-600 hover:underline">Hapus filter</a>
+        <% } %>
+      </div>
+    <% } else { %>
+      <div class="flex flex-col items-center justify-center py-16 px-4 text-center">
+        <svg class="w-14 h-14 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        <p class="text-gray-500 font-medium">Belum ada pelatihan.</p>
+        <div class="flex gap-3 mt-3">
+          <a href="/admin/trainings/create" class="text-sm text-brand-500 hover:underline">Tambah manual</a>
+          <span class="text-gray-300">|</span>
+          <a href="#import-section" class="text-sm text-green-600 hover:underline" onclick="document.getElementById('import-section')?.scrollIntoView({behavior:'smooth'})">Import Excel</a>
+        </div>
+      </div>
+    <% } %>
+  </div>
+
+</div>
+
+<%- include('../../layout/footer') %>

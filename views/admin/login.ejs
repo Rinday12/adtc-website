@@ -1,0 +1,89 @@
+<%- include('../layout/header', { title: 'Login Admin' }) %>
+
+<div class="min-h-[70vh] flex items-center justify-center">
+  <div class="w-full max-w-md">
+
+    <!-- Card -->
+    <div class="bg-white shadow-lg rounded-xl p-8">
+
+      <!-- Header -->
+      <div class="text-center mb-8">
+        <div class="inline-flex items-center justify-center w-14 h-14 bg-blue-100 rounded-full mb-4">
+          <svg class="w-7 h-7 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+        </div>
+        <h1 class="text-2xl font-bold text-gray-800">Dashboard Admin</h1>
+        <p class="text-gray-500 text-sm mt-1">Ahmad Dahlan Training Center</p>
+      </div>
+
+      <!-- Flash Error Messages -->
+      <% if (typeof error_msg !== 'undefined' && error_msg && error_msg.length > 0) { %>
+        <% error_msg.forEach(function(msg) { %>
+          <div class="bg-red-50 border border-red-400 text-red-700 px-4 py-3 rounded-md mb-5 flex items-start gap-2 text-sm" role="alert">
+            <svg class="w-4 h-4 mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zm-1-5a1 1 0 012 0v2a1 1 0 01-2 0v-2zm0-8a1 1 0 012 0v4a1 1 0 01-2 0V5z"
+                clip-rule="evenodd" />
+            </svg>
+            <span><%= msg %></span>
+          </div>
+        <% }) %>
+      <% } %>
+
+      <!-- Login Form -->
+      <form action="/admin/login" method="POST" class="space-y-5" novalidate>
+
+        <!-- Username -->
+        <div>
+          <label for="username" class="block text-sm font-medium text-gray-700 mb-1">
+            Username
+          </label>
+          <input
+            type="text"
+            id="username"
+            name="username"
+            required
+            autocomplete="username"
+            placeholder="Masukkan username"
+            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+          />
+        </div>
+
+        <!-- Password -->
+        <div>
+          <label for="password" class="block text-sm font-medium text-gray-700 mb-1">
+            Password
+          </label>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            required
+            autocomplete="current-password"
+            placeholder="Masukkan password"
+            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+          />
+        </div>
+
+        <!-- Submit -->
+        <button
+          type="submit"
+          class="w-full bg-navy-700 hover:bg-navy-700 text-white font-semibold py-2.5 px-4 rounded-md transition duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 mt-2"
+        >
+          Masuk
+        </button>
+
+      </form>
+    </div>
+
+    <!-- Back link -->
+    <p class="text-center text-sm text-gray-500 mt-5">
+      <a href="/trainings" class="hover:text-brand-500 hover:underline">&larr; Kembali ke katalog pelatihan</a>
+    </p>
+
+  </div>
+</div>
+
+<%- include('../layout/footer') %>

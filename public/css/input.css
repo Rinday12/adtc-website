@@ -1,0 +1,36 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── CSS Custom Properties (brand colors) ───────────────────── */
+:root {
+  --color-navy:  #1B3A6B;
+  --color-brand: #f97316;
+}
+
+/* ── Scroll-reveal animation ─────────────────────────────────── */
+.reveal-card {
+  opacity: 0;
+  transform: translateY(32px);
+  transition: opacity 0.55s ease, transform 0.55s ease;
+}
+.reveal-card:nth-child(2) { transition-delay: 0.08s; }
+.reveal-card:nth-child(3) { transition-delay: 0.16s; }
+.reveal-card:nth-child(4) { transition-delay: 0.24s; }
+.reveal-card:nth-child(5) { transition-delay: 0.32s; }
+.reveal-card:nth-child(6) { transition-delay: 0.40s; }
+.reveal-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── Hero Slider ─────────────────────────────────────────────── */
+.hero-slide {
+  transition: opacity 0.6s ease;
+}
+
+/* ── Navbar active link ──────────────────────────────────────── */
+.nav-link-active {
+  color: #f97316;
+  font-weight: 700;
+}

@@ -1,0 +1,148 @@
+<%- include('../layout/header', { title: 'Pendaftaran - ' + training.title }) %>
+
+<div class="max-w-2xl mx-auto">
+  <!-- Page Header -->
+  <div class="mb-6">
+    <a href="/trainings/<%= training.slug %>" class="text-brand-500 hover:underline text-sm">&larr; Kembali ke detail pelatihan</a>
+    <h1 class="text-2xl font-bold text-gray-800 mt-2">Formulir Pendaftaran</h1>
+    <p class="text-gray-600 mt-1">Pelatihan: <span class="font-semibold"><%= training.title %></span></p>
+  </div>
+
+  <!-- Error Messages -->
+  <% if (typeof errors !== 'undefined' && errors && errors.length > 0) { %>
+    <div class="bg-red-50 border border-red-400 text-red-800 px-4 py-3 rounded mb-6" role="alert">
+      <p class="font-semibold mb-1">Terdapat kesalahan pada formulir:</p>
+      <ul class="list-disc list-inside space-y-1 text-sm">
+        <% errors.forEach(function(error) { %>
+          <li><%= error %></li>
+        <% }) %>
+      </ul>
+    </div>
+  <% } %>
+
+  <!-- Registration Form -->
+  <form
+    action="/trainings/<%= training.slug %>/register"
+    method="POST"
+    enctype="multipart/form-data"
+    class="bg-white shadow-md rounded-lg p-6 space-y-5"
+  >
+    <!-- Full Name -->
+    <div>
+      <label for="fullName" class="block text-sm font-medium text-gray-700 mb-1">
+        Nama Lengkap <span class="text-red-500">*</span>
+      </label>
+      <input
+        type="text"
+        id="fullName"
+        name="full_name"
+        value="<%= typeof formData !== 'undefined' && formData.full_name ? formData.full_name : '' %>"
+        required
+        placeholder="Masukkan nama lengkap Anda"
+        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+      />
+    </div>
+
+    <!-- Email -->
+    <div>
+      <label for="email" class="block text-sm font-medium text-gray-700 mb-1">
+        Alamat Email <span class="text-red-500">*</span>
+      </label>
+      <input
+        type="email"
+        id="email"
+        name="email"
+        value="<%= typeof formData !== 'undefined' && formData.email ? formData.email : '' %>"
+        required
+        placeholder="contoh@email.com"
+        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+      />
+    </div>
+
+    <!-- Phone -->
+    <div>
+      <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">
+        Nomor Telepon <span class="text-red-500">*</span>
+      </label>
+      <input
+        type="tel"
+        id="phone"
+        name="phone"
+        value="<%= typeof formData !== 'undefined' && formData.phone ? formData.phone : '' %>"
+        required
+        placeholder="Contoh: 08123456789"
+        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+      />
+      <p class="text-xs text-gray-500 mt-1">Minimal 10 digit.</p>
+    </div>
+
+    <!-- Category -->
+    <div>
+      <label for="categorySelect" class="block text-sm font-medium text-gray-700 mb-1">
+        Kategori Peserta <span class="text-red-500">*</span>
+      </label>
+      <select
+        id="categorySelect"
+        name="category"
+        required
+        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent bg-white"
+      >
+        <option value="" disabled <%= (typeof formData === 'undefined' || !formData.category) ? 'selected' : '' %>>-- Pilih kategori --</option>
+        <option value="umum" <%= (typeof formData !== 'undefined' && formData.category === 'umum') ? 'selected' : '' %>>Umum</option>
+        <option value="mahasiswa_uad" <%= (typeof formData !== 'undefined' && formData.category === 'mahasiswa_uad') ? 'selected' : '' %>>Mahasiswa UAD</option>
+        <option value="karyawan_uad" <%= (typeof formData !== 'undefined' && formData.category === 'karyawan_uad') ? 'selected' : '' %>>Karyawan UAD</option>
+      </select>
+      <p class="text-xs text-gray-500 mt-1">Kategori menentukan harga pendaftaran yang berlaku.</p>
+    </div>
+
+    <!-- UAD-specific Fields (hidden by default, shown via JS) -->
+    <div id="uadFields" class="hidden space-y-4 border-t border-gray-200 pt-4">
+      <p class="text-sm font-medium text-gray-700">Data Identitas UAD</p>
+
+      <!-- NIM / NIY -->
+      <div>
+        <label for="identityNumber" class="block text-sm font-medium text-gray-700 mb-1">
+          NIM / NIY <span class="text-red-500">*</span>
+        </label>
+        <input
+          type="text"
+          id="identityNumber"
+          name="identity_number"
+          value="<%= typeof formData !== 'undefined' && formData.identity_number ? formData.identity_number : '' %>"
+          placeholder="Masukkan NIM atau NIY Anda"
+          class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+        />
+        <p class="text-xs text-gray-500 mt-1">Minimal 5 karakter.</p>
+      </div>
+
+      <!-- KTM / ID Card File Upload -->
+      <div>
+        <label for="identityCardProof" class="block text-sm font-medium text-gray-700 mb-1">
+          KTM / ID Card <span class="text-red-500">*</span>
+        </label>
+        <input
+          type="file"
+          id="identityCardProof"
+          name="identity_card_proof"
+          accept=".jpg,.jpeg,.png,.pdf"
+          class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent bg-white"
+        />
+        <p class="text-xs text-gray-500 mt-1">Format yang diterima: JPG, JPEG, PNG, PDF. Ukuran maksimal 5MB.</p>
+      </div>
+    </div>
+
+    <!-- Submit Button -->
+    <div class="pt-2">
+      <button
+        type="submit"
+        class="w-full bg-navy-700 hover:bg-brand-700 text-white font-semibold py-3 px-6 rounded-md transition duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
+      >
+        Daftar Sekarang
+      </button>
+    </div>
+  </form>
+</div>
+
+<script src="/js/registration-form.js"></script>
+
+<%- include('../layout/footer') %>

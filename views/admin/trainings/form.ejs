@@ -1,0 +1,112 @@
+<%- include('../../layout/header', { title, adminUser, currentPath }) %>
+
+<div class="max-w-2xl mx-auto">
+
+  <!-- Page Header -->
+  <div class="flex items-center gap-3 mb-6">
+    <a href="/admin/trainings" class="text-brand-500 hover:text-navy-800 text-sm transition-colors">&larr; Kembali</a>
+    <h1 class="text-xl font-bold text-gray-800"><%= title %></h1>
+  </div>
+
+  <!-- Form -->
+  <form method="POST" action="<%= isEdit ? `/admin/trainings/${training.id}/update` : '/admin/trainings' %>" enctype="multipart/form-data" class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-100">
+      <h2 class="text-base font-semibold text-gray-800">Informasi Dasar</h2>
+    </div>
+    <div class="px-6 py-5 space-y-4">
+
+      <% if (errors && errors.length > 0) { %>
+        <div class="bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-700">
+          <% errors.forEach(function(e) { %><p><%= e %></p><% }) %>
+        </div>
+      <% } %>
+
+      <div>
+        <label for="title" class="block text-sm font-medium text-gray-700 mb-1">Judul Pelatihan <span class="text-red-500">*</span></label>
+        <input type="text" id="title" name="title" value="<%= isEdit ? (training?.title || '') : '' %>" class="w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500" placeholder="Contoh: Basic Python Programming">
+      </div>
+
+      <div>
+        <label for="category" class="block text-sm font-medium text-gray-700 mb-1">Kategori <span class="text-red-500">*</span></label>
+        <input type="text" id="category" name="category" value="<%= isEdit ? (training?.category || '') : '' %>" class="w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500" placeholder="Contoh: BNSP">
+      </div>
+
+      <div>
+        <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Deskripsi</label>
+        <textarea id="description" name="description" rows="3" class="w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500" placeholder="Deskripsi pelatihan (opsional)"><%= isEdit ? (training?.description || '') : '' %></textarea>
+      </div>
+
+      <div>
+        <label for="whatsapp_group_link" class="block text-sm font-medium text-gray-700 mb-1">Link Grup WhatsApp Peserta</label>
+        <input type="url" id="whatsapp_group_link" name="whatsapp_group_link" value="<%= isEdit ? (training?.whatsapp_group_link || '') : '' %>" class="w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500" placeholder="https://chat.whatsapp.com/XXXXXX">
+        <p class="text-xs text-gray-400 mt-1">Opsional. Link invite grup WA khusus pelatihan ini akan ditampilkan ke peserta setelah pembayaran diverifikasi.</p>
+      </div>
+
+      <div>
+        <label for="training_cover" class="block text-sm font-medium text-gray-700 mb-1">Gambar Cover (opsional)</label>
+        <input type="file" id="training_cover" name="training_cover" accept=".jpg,.jpeg,.png,.webp" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-navy-50 file:text-navy-700 hover:file:bg-navy-100">
+        <% if (isEdit && training?.cover_image) { %>
+          <p class="text-xs text-gray-400 mt-1">
+            Gambar saat ini: <a href="/<%= training.cover_image %>" target="_blank" class="text-brand-500 underline">Lihat</a>
+            <span class="ml-2">Ganti dengan upload baru.</span>
+          </p>
+        <% } %>
+      </div>
+
+    </div>
+
+    <div class="px-6 py-4 border-t border-gray-100">
+      <h2 class="text-base font-semibold text-gray-800 mb-4">Harga & Kuota</h2>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label for="price_general" class="block text-sm font-medium text-gray-700 mb-1">Harga Umum (Rp) <span class="text-red-500">*</span></label>
+          <input type="number" id="price_general" name="price_general" value="<%= isEdit ? (training?.price_general || '') : '' %>" min="0" class="w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500">
+        </div>
+        <div>
+          <label for="price_student_uad" class="block text-sm font-medium text-gray-700 mb-1">Harga Mahasiswa UAD (Rp) <span class="text-red-500">*</span></label>
+          <input type="number" id="price_student_uad" name="price_student_uad" value="<%= isEdit ? (training?.price_student_uad || '') : '' %>" min="0" class="w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500">
+        </div>
+        <div>
+          <label for="price_employee_uad" class="block text-sm font-medium text-gray-700 mb-1">Harga Karyawan UAD (Rp) <span class="text-red-500">*</span></label>
+          <input type="number" id="price_employee_uad" name="price_employee_uad" value="<%= isEdit ? (training?.price_employee_uad || '') : '' %>" min="0" class="w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500">
+        </div>
+        <div>
+          <label for="quota" class="block text-sm font-medium text-gray-700 mb-1">Kuota Peserta <span class="text-red-500">*</span></label>
+          <input type="number" id="quota" name="quota" value="<%= isEdit ? (training?.quota || '') : '' %>" min="1" class="w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500">
+        </div>
+      </div>
+    </div>
+
+    <div class="px-6 py-4 border-t border-gray-100">
+      <h2 class="text-base font-semibold text-gray-800 mb-4">Jadwal & Status</h2>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label for="start_date" class="block text-sm font-medium text-gray-700 mb-1">Tanggal Mulai</label>
+          <input type="date" id="start_date" name="start_date" value="<%= isEdit ? (training?.start_date || '') : '' %>" class="w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500">
+        </div>
+        <div>
+          <label for="category_order" class="block text-sm font-medium text-gray-700 mb-1">Urutan Kategori</label>
+          <input type="number" id="category_order" name="category_order" value="<%= isEdit ? (training?.category_order || 99) : '99' %>" min="0" class="w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500">
+        </div>
+      </div>
+      <div class="mt-4">
+        <label for="status" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+        <select id="status" name="status" class="w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500">
+          <option value="active"  <%= isEdit && training?.status === 'active'  ? 'selected' : '' %>>Aktif</option>
+          <option value="inactive" <%= isEdit && training?.status === 'inactive' ? 'selected' : '' %>>Nonaktif</option>
+          <option value="full"     <%= isEdit && training?.status === 'full'     ? 'selected' : '' %>>Penuh</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end gap-3">
+      <a href="/admin/trainings" class="text-sm text-gray-600 hover:text-gray-800 transition-colors px-4 py-2">Batal</a>
+      <button type="submit" class="bg-navy-700 hover:bg-navy-800 text-white text-sm font-semibold px-6 py-2 rounded-lg transition-colors shadow-sm">
+        <%= isEdit ? 'Simpan Perubahan' : 'Tambah Pelatihan' %>
+      </button>
+    </div>
+  </form>
+
+</div>
+
+<%- include('../../layout/footer') %>

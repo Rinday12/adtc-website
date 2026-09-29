@@ -1,0 +1,143 @@
+<%- include('../../layout/header', { title, adminUser, currentPath }) %>
+
+<div class="max-w-2xl mx-auto">
+
+  <!-- Page Header -->
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-800"><%= title %></h1>
+      <p class="text-gray-500 text-sm mt-1">
+        <%= isEdit ? 'Ubah data berita yang sudah ada.' : 'Isi formulir untuk membuat berita baru.' %>
+      </p>
+    </div>
+    <a
+      href="/admin/news"
+      class="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-brand-500 transition-colors border border-gray-300 hover:border-blue-300 rounded-lg px-4 py-2"
+    >
+      &larr; Kembali
+    </a>
+  </div>
+
+  <!-- Validation Errors -->
+  <% if (errors && errors.length > 0) { %>
+    <div class="bg-red-50 border border-red-300 text-red-700 rounded-lg px-5 py-4 mb-6" role="alert">
+      <p class="font-semibold mb-2">Mohon perbaiki kesalahan berikut:</p>
+      <ul class="list-disc list-inside space-y-1 text-sm">
+        <% errors.forEach(function(err) { %>
+          <li><%= err %></li>
+        <% }) %>
+      </ul>
+    </div>
+  <% } %>
+
+  <!-- Form -->
+  <form
+    method="POST"
+    enctype="multipart/form-data"
+    action="<%= isEdit ? '/admin/news/' + news.id + '/update' : '/admin/news' %>"
+    class="bg-white rounded-xl border border-gray-200 shadow-sm p-6 space-y-6"
+  >
+
+    <!-- Judul -->
+    <div>
+      <label for="title" class="block text-sm font-medium text-gray-700 mb-1">
+        Judul Berita <span class="text-red-500">*</span>
+      </label>
+      <input
+        type="text"
+        id="title"
+        name="title"
+        required
+        value="<%= isEdit && news ? news.title : '' %>"
+        placeholder="Masukkan judul berita..."
+        class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition"
+      />
+    </div>
+
+    <!-- Konten -->
+    <div>
+      <label for="content" class="block text-sm font-medium text-gray-700 mb-1">
+        Konten <span class="text-red-500">*</span>
+      </label>
+      <textarea
+        id="content"
+        name="content"
+        required
+        rows="10"
+        placeholder="Tulis konten berita di sini..."
+        class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition resize-y"
+      ><%= isEdit && news ? news.content : '' %></textarea>
+    </div>
+
+    <!-- Tanggal Publikasi -->
+    <div>
+      <label for="published_at" class="block text-sm font-medium text-gray-700 mb-1">
+        Tanggal Publikasi <span class="text-red-500">*</span>
+      </label>
+      <input
+        type="date"
+        id="published_at"
+        name="published_at"
+        required
+        value="<%= isEdit && news && news.published_at ? new Date(news.published_at).toISOString().split('T')[0] : '' %>"
+        class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition"
+      />
+    </div>
+
+    <!-- Gambar Berita -->
+    <div>
+      <label for="news_image" class="block text-sm font-medium text-gray-700 mb-1">
+        Gambar Berita <span class="text-gray-400 font-normal">(opsional, JPG/PNG/WebP, maks 5MB)</span>
+      </label>
+
+      <% if (isEdit && news && news.image_path) { %>
+        <!-- Preview gambar saat ini -->
+        <div class="mb-3">
+          <p class="text-xs text-gray-500 mb-2">Gambar saat ini:</p>
+          <img
+            src="/<%= news.image_path %>"
+            alt="Gambar berita saat ini"
+            class="w-48 h-32 object-cover rounded-lg border border-gray-200 shadow-sm"
+          />
+          <p class="text-xs text-gray-400 mt-1">Upload file baru untuk mengganti gambar di atas.</p>
+        </div>
+      <% } %>
+
+      <input
+        type="file"
+        id="news_image"
+        name="news_image"
+        accept="image/jpeg,image/jpg,image/png,image/webp"
+        class="block w-full text-sm text-gray-600
+          file:mr-4 file:py-2 file:px-4
+          file:rounded-lg file:border-0
+          file:text-sm file:font-medium
+          file:bg-blue-50 file:text-navy-700
+          hover:file:bg-blue-100 transition"
+      />
+    </div>
+
+    <!-- Actions -->
+    <div class="flex items-center gap-4 pt-2 border-t border-gray-100">
+      <button
+        type="submit"
+        class="inline-flex items-center gap-2 bg-navy-700 hover:bg-navy-700 text-white text-sm font-medium px-6 py-2.5 rounded-lg transition-colors shadow-sm"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+        </svg>
+        <%= isEdit ? 'Simpan Perubahan' : 'Buat Berita' %>
+      </button>
+      <a
+        href="/admin/news"
+        class="text-sm text-gray-500 hover:text-gray-700 hover:underline transition-colors"
+      >
+        Batal
+      </a>
+    </div>
+
+  </form>
+
+</div>
+
+<%- include('../../layout/footer') %>

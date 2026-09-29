@@ -1,0 +1,179 @@
+<%- include('../layout/header') %>
+
+<%
+  const fmt = new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    minimumFractionDigits: 0
+  });
+
+  const startDate = training.start_date ? new Date(training.start_date) : null;
+  const formattedDate = startDate
+    ? startDate.toLocaleDateString('id-ID', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      })
+    : 'Belum ditentukan';
+%>
+
+<div class="max-w-3xl mx-auto">
+
+  <!-- Back link -->
+  <a href="/trainings" class="inline-flex items-center gap-1 text-brand-500 hover:text-navy-800 text-sm mb-6 transition-colors">
+    <span aria-hidden="true">&#8592;</span>
+    <span>Kembali ke Katalog</span>
+  </a>
+
+  <!-- Training Card -->
+  <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+
+    <!-- Cover Image -->
+    <% if (training.cover_image) { %>
+      <div class="h-64 overflow-hidden">
+        <img src="/<%= training.cover_image %>" alt="<%= training.title %>" class="w-full h-full object-cover">
+      </div>
+    <% } else { %>
+      <div class="h-48 bg-navy-700 flex items-center justify-center">
+        <span class="text-white/60 text-sm font-medium uppercase tracking-widest"><%= training.category %></span>
+      </div>
+    <% } %>
+
+    <!-- Header -->
+    <div class="px-8 py-6">
+      <h1 class="text-2xl md:text-3xl font-bold text-gray-900 leading-snug mb-3">
+        <%= training.title %>
+      </h1>
+      <% if (training.status === 'full') { %>
+        <span class="inline-block bg-red-500 text-white text-xs font-semibold px-3 py-1 rounded-full">
+          Kuota Penuh
+        </span>
+      <% } else if (training.status === 'inactive') { %>
+        <span class="inline-block bg-gray-400 text-white text-xs font-semibold px-3 py-1 rounded-full">
+          Tidak Aktif
+        </span>
+      <% } else { %>
+        <span class="inline-block bg-green-400 text-white text-xs font-semibold px-3 py-1 rounded-full">
+          Pendaftaran Dibuka
+        </span>
+      <% } %>
+    </div>
+
+    <div class="px-8 py-6 space-y-8">
+
+      <!-- Deskripsi -->
+      <section aria-labelledby="desc-heading">
+        <h2 id="desc-heading" class="text-lg font-semibold text-gray-800 mb-2">Deskripsi Pelatihan</h2>
+        <p class="text-gray-600 leading-relaxed whitespace-pre-line">
+          <%= training.description || 'Tidak ada deskripsi tersedia.' %>
+        </p>
+      </section>
+
+      <hr class="border-gray-100" />
+
+      <!-- Jadwal & Kuota -->
+      <section aria-label="Info jadwal dan kuota" class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div class="flex items-start gap-3">
+          <div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-brand-500 text-lg" aria-hidden="true">
+            📅
+          </div>
+          <div>
+            <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-0.5">Jadwal Mulai</p>
+            <p class="text-gray-800 font-semibold"><%= formattedDate %></p>
+          </div>
+        </div>
+
+        <div class="flex items-start gap-3">
+          <div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-brand-500 text-lg" aria-hidden="true">
+            👥
+          </div>
+          <div>
+            <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-0.5">Kuota Peserta</p>
+            <p class="text-gray-800 font-semibold">
+              <%= (training.registered_count || 0) %> / <%= training.quota %> orang
+            </p>
+            <% if ((training.registered_count || 0) >= training.quota) { %>
+              <p class="text-xs text-red-600 mt-1">Kuota Penuh</p>
+            <% } else { %>
+              <p class="text-xs text-green-600 mt-1">Tersisa <%= training.quota - (training.registered_count || 0) %> slot</p>
+            <% } %>
+          </div>
+        </div>
+      </section>
+
+      <hr class="border-gray-100" />
+
+      <!-- Biaya Pendaftaran -->
+      <section aria-labelledby="price-heading">
+        <h2 id="price-heading" class="text-lg font-semibold text-gray-800 mb-4">Biaya Pendaftaran</h2>
+        <div class="rounded-xl border border-gray-200 overflow-hidden">
+          <table class="w-full text-sm">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-5 py-3 text-left font-semibold text-gray-600" scope="col">Kategori Peserta</th>
+                <th class="px-5 py-3 text-right font-semibold text-gray-600" scope="col">Biaya</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+              <tr class="hover:bg-gray-50 transition-colors">
+                <td class="px-5 py-4 text-gray-700">Umum</td>
+                <td class="px-5 py-4 text-right font-semibold text-gray-800">
+                  <%= training.price_general != null ? fmt.format(training.price_general) : '-' %>
+                </td>
+              </tr>
+              <tr class="hover:bg-gray-50 transition-colors">
+                <td class="px-5 py-4 text-gray-700">
+                  Mahasiswa UAD
+                  <span class="ml-1 inline-block bg-blue-100 text-navy-700 text-xs font-medium px-2 py-0.5 rounded-full">KTM wajib</span>
+                </td>
+                <td class="px-5 py-4 text-right font-semibold text-gray-800">
+                  <%= training.price_student_uad != null ? fmt.format(training.price_student_uad) : '-' %>
+                </td>
+              </tr>
+              <tr class="hover:bg-gray-50 transition-colors">
+                <td class="px-5 py-4 text-gray-700">
+                  Karyawan UAD
+                  <span class="ml-1 inline-block bg-purple-100 text-purple-700 text-xs font-medium px-2 py-0.5 rounded-full">ID Card wajib</span>
+                </td>
+                <td class="px-5 py-4 text-right font-semibold text-gray-800">
+                  <%= training.price_employee_uad != null ? fmt.format(training.price_employee_uad) : '-' %>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="mt-2 text-xs text-gray-400">* Mahasiswa dan karyawan UAD wajib mengunggah dokumen identitas saat pendaftaran.</p>
+      </section>
+
+      <!-- CTA -->
+      <div class="flex flex-col sm:flex-row items-center gap-4 pt-2">
+        <% if (training.status === 'active' && (training.registered_count || 0) < training.quota) { %>
+          <a
+            href="/trainings/<%= training.slug %>/register"
+            class="w-full sm:w-auto inline-flex justify-center items-center gap-2 bg-brand-500 hover:bg-navy-700 active:bg-brand-700 text-white font-semibold px-8 py-3 rounded-xl shadow-sm transition-colors text-base"
+          >
+            Daftar Sekarang
+            <span aria-hidden="true">&#8594;</span>
+          </a>
+        <% } else { %>
+          <button
+            disabled
+            aria-disabled="true"
+            class="w-full sm:w-auto inline-flex justify-center items-center gap-2 bg-gray-300 text-gray-500 font-semibold px-8 py-3 rounded-xl cursor-not-allowed text-base"
+          >
+            <% if (training.status === 'inactive') { %>Pendaftaran Ditutup<% } else { %>Kuota Penuh<% } %>
+          </button>
+        <% } %>
+
+        <a href="/trainings" class="text-sm text-gray-500 hover:text-gray-700 transition-colors">
+          <span aria-hidden="true">&#8592;</span> Kembali ke Katalog
+        </a>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<%- include('../layout/footer') %>

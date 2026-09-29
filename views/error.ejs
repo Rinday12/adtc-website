@@ -1,0 +1,66 @@
+<%- include('./layout/header', { title: code + ' - ' + message }) %>
+
+<div class="max-w-lg mx-auto text-center py-16">
+
+  <!-- Error code -->
+  <div class="text-8xl font-extrabold text-gray-200 leading-none select-none" aria-hidden="true">
+    <%= code %>
+  </div>
+
+  <!-- Icon -->
+  <div class="mt-4 flex justify-center">
+    <% if (code === 404) { %>
+      <svg class="w-16 h-16 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+          d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    <% } else { %>
+      <svg class="w-16 h-16 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+          d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+      </svg>
+    <% } %>
+  </div>
+
+  <!-- Heading -->
+  <h1 class="mt-4 text-2xl font-bold text-gray-800">
+    <% if (code === 404) { %>
+      Halaman Tidak Ditemukan
+    <% } else if (code === 500) { %>
+      Terjadi Kesalahan Server
+    <% } else { %>
+      Terjadi Kesalahan
+    <% } %>
+  </h1>
+
+  <!-- User-friendly message — no technical details -->
+  <p class="mt-3 text-gray-600 text-sm leading-relaxed">
+    <%= message %>
+  </p>
+
+  <!-- Navigation links -->
+  <div class="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
+    <a
+      href="/trainings"
+      class="inline-flex items-center gap-2 bg-brand-500 hover:bg-navy-700 text-white font-medium px-5 py-2.5 rounded-lg transition-colors text-sm"
+    >
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7m-9 5v6" />
+      </svg>
+      Ke Katalog Pelatihan
+    </a>
+
+    <button
+      onclick="history.back()"
+      class="inline-flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-700 font-medium px-5 py-2.5 rounded-lg border border-gray-300 transition-colors text-sm"
+    >
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+      </svg>
+      Kembali
+    </button>
+  </div>
+
+</div>
+
+<%- include('./layout/footer') %>

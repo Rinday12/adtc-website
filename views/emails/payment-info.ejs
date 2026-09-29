@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Informasi Pembayaran - ADTC</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f3f4f6; font-family: Arial, sans-serif;">
+  <table role="presentation" style="width: 100%; max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+    <!-- Header -->
+    <tr>
+      <td style="background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%); padding: 30px; text-align: center;">
+        <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: bold;">PT. Adi Multi Teknologi</h1>
+        <p style="margin: 5px 0 0; color: #f97316; font-size: 14px;">Ahmad Dahlan Training Center</p>
+      </td>
+    </tr>
+
+    <!-- Content -->
+    <tr>
+      <td style="padding: 30px;">
+        <h2 style="color: #1e3a8a; margin-top: 0;">Informasi Pembayaran</h2>
+
+        <p style="color: #4b5563; line-height: 1.6;">
+          Halo <strong><%= registration.full_name %></strong>,
+        </p>
+
+        <p style="color: #4b5563; line-height: 1.6;">
+          Pendaftaran Anda untuk program <strong><%= registration.training_title %></strong> telah disetujui.
+          Berikut adalah informasi rekening untuk pembayaran:
+        </p>
+
+        <!-- Bank Info Box -->
+        <div style="background-color: #eff6ff; border: 2px solid #3b82f6; border-radius: 12px; padding: 20px; margin: 20px 0;">
+          <table role="presentation" style="width: 100%;">
+            <tr>
+              <td style="padding: 8px 0; color: #6b7280; font-size: 14px; width: 120px;">Kode Referensi</td>
+              <td style="padding: 8px 0;"><span style="color: #1e3a8a; font-size: 16px; font-weight: bold; font-family: monospace; background-color: #dbeafe; padding: 4px 10px; border-radius: 6px;"><%= registration.reference_code %></span></td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; color: #6b7280; font-size: 14px;">Bank</td>
+              <td style="padding: 8px 0; color: #1e3a8a; font-size: 14px; font-weight: 600;"><%= bankAccount.bankName %></td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; color: #6b7280; font-size: 14px;">No. Rekening</td>
+              <td style="padding: 8px 0; color: #1e3a8a; font-size: 18px; font-weight: bold; font-family: monospace;"><%= bankAccount.accountNumber %></td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; color: #6b7280; font-size: 14px;">Atas Nama</td>
+              <td style="padding: 8px 0; color: #1e3a8a; font-size: 14px; font-weight: 600;"><%= bankAccount.accountName %></td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; color: #6b7280; font-size: 14px;">Total Tagihan</td>
+              <td style="padding: 8px 0; color: #f97316; font-size: 20px; font-weight: bold;"><%= fmt.format(registration.final_price) %></td>
+            </tr>
+          </table>
+        </div>
+
+        <div style="background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; margin: 20px 0;">
+          <p style="margin: 0; color: #92400e; font-size: 14px;">
+            <strong>Penting:</strong> Saat melakukan transfer, cantumkan <strong>kode referensi <%= registration.reference_code %></strong> sebagai keterangan. Transfer sesuai nominal <strong><%= fmt.format(registration.final_price) %></strong> ke rekening di atas, lalu klik tombol di bawah untuk mengunggah bukti pembayaran.
+          </p>
+        </div>
+
+        <p style="color: #4b5563; line-height: 1.6;">
+          Jika Anda memiliki pertanyaan, silakan hubungi admin kami melalui WhatsApp.
+        </p>
+
+        <!-- CTA Button -->
+        <table role="presentation" style="margin: 25px 0;">
+          <tr>
+            <td style="text-align: center;">
+              <a href="<%= process.env.BASE_URL %>/registrations/<%= registration.id %>/payment"
+                 style="background-color: #f97316; color: #ffffff; padding: 14px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
+                Upload Bukti Pembayaran
+              </a>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+
+    <!-- Footer -->
+    <tr>
+      <td style="background-color: #1e3a8a; padding: 20px; text-align: center;">
+        <p style="margin: 0; color: #ffffff; font-size: 14px;">
+          &copy; 2026 PT. Adi Multi Teknologi — Ahmad Dahlan Training Center
+        </p>
+        <p style="margin: 10px 0 0; color: #94a3b8; font-size: 12px;">
+          Yogyakarta, Indonesia | info@adtc.id
+        </p>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

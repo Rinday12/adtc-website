@@ -1,0 +1,410 @@
+<%- include('../layout/header', { title }) %>
+
+<div class="max-w-6xl mx-auto">
+
+  <!-- Page Header -->
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-800">Dashboard Admin</h1>
+      <p class="text-gray-500 text-sm mt-1">Manajemen pendaftaran peserta pelatihan</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button
+        type="button"
+        onclick="window.location.reload()"
+        class="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-green-700 transition-colors border border-gray-300 hover:border-green-400 rounded-lg px-4 py-2"
+        title="Muat ulang data"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        </svg>
+        Refresh
+      </button>
+      <a
+        href="/admin/logout"
+        class="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-red-600 transition-colors border border-gray-300 hover:border-red-300 rounded-lg px-4 py-2"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+        </svg>
+        Logout
+      </a>
+    </div>
+  </div>
+
+  <!-- Manajemen Konten -->
+  <div class="mb-6">
+    <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Manajemen Konten</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+      <!-- Card: Manajemen Berita -->
+      <a
+        href="/admin/news"
+        class="flex items-center gap-4 bg-white border border-gray-200 rounded-xl px-5 py-4 shadow-sm hover:border-blue-400 hover:shadow-md transition-all group"
+      >
+        <div class="flex-shrink-0 w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center group-hover:bg-orange-100 transition-colors">
+          <svg class="w-5 h-5 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10l6 6v8a2 2 0 01-2 2zM9 12h6M9 16h4" />
+          </svg>
+        </div>
+        <div>
+          <p class="text-sm font-semibold text-gray-800 group-hover:text-navy-700 transition-colors">Manajemen Berita</p>
+          <p class="text-xs text-gray-500 mt-0.5">Kelola artikel dan aktivitas ADTC</p>
+        </div>
+        <svg class="w-4 h-4 text-gray-400 ml-auto group-hover:text-blue-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        </svg>
+      </a>
+
+      <!-- Card: Manajemen Pelatihan -->
+      <a
+        href="/admin/trainings"
+        class="flex items-center gap-4 bg-white border border-gray-200 rounded-xl px-5 py-4 shadow-sm hover:border-blue-400 hover:shadow-md transition-all group"
+      >
+        <div class="flex-shrink-0 w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center group-hover:bg-orange-100 transition-colors">
+          <svg class="w-5 h-5 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+          </svg>
+        </div>
+        <div>
+          <p class="text-sm font-semibold text-gray-800 group-hover:text-navy-700 transition-colors">Manajemen Pelatihan</p>
+          <p class="text-xs text-gray-500 mt-0.5">Kelola program pelatihan & grup WhatsApp peserta</p>
+        </div>
+        <svg class="w-4 h-4 text-gray-400 ml-auto group-hover:text-blue-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        </svg>
+      </a>
+
+      <!-- Card: Manajemen Benefit -->
+      <a
+        href="/admin/benefits"
+        class="flex items-center gap-4 bg-white border border-gray-200 rounded-xl px-5 py-4 shadow-sm hover:border-blue-400 hover:shadow-md transition-all group"
+      >
+        <div class="flex-shrink-0 w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center group-hover:bg-orange-100 transition-colors">
+          <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+          </svg>
+        </div>
+        <div>
+          <p class="text-sm font-semibold text-gray-800 group-hover:text-navy-700 transition-colors">Manajemen Benefit</p>
+          <p class="text-xs text-gray-500 mt-0.5">Kelola keunggulan dan benefit ADTC</p>
+        </div>
+        <svg class="w-4 h-4 text-gray-400 ml-auto group-hover:text-orange-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        </svg>
+      </a>
+
+      <!-- Card: Download Data Peserta -->
+      <a
+        href="/admin/registrations/export"
+        class="flex items-center gap-4 bg-white border border-gray-200 rounded-xl px-5 py-4 shadow-sm hover:border-green-400 hover:shadow-md transition-all group"
+      >
+        <div class="flex-shrink-0 w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center group-hover:bg-green-100 transition-colors">
+          <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+        </div>
+        <div>
+          <p class="text-sm font-semibold text-gray-800 group-hover:text-navy-700 transition-colors">Download Data Peserta</p>
+          <p class="text-xs text-gray-500 mt-0.5">Export Excel peserta terverifikasi per kategori pelatihan</p>
+        </div>
+        <svg class="w-4 h-4 text-gray-400 ml-auto group-hover:text-green-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        </svg>
+      </a>
+
+    </div>
+  </div>
+
+  <!-- Search & Filter -->
+  <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4 mb-6">
+    <form method="GET" action="/admin/dashboard" class="flex flex-col sm:flex-row gap-3">
+      <!-- Status Filter -->
+      <select name="status" class="sm:w-40 rounded-lg border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
+        <option value="all" <%= activeFilter === 'all' ? 'selected' : '' %>>Semua Status</option>
+        <option value="pending" <%= activeFilter === 'pending' ? 'selected' : '' %>>Pending</option>
+        <option value="approved" <%= activeFilter === 'approved' ? 'selected' : '' %>>Disetujui</option>
+        <option value="payment_uploaded" <%= activeFilter === 'payment_uploaded' ? 'selected' : '' %>>Bukti Terkirim</option>
+        <option value="verified" <%= activeFilter === 'verified' ? 'selected' : '' %>>Verified</option>
+        <option value="rejected" <%= activeFilter === 'rejected' ? 'selected' : '' %>>Ditolak</option>
+      </select>
+
+      <!-- Name Search -->
+      <div class="flex-1 relative">
+        <input type="text" name="search" value="<%= filters.search %>" placeholder="Cari nama peserta..."
+          class="w-full rounded-lg border-gray-300 pl-10 text-sm focus:border-brand-500 focus:ring-brand-500">
+        <svg class="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        </svg>
+      </div>
+
+      <!-- Training Search -->
+      <div class="flex-1 relative">
+        <input type="text" name="training_search" value="<%= filters.training_search %>" placeholder="Cari jenis/nama pelatihan..."
+          class="w-full rounded-lg border-gray-300 pl-10 text-sm focus:border-brand-500 focus:ring-brand-500">
+        <svg class="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+        </svg>
+      </div>
+
+      <!-- Buttons -->
+      <div class="flex gap-2">
+        <button type="submit" class="flex-1 sm:flex-none bg-navy-700 hover:bg-navy-800 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
+          Terapkan
+        </button>
+        <a href="/admin/dashboard" class="flex-1 sm:flex-none px-4 py-2 text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg transition-colors text-center">
+          Reset
+        </a>
+      </div>
+    </form>
+  </div>
+
+  <!-- Registrations Table -->
+  <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+    <% if (registrations && registrations.length > 0) { %>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm text-left min-w-[800px]">
+          <thead class="bg-gray-50 border-b border-gray-200 text-gray-600 uppercase text-xs tracking-wide">
+            <tr>
+              <th class="px-5 py-3 font-semibold">Nama Peserta</th>
+              <th class="px-5 py-3 font-semibold">Kode Ref</th>
+              <th class="px-5 py-3 font-semibold">Pelatihan</th>
+              <th class="px-5 py-3 font-semibold">Kategori</th>
+              <th class="px-5 py-3 font-semibold">Tagihan</th>
+              <th class="px-5 py-3 font-semibold">Status</th>
+              <th class="px-5 py-3 font-semibold">Tanggal</th>
+              <th class="px-5 py-3 font-semibold sr-only">Aksi</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+            <% registrations.forEach(function(reg) { %>
+              <tr class="hover:bg-gray-50 transition-colors">
+
+                <!-- Nama Peserta -->
+                <td class="px-5 py-4 font-medium text-gray-900 max-w-[200px]">
+                  <span class="block truncate" title="<%= reg.full_name %>"><%= reg.full_name %></span>
+                </td>
+
+                <!-- Kode Referensi -->
+                <td class="px-5 py-4">
+                  <span class="font-mono text-xs font-semibold text-brand-600 bg-brand-50 px-2 py-1 rounded border border-brand-200" title="Gunakan kode ini saat transfer">
+                    <%= reg.reference_code %>
+                  </span>
+                </td>
+
+                <!-- Nama Training -->
+                <td class="px-5 py-4 text-gray-700 max-w-[200px]">
+                  <span class="block truncate" title="<%= reg.training_title %>"><%= reg.training_title %></span>
+                </td>
+
+                <!-- Kategori -->
+                <td class="px-5 py-4 text-gray-700">
+                  <%
+                    const categoryLabels = {
+                      'umum':          'Umum',
+                      'mahasiswa_uad': 'Mahasiswa',
+                      'karyawan_uad':  'Karyawan'
+                    }
+                  %>
+                  <%= categoryLabels[reg.category] || reg.category %>
+                </td>
+
+                <!-- Final Price -->
+                <td class="px-5 py-4 font-medium text-navy-700 whitespace-nowrap">
+                  <%= reg.final_price.toLocaleString('id-ID') %>
+                </td>
+
+                <!-- Status Badge -->
+                <td class="px-5 py-4">
+                  <%
+                    const statusConfig = {
+                      pending:            { label: 'Pending',       cls: 'bg-yellow-100 text-yellow-800 border-yellow-200' },
+                      approved:           { label: 'Disetujui',     cls: 'bg-blue-100 text-blue-800 border-blue-200' },
+                      payment_uploaded:   { label: 'Bukti Terkirim', cls: 'bg-orange-100 text-orange-800 border-orange-200' },
+                      verified:           { label: 'Verified',      cls: 'bg-green-100 text-green-800 border-green-200' },
+                      rejected:           { label: 'Ditolak',       cls: 'bg-red-100 text-red-800 border-red-200' }
+                    }
+                    const sc = statusConfig[reg.status] || { label: reg.status, cls: 'bg-gray-100 text-gray-700 border-gray-200' }
+                  %>
+                  <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold border <%= sc.cls %>">
+                    <%= sc.label %>
+                  </span>
+                </td>
+
+                <!-- Tanggal Daftar -->
+                <td class="px-5 py-4 text-gray-500 whitespace-nowrap">
+                  <%= new Date(reg.created_at).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) %>
+                </td>
+
+                <!-- Action Buttons -->
+                <td class="px-5 py-4">
+                  <% if (reg.status === 'pending') {
+                    const identityCardUrl = reg.identity_card_proof ? '/' + reg.identity_card_proof.replace(/\\/g, '/') : null;
+                  %>
+                    <div class="flex flex-col gap-1">
+                      <% if (identityCardUrl) { %>
+                        <a href="/admin/registrations/<%= reg.id %>" class="block mb-1" title="Lihat KTM/ID Card">
+                          <img src="<%= identityCardUrl %>" alt="KTM" class="w-12 h-8 object-cover rounded border border-gray-200 hover:opacity-80" />
+                        </a>
+                      <% } %>
+                      <div class="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onclick="showApproveModal(<%= reg.id %>, <%= identityCardUrl ? 'true' : 'false' %>)"
+                          class="text-green-600 hover:text-green-700 hover:bg-green-50 p-1.5 rounded transition-colors"
+                          title="Approve"
+                        >
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        </button>
+                        <button type="button" onclick="toggleRejectForm(<%= reg.id %>)" class="text-red-500 hover:text-red-600 hover:bg-red-50 p-1.5 rounded transition-colors" title="Tolak">
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                      </div>
+                      <% if (identityCardUrl) { %>
+                        <span class="text-xs text-yellow-600">⚠️ Cek KTM</span>
+                      <% } %>
+                    </div>
+                    <!-- Approve Modal -->
+                    <div id="approve-modal-<%= reg.id %>" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                      <div class="bg-white rounded-xl p-6 max-w-sm w-full mx-4 shadow-xl">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Konfirmasi Approve</h3>
+                        <% if (identityCardUrl) { %>
+                          <div class="mb-4">
+                            <p class="text-sm text-gray-600 mb-2">Preview KTM/ID Card:</p>
+                            <img src="<%= identityCardUrl %>" alt="KTM" class="w-full rounded-lg border border-gray-200" />
+                            <label class="flex items-start gap-2 mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg cursor-pointer">
+                              <input type="checkbox" id="ktm-check-<%= reg.id %>" class="mt-0.5 w-4 h-4 text-green-600 border-gray-300 rounded" required>
+                              <span class="text-sm text-yellow-800">Saya telah memeriksa KTM/ID Card peserta.</span>
+                            </label>
+                          </div>
+                        <% } %>
+                        <div class="flex gap-2 justify-end">
+                          <button onclick="closeApproveModal(<%= reg.id %>)" class="px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 rounded-lg">Batal</button>
+                          <button onclick="confirmApprove(<%= reg.id %>)" id="approve-confirm-btn-<%= reg.id %>" disabled class="px-3 py-1.5 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed">Approve</button>
+                        </div>
+                      </div>
+                    </div>
+                    <div id="reject-form-inline-<%= reg.id %>" class="hidden mt-1">
+                      <form method="POST" action="/admin/registrations/<%= reg.id %>/reject" class="flex gap-1">
+                        <input type="text" name="rejection_reason" placeholder="Alasan (opsional)" class="text-xs border border-gray-300 rounded px-2 py-1 w-32" />
+                        <button type="submit" class="text-xs bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700">Konfirmasi</button>
+                        <button type="button" onclick="toggleRejectForm(<%= reg.id %>)" class="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded hover:bg-gray-300">Batal</button>
+                      </form>
+                    </div>
+                  <% } else if (reg.status === 'payment_uploaded') { %>
+                    <div class="flex flex-col gap-2">
+                      <% if (reg.payment_proof) { %>
+                        <a href="/<%= reg.payment_proof.replace(/\\/g, '/') %>" target="_blank" class="block" title="Lihat bukti pembayaran">
+                          <img src="/<%= reg.payment_proof.replace(/\\/g, '/') %>" alt="Bukti" class="w-16 h-12 object-cover rounded border border-gray-200 hover:opacity-80 transition-opacity" />
+                        </a>
+                      <% } %>
+                      <div class="flex items-center gap-2">
+                        <form method="POST" action="/admin/registrations/<%= reg.id %>/verify" onsubmit="return confirm('Verifikasi pembayaran <%= reg.full_name %>?')">
+                          <button type="submit" class="text-green-600 hover:text-green-700 hover:bg-green-50 p-1.5 rounded transition-colors" title="Verifikasi">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                          </button>
+                        </form>
+                        <button type="button" onclick="toggleRejectForm(<%= reg.id %>)" class="text-red-500 hover:text-red-600 hover:bg-red-50 p-1.5 rounded transition-colors" title="Tolak">
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                      </div>
+                    </div>
+                    <div id="reject-form-inline-<%= reg.id %>" class="hidden mt-1">
+                      <form method="POST" action="/admin/registrations/<%= reg.id %>/reject-payment" class="flex gap-1">
+                        <input type="text" name="rejection_reason" placeholder="Alasan (opsional)" class="text-xs border border-gray-300 rounded px-2 py-1 w-32" />
+                        <button type="submit" class="text-xs bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700">Konfirmasi</button>
+                        <button type="button" onclick="toggleRejectForm(<%= reg.id %>)" class="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded hover:bg-gray-300">Batal</button>
+                      </form>
+                    </div>
+                  <% } else { %>
+                    <a href="/admin/registrations/<%= reg.id %>" class="text-brand-500 hover:text-navy-800 hover:underline font-medium text-sm">
+                      Detail
+                    </a>
+                  <% } %>
+                </td>
+
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Row count summary -->
+      <div class="px-5 py-3 bg-gray-50 border-t border-gray-200 text-xs text-gray-500 flex justify-between items-center">
+        <span>Menampilkan <span class="font-medium text-gray-700"><%= registrations.length %></span> pendaftaran</span>
+        <% if (filters.search || filters.training_search || activeFilter !== 'all') { %>
+          <a href="/admin/dashboard" class="text-brand-600 hover:underline">Hapus filter</a>
+        <% } %>
+      </div>
+
+    <% } else { %>
+      <!-- Empty State -->
+      <div class="flex flex-col items-center justify-center py-16 px-4 text-center">
+        <svg class="w-14 h-14 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        <p class="text-gray-500 font-medium">
+          <% if (activeFilter !== 'all' || filters.search || filters.training_search) { %>
+            Tidak ada pendaftaran yang cocok dengan filter.
+          <% } else { %>
+            Belum ada pendaftaran masuk.
+          <% } %>
+        </p>
+        <% if (filters.search || filters.training_search || activeFilter !== 'all') { %>
+          <a href="/admin/dashboard" class="mt-3 text-sm text-brand-500 hover:underline">Tampilkan semua</a>
+        <% } %>
+      </div>
+    <% } %>
+  </div>
+
+</div>
+
+<script>
+  function toggleRejectForm(id) {
+    const form = document.getElementById('reject-form-inline-' + id);
+    if (form) form.classList.toggle('hidden');
+  }
+
+  function showApproveModal(id, hasKtm) {
+    const modal = document.getElementById('approve-modal-' + id);
+    if (modal) {
+      modal.classList.remove('hidden');
+      const btn = document.getElementById('approve-confirm-btn-' + id);
+      if (!hasKtm) {
+        if (btn) btn.disabled = false;
+      } else {
+        const checkbox = document.getElementById('ktm-check-' + id);
+        if (checkbox && btn) {
+          checkbox.onchange = function() {
+            btn.disabled = !this.checked;
+          };
+        }
+      }
+    }
+  }
+
+  function closeApproveModal(id) {
+    const modal = document.getElementById('approve-modal-' + id);
+    if (modal) modal.classList.add('hidden');
+  }
+
+  function confirmApprove(id) {
+    const checkbox = document.getElementById('ktm-check-' + id);
+    if (checkbox && !checkbox.checked) {
+      alert('Anda wajib mencentang kotak konfirmasi bahwa telah memeriksa KTM/ID Card peserta.');
+      return;
+    }
+    document.getElementById('approve-form-' + id)?.submit() || fetch('/admin/registrations/' + id + '/approve', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: 'verify_ktm=true'
+    }).then(r => window.location.reload());
+  }
+</script>
+
+<%- include('../layout/footer') %>

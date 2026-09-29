@@ -1,0 +1,889 @@
+{
+  "pbtResults": {
+    "5.2 Tulis property test untuk generateWhatsAppUrl (Property 3)": {
+      "status": "passed",
+      "lastRunTimestamp": 1789545553130
+    },
+    "7.4 Tulis property test untuk validateRegistrationInput (Property 5 & 6)": {
+      "status": "passed",
+      "lastRunTimestamp": 1789545776718
+    },
+    "7.3 Tulis property test untuk calculateFinalPrice (Property 1)": {
+      "status": "passed",
+      "lastRunTimestamp": 1789545894504
+    },
+    "4.3 Tulis property test untuk fileFilter (Property 7)": {
+      "status": "passed",
+      "lastRunTimestamp": 1789545928800
+    }
+  },
+  "executionHistory": {
+    "1. Setup proyek dan struktur direktori": [
+      {
+        "executionId": "c5970f88-541a-4979-ae3a-68e3f2ec6258",
+        "chatSessionId": "sess_f5b97c5b-45f8-403a-91dc-50d0f2bca420",
+        "timestamp": 1789369014017
+      },
+      {
+        "executionId": "c5970f88-541a-4979-ae3a-68e3f2ec6258",
+        "chatSessionId": "sess_f5b97c5b-45f8-403a-91dc-50d0f2bca420",
+        "timestamp": 1789369031923
+      },
+      {
+        "executionId": "31cbf3b0-51d1-45cd-a22f-f63d50c69cc3",
+        "chatSessionId": "sess_359f948c-ebbd-4546-9c31-92224cd905ed",
+        "timestamp": 1789372010292
+      }
+    ],
+    "2.1 Buat modul koneksi database `config/db.js`": [
+      {
+        "executionId": "c5970f88-541a-4979-ae3a-68e3f2ec6258",
+        "chatSessionId": "sess_f5b97c5b-45f8-403a-91dc-50d0f2bca420",
+        "timestamp": 1789369014152
+      },
+      {
+        "executionId": "c5970f88-541a-4979-ae3a-68e3f2ec6258",
+        "chatSessionId": "sess_f5b97c5b-45f8-403a-91dc-50d0f2bca420",
+        "timestamp": 1789369032271
+      },
+      {
+        "executionId": "31cbf3b0-51d1-45cd-a22f-f63d50c69cc3",
+        "chatSessionId": "sess_359f948c-ebbd-4546-9c31-92224cd905ed",
+        "timestamp": 1789372016689
+      }
+    ],
+    "2.2 Buat file skema SQL `config/schema.sql`": [
+      {
+        "executionId": "c5970f88-541a-4979-ae3a-68e3f2ec6258",
+        "chatSessionId": "sess_f5b97c5b-45f8-403a-91dc-50d0f2bca420",
+        "timestamp": 1789369014247
+      },
+      {
+        "executionId": "c5970f88-541a-4979-ae3a-68e3f2ec6258",
+        "chatSessionId": "sess_f5b97c5b-45f8-403a-91dc-50d0f2bca420",
+        "timestamp": 1789369032644
+      },
+      {
+        "executionId": "31cbf3b0-51d1-45cd-a22f-f63d50c69cc3",
+        "chatSessionId": "sess_359f948c-ebbd-4546-9c31-92224cd905ed",
+        "timestamp": 1789372021082
+      }
+    ],
+    "3.1 Buat `models/Training.js`": [
+      {
+        "executionId": "c5970f88-541a-4979-ae3a-68e3f2ec6258",
+        "chatSessionId": "sess_f5b97c5b-45f8-403a-91dc-50d0f2bca420",
+        "timestamp": 1789369014320
+      },
+      {
+        "executionId": "57b5437e-27f8-4357-a7c9-cc251ada4f1a",
+        "chatSessionId": "sess_02d35ec9-ada8-4485-8c0c-5ad3877b9315",
+        "timestamp": 1789370242173
+      },
+      {
+        "executionId": "57b5437e-27f8-4357-a7c9-cc251ada4f1a",
+        "chatSessionId": "sess_02d35ec9-ada8-4485-8c0c-5ad3877b9315",
+        "timestamp": 1789370329590
+      }
+    ],
+    "3.2 Buat `models/Registration.js`": [
+      {
+        "executionId": "c5970f88-541a-4979-ae3a-68e3f2ec6258",
+        "chatSessionId": "sess_f5b97c5b-45f8-403a-91dc-50d0f2bca420",
+        "timestamp": 1789369014368
+      },
+      {
+        "executionId": "57b5437e-27f8-4357-a7c9-cc251ada4f1a",
+        "chatSessionId": "sess_02d35ec9-ada8-4485-8c0c-5ad3877b9315",
+        "timestamp": 1789370245886
+      },
+      {
+        "executionId": "57b5437e-27f8-4357-a7c9-cc251ada4f1a",
+        "chatSessionId": "sess_02d35ec9-ada8-4485-8c0c-5ad3877b9315",
+        "timestamp": 1789370337705
+      }
+    ],
+    "3.3 Buat `models/Admin.js`": [
+      {
+        "executionId": "c5970f88-541a-4979-ae3a-68e3f2ec6258",
+        "chatSessionId": "sess_f5b97c5b-45f8-403a-91dc-50d0f2bca420",
+        "timestamp": 1789369014401
+      },
+      {
+        "executionId": "57b5437e-27f8-4357-a7c9-cc251ada4f1a",
+        "chatSessionId": "sess_02d35ec9-ada8-4485-8c0c-5ad3877b9315",
+        "timestamp": 1789370250090
+      },
+      {
+        "executionId": "57b5437e-27f8-4357-a7c9-cc251ada4f1a",
+        "chatSessionId": "sess_02d35ec9-ada8-4485-8c0c-5ad3877b9315",
+        "timestamp": 1789370342258
+      }
+    ],
+    "4.1 Buat `middleware/auth.js`": [
+      {
+        "executionId": "c5970f88-541a-4979-ae3a-68e3f2ec6258",
+        "chatSessionId": "sess_f5b97c5b-45f8-403a-91dc-50d0f2bca420",
+        "timestamp": 1789369014435
+      },
+      {
+        "executionId": "57b5437e-27f8-4357-a7c9-cc251ada4f1a",
+        "chatSessionId": "sess_02d35ec9-ada8-4485-8c0c-5ad3877b9315",
+        "timestamp": 1789370348182
+      },
+      {
+        "executionId": "57b5437e-27f8-4357-a7c9-cc251ada4f1a",
+        "chatSessionId": "sess_02d35ec9-ada8-4485-8c0c-5ad3877b9315",
+        "timestamp": 1789370846453
+      }
+    ],
+    "4.2 Buat `middleware/upload.js`": [
+      {
+        "executionId": "c5970f88-541a-4979-ae3a-68e3f2ec6258",
+        "chatSessionId": "sess_f5b97c5b-45f8-403a-91dc-50d0f2bca420",
+        "timestamp": 1789369014468
+      },
+      {
+        "executionId": "57b5437e-27f8-4357-a7c9-cc251ada4f1a",
+        "chatSessionId": "sess_02d35ec9-ada8-4485-8c0c-5ad3877b9315",
+        "timestamp": 1789370352638
+      },
+      {
+        "executionId": "31cbf3b0-51d1-45cd-a22f-f63d50c69cc3",
+        "chatSessionId": "sess_359f948c-ebbd-4546-9c31-92224cd905ed",
+        "timestamp": 1789371981037
+      }
+    ],
+    "5.1 Buat `utils/whatsapp.js`": [
+      {
+        "executionId": "c5970f88-541a-4979-ae3a-68e3f2ec6258",
+        "chatSessionId": "sess_f5b97c5b-45f8-403a-91dc-50d0f2bca420",
+        "timestamp": 1789369014502
+      },
+      {
+        "executionId": "57b5437e-27f8-4357-a7c9-cc251ada4f1a",
+        "chatSessionId": "sess_02d35ec9-ada8-4485-8c0c-5ad3877b9315",
+        "timestamp": 1789370356814
+      },
+      {
+        "executionId": "31cbf3b0-51d1-45cd-a22f-f63d50c69cc3",
+        "chatSessionId": "sess_359f948c-ebbd-4546-9c31-92224cd905ed",
+        "timestamp": 1789371981449
+      }
+    ],
+    "6. Checkpoint — Verifikasi fondasi proyek": [
+      {
+        "executionId": "c5970f88-541a-4979-ae3a-68e3f2ec6258",
+        "chatSessionId": "sess_f5b97c5b-45f8-403a-91dc-50d0f2bca420",
+        "timestamp": 1789369014549
+      },
+      {
+        "executionId": "31cbf3b0-51d1-45cd-a22f-f63d50c69cc3",
+        "chatSessionId": "sess_359f948c-ebbd-4546-9c31-92224cd905ed",
+        "timestamp": 1789372050796
+      },
+      {
+        "executionId": "31cbf3b0-51d1-45cd-a22f-f63d50c69cc3",
+        "chatSessionId": "sess_359f948c-ebbd-4546-9c31-92224cd905ed",
+        "timestamp": 1789372083935
+      }
+    ],
+    "7.1 Buat `controllers/publicController.js`": [
+      {
+        "executionId": "c5970f88-541a-4979-ae3a-68e3f2ec6258",
+        "chatSessionId": "sess_f5b97c5b-45f8-403a-91dc-50d0f2bca420",
+        "timestamp": 1789369014622
+      },
+      {
+        "executionId": "31cbf3b0-51d1-45cd-a22f-f63d50c69cc3",
+        "chatSessionId": "sess_359f948c-ebbd-4546-9c31-92224cd905ed",
+        "timestamp": 1789371858344
+      },
+      {
+        "executionId": "31cbf3b0-51d1-45cd-a22f-f63d50c69cc3",
+        "chatSessionId": "sess_359f948c-ebbd-4546-9c31-92224cd905ed",
+        "timestamp": 1789371957351
+      }
+    ],
+    "7.2 Buat fungsi helper di `controllers/registrationController.js`": [
+      {
+        "executionId": "c5970f88-541a-4979-ae3a-68e3f2ec6258",
+        "chatSessionId": "sess_f5b97c5b-45f8-403a-91dc-50d0f2bca420",
+        "timestamp": 1789369014668
+      },
+      {
+        "executionId": "31cbf3b0-51d1-45cd-a22f-f63d50c69cc3",
+        "chatSessionId": "sess_359f948c-ebbd-4546-9c31-92224cd905ed",
+        "timestamp": 1789371858632
+      },
+      {
+        "executionId": "31cbf3b0-51d1-45cd-a22f-f63d50c69cc3",
+        "chatSessionId": "sess_359f948c-ebbd-4546-9c31-92224cd905ed",
+        "timestamp": 1789371920349
+      }
+    ],
+    "7.5 Selesaikan implementasi `registrationController.js`": [
+      {
+        "executionId": "c5970f88-541a-4979-ae3a-68e3f2ec6258",
+        "chatSessionId": "sess_f5b97c5b-45f8-403a-91dc-50d0f2bca420",
+        "timestamp": 1789369014723
+      },
+      {
+        "executionId": "31cbf3b0-51d1-45cd-a22f-f63d50c69cc3",
+        "chatSessionId": "sess_359f948c-ebbd-4546-9c31-92224cd905ed",
+        "timestamp": 1789372113126
+      },
+      {
+        "executionId": "31cbf3b0-51d1-45cd-a22f-f63d50c69cc3",
+        "chatSessionId": "sess_359f948c-ebbd-4546-9c31-92224cd905ed",
+        "timestamp": 1789372582029
+      }
+    ],
+    "8.1 Buat `controllers/adminController.js`": [
+      {
+        "executionId": "c5970f88-541a-4979-ae3a-68e3f2ec6258",
+        "chatSessionId": "sess_f5b97c5b-45f8-403a-91dc-50d0f2bca420",
+        "timestamp": 1789369014756
+      },
+      {
+        "executionId": "31cbf3b0-51d1-45cd-a22f-f63d50c69cc3",
+        "chatSessionId": "sess_359f948c-ebbd-4546-9c31-92224cd905ed",
+        "timestamp": 1789372113491
+      },
+      {
+        "executionId": "31cbf3b0-51d1-45cd-a22f-f63d50c69cc3",
+        "chatSessionId": "sess_359f948c-ebbd-4546-9c31-92224cd905ed",
+        "timestamp": 1789372582615
+      }
+    ],
+    "9.1 Buat `routes/publicRoutes.js`": [
+      {
+        "executionId": "c5970f88-541a-4979-ae3a-68e3f2ec6258",
+        "chatSessionId": "sess_f5b97c5b-45f8-403a-91dc-50d0f2bca420",
+        "timestamp": 1789369014786
+      },
+      {
+        "executionId": "31cbf3b0-51d1-45cd-a22f-f63d50c69cc3",
+        "chatSessionId": "sess_359f948c-ebbd-4546-9c31-92224cd905ed",
+        "timestamp": 1789372596667
+      },
+      {
+        "executionId": "31cbf3b0-51d1-45cd-a22f-f63d50c69cc3",
+        "chatSessionId": "sess_359f948c-ebbd-4546-9c31-92224cd905ed",
+        "timestamp": 1789372645573
+      }
+    ],
+    "9.2 Buat `routes/adminRoutes.js`": [
+      {
+        "executionId": "c5970f88-541a-4979-ae3a-68e3f2ec6258",
+        "chatSessionId": "sess_f5b97c5b-45f8-403a-91dc-50d0f2bca420",
+        "timestamp": 1789369014824
+      },
+      {
+        "executionId": "31cbf3b0-51d1-45cd-a22f-f63d50c69cc3",
+        "chatSessionId": "sess_359f948c-ebbd-4546-9c31-92224cd905ed",
+        "timestamp": 1789372597176
+      },
+      {
+        "executionId": "31cbf3b0-51d1-45cd-a22f-f63d50c69cc3",
+        "chatSessionId": "sess_359f948c-ebbd-4546-9c31-92224cd905ed",
+        "timestamp": 1789372645871
+      }
+    ],
+    "9.3 Buat `app.js` sebagai entry point aplikasi": [
+      {
+        "executionId": "c5970f88-541a-4979-ae3a-68e3f2ec6258",
+        "chatSessionId": "sess_f5b97c5b-45f8-403a-91dc-50d0f2bca420",
+        "timestamp": 1789369014858
+      },
+      {
+        "executionId": "31cbf3b0-51d1-45cd-a22f-f63d50c69cc3",
+        "chatSessionId": "sess_359f948c-ebbd-4546-9c31-92224cd905ed",
+        "timestamp": 1789372655052
+      },
+      {
+        "executionId": "b74f589c-a06a-446b-802a-bf22b99a1ae5",
+        "chatSessionId": "sess_c55b5d7c-2f46-43fe-85ce-6f518428713f",
+        "timestamp": 1789372759900
+      },
+      {
+        "executionId": "b74f589c-a06a-446b-802a-bf22b99a1ae5",
+        "chatSessionId": "sess_c55b5d7c-2f46-43fe-85ce-6f518428713f",
+        "timestamp": 1789372776566
+      },
+      {
+        "executionId": "b74f589c-a06a-446b-802a-bf22b99a1ae5",
+        "chatSessionId": "sess_c55b5d7c-2f46-43fe-85ce-6f518428713f",
+        "timestamp": 1789372925293
+      }
+    ],
+    "10. Checkpoint — Verifikasi backend berjalan": [
+      {
+        "executionId": "c5970f88-541a-4979-ae3a-68e3f2ec6258",
+        "chatSessionId": "sess_f5b97c5b-45f8-403a-91dc-50d0f2bca420",
+        "timestamp": 1789369014892
+      },
+      {
+        "executionId": "b74f589c-a06a-446b-802a-bf22b99a1ae5",
+        "chatSessionId": "sess_c55b5d7c-2f46-43fe-85ce-6f518428713f",
+        "timestamp": 1789372759944
+      },
+      {
+        "executionId": "b74f589c-a06a-446b-802a-bf22b99a1ae5",
+        "chatSessionId": "sess_c55b5d7c-2f46-43fe-85ce-6f518428713f",
+        "timestamp": 1789372942021
+      },
+      {
+        "executionId": "b74f589c-a06a-446b-802a-bf22b99a1ae5",
+        "chatSessionId": "sess_c55b5d7c-2f46-43fe-85ce-6f518428713f",
+        "timestamp": 1789372982453
+      }
+    ],
+    "11.1 Buat `views/layout/main.ejs`": [
+      {
+        "executionId": "c5970f88-541a-4979-ae3a-68e3f2ec6258",
+        "chatSessionId": "sess_f5b97c5b-45f8-403a-91dc-50d0f2bca420",
+        "timestamp": 1789369014934
+      },
+      {
+        "executionId": "b74f589c-a06a-446b-802a-bf22b99a1ae5",
+        "chatSessionId": "sess_c55b5d7c-2f46-43fe-85ce-6f518428713f",
+        "timestamp": 1789372760046
+      },
+      {
+        "executionId": "b74f589c-a06a-446b-802a-bf22b99a1ae5",
+        "chatSessionId": "sess_c55b5d7c-2f46-43fe-85ce-6f518428713f",
+        "timestamp": 1789372986595
+      },
+      {
+        "executionId": "8ee77c3c-d5cf-4c29-b0f3-93530847301f",
+        "chatSessionId": "sess_4b696cd1-d562-4d64-ae51-8ed5a6f0223f",
+        "timestamp": 1789441738713
+      }
+    ],
+    "11.2 Buat `views/trainings/catalog.ejs`": [
+      {
+        "executionId": "c5970f88-541a-4979-ae3a-68e3f2ec6258",
+        "chatSessionId": "sess_f5b97c5b-45f8-403a-91dc-50d0f2bca420",
+        "timestamp": 1789369014968
+      },
+      {
+        "executionId": "b74f589c-a06a-446b-802a-bf22b99a1ae5",
+        "chatSessionId": "sess_c55b5d7c-2f46-43fe-85ce-6f518428713f",
+        "timestamp": 1789372760111
+      },
+      {
+        "executionId": "b74f589c-a06a-446b-802a-bf22b99a1ae5",
+        "chatSessionId": "sess_c55b5d7c-2f46-43fe-85ce-6f518428713f",
+        "timestamp": 1789372990512
+      },
+      {
+        "executionId": "8ee77c3c-d5cf-4c29-b0f3-93530847301f",
+        "chatSessionId": "sess_4b696cd1-d562-4d64-ae51-8ed5a6f0223f",
+        "timestamp": 1789441739241
+      }
+    ],
+    "11.3 Buat `views/trainings/detail.ejs`": [
+      {
+        "executionId": "c5970f88-541a-4979-ae3a-68e3f2ec6258",
+        "chatSessionId": "sess_f5b97c5b-45f8-403a-91dc-50d0f2bca420",
+        "timestamp": 1789369015001
+      },
+      {
+        "executionId": "b74f589c-a06a-446b-802a-bf22b99a1ae5",
+        "chatSessionId": "sess_c55b5d7c-2f46-43fe-85ce-6f518428713f",
+        "timestamp": 1789372760176
+      },
+      {
+        "executionId": "b74f589c-a06a-446b-802a-bf22b99a1ae5",
+        "chatSessionId": "sess_c55b5d7c-2f46-43fe-85ce-6f518428713f",
+        "timestamp": 1789372994152
+      },
+      {
+        "executionId": "8ee77c3c-d5cf-4c29-b0f3-93530847301f",
+        "chatSessionId": "sess_4b696cd1-d562-4d64-ae51-8ed5a6f0223f",
+        "timestamp": 1789441739889
+      }
+    ],
+    "11.4 Buat `views/registration/form.ejs`": [
+      {
+        "executionId": "c5970f88-541a-4979-ae3a-68e3f2ec6258",
+        "chatSessionId": "sess_f5b97c5b-45f8-403a-91dc-50d0f2bca420",
+        "timestamp": 1789369015034
+      },
+      {
+        "executionId": "b74f589c-a06a-446b-802a-bf22b99a1ae5",
+        "chatSessionId": "sess_c55b5d7c-2f46-43fe-85ce-6f518428713f",
+        "timestamp": 1789372760215
+      },
+      {
+        "executionId": "b74f589c-a06a-446b-802a-bf22b99a1ae5",
+        "chatSessionId": "sess_c55b5d7c-2f46-43fe-85ce-6f518428713f",
+        "timestamp": 1789372999702
+      },
+      {
+        "executionId": "8ee77c3c-d5cf-4c29-b0f3-93530847301f",
+        "chatSessionId": "sess_4b696cd1-d562-4d64-ae51-8ed5a6f0223f",
+        "timestamp": 1789441740543
+      }
+    ],
+    "11.5 Buat `views/registration/success.ejs`": [
+      {
+        "executionId": "c5970f88-541a-4979-ae3a-68e3f2ec6258",
+        "chatSessionId": "sess_f5b97c5b-45f8-403a-91dc-50d0f2bca420",
+        "timestamp": 1789369015068
+      },
+      {
+        "executionId": "b74f589c-a06a-446b-802a-bf22b99a1ae5",
+        "chatSessionId": "sess_c55b5d7c-2f46-43fe-85ce-6f518428713f",
+        "timestamp": 1789372760272
+      },
+      {
+        "executionId": "b74f589c-a06a-446b-802a-bf22b99a1ae5",
+        "chatSessionId": "sess_c55b5d7c-2f46-43fe-85ce-6f518428713f",
+        "timestamp": 1789373005818
+      },
+      {
+        "executionId": "8ee77c3c-d5cf-4c29-b0f3-93530847301f",
+        "chatSessionId": "sess_4b696cd1-d562-4d64-ae51-8ed5a6f0223f",
+        "timestamp": 1789441741026
+      }
+    ],
+    "12.1 Buat `views/admin/login.ejs`": [
+      {
+        "executionId": "c5970f88-541a-4979-ae3a-68e3f2ec6258",
+        "chatSessionId": "sess_f5b97c5b-45f8-403a-91dc-50d0f2bca420",
+        "timestamp": 1789369015105
+      },
+      {
+        "executionId": "b74f589c-a06a-446b-802a-bf22b99a1ae5",
+        "chatSessionId": "sess_c55b5d7c-2f46-43fe-85ce-6f518428713f",
+        "timestamp": 1789372760314
+      },
+      {
+        "executionId": "8ee77c3c-d5cf-4c29-b0f3-93530847301f",
+        "chatSessionId": "sess_4b696cd1-d562-4d64-ae51-8ed5a6f0223f",
+        "timestamp": 1789441752850
+      },
+      {
+        "executionId": "8ee77c3c-d5cf-4c29-b0f3-93530847301f",
+        "chatSessionId": "sess_4b696cd1-d562-4d64-ae51-8ed5a6f0223f",
+        "timestamp": 1789441961817
+      }
+    ],
+    "12.2 Buat `views/admin/dashboard.ejs`": [
+      {
+        "executionId": "c5970f88-541a-4979-ae3a-68e3f2ec6258",
+        "chatSessionId": "sess_f5b97c5b-45f8-403a-91dc-50d0f2bca420",
+        "timestamp": 1789369015142
+      },
+      {
+        "executionId": "b74f589c-a06a-446b-802a-bf22b99a1ae5",
+        "chatSessionId": "sess_c55b5d7c-2f46-43fe-85ce-6f518428713f",
+        "timestamp": 1789372760374
+      },
+      {
+        "executionId": "8ee77c3c-d5cf-4c29-b0f3-93530847301f",
+        "chatSessionId": "sess_4b696cd1-d562-4d64-ae51-8ed5a6f0223f",
+        "timestamp": 1789441753444
+      },
+      {
+        "executionId": "8ee77c3c-d5cf-4c29-b0f3-93530847301f",
+        "chatSessionId": "sess_4b696cd1-d562-4d64-ae51-8ed5a6f0223f",
+        "timestamp": 1789441962016
+      }
+    ],
+    "12.3 Buat `views/admin/registration-detail.ejs`": [
+      {
+        "executionId": "c5970f88-541a-4979-ae3a-68e3f2ec6258",
+        "chatSessionId": "sess_f5b97c5b-45f8-403a-91dc-50d0f2bca420",
+        "timestamp": 1789369015185
+      },
+      {
+        "executionId": "b74f589c-a06a-446b-802a-bf22b99a1ae5",
+        "chatSessionId": "sess_c55b5d7c-2f46-43fe-85ce-6f518428713f",
+        "timestamp": 1789372760430
+      },
+      {
+        "executionId": "8ee77c3c-d5cf-4c29-b0f3-93530847301f",
+        "chatSessionId": "sess_4b696cd1-d562-4d64-ae51-8ed5a6f0223f",
+        "timestamp": 1789441754480
+      },
+      {
+        "executionId": "8ee77c3c-d5cf-4c29-b0f3-93530847301f",
+        "chatSessionId": "sess_4b696cd1-d562-4d64-ae51-8ed5a6f0223f",
+        "timestamp": 1789441962517
+      }
+    ],
+    "12.4 Buat `views/error.ejs`": [
+      {
+        "executionId": "c5970f88-541a-4979-ae3a-68e3f2ec6258",
+        "chatSessionId": "sess_f5b97c5b-45f8-403a-91dc-50d0f2bca420",
+        "timestamp": 1789369015218
+      },
+      {
+        "executionId": "b74f589c-a06a-446b-802a-bf22b99a1ae5",
+        "chatSessionId": "sess_c55b5d7c-2f46-43fe-85ce-6f518428713f",
+        "timestamp": 1789372760476
+      },
+      {
+        "executionId": "8ee77c3c-d5cf-4c29-b0f3-93530847301f",
+        "chatSessionId": "sess_4b696cd1-d562-4d64-ae51-8ed5a6f0223f",
+        "timestamp": 1789441754845
+      },
+      {
+        "executionId": "8ee77c3c-d5cf-4c29-b0f3-93530847301f",
+        "chatSessionId": "sess_4b696cd1-d562-4d64-ae51-8ed5a6f0223f",
+        "timestamp": 1789441963170
+      }
+    ],
+    "13.1 Buat `public/js/registration-form.js`": [
+      {
+        "executionId": "c5970f88-541a-4979-ae3a-68e3f2ec6258",
+        "chatSessionId": "sess_f5b97c5b-45f8-403a-91dc-50d0f2bca420",
+        "timestamp": 1789369015251
+      },
+      {
+        "executionId": "b74f589c-a06a-446b-802a-bf22b99a1ae5",
+        "chatSessionId": "sess_c55b5d7c-2f46-43fe-85ce-6f518428713f",
+        "timestamp": 1789372760508
+      },
+      {
+        "executionId": "8ee77c3c-d5cf-4c29-b0f3-93530847301f",
+        "chatSessionId": "sess_4b696cd1-d562-4d64-ae51-8ed5a6f0223f",
+        "timestamp": 1789441976212
+      },
+      {
+        "executionId": "8ee77c3c-d5cf-4c29-b0f3-93530847301f",
+        "chatSessionId": "sess_4b696cd1-d562-4d64-ae51-8ed5a6f0223f",
+        "timestamp": 1789442100137
+      }
+    ],
+    "14.1 Inisialisasi dan build Tailwind CSS": [
+      {
+        "executionId": "c5970f88-541a-4979-ae3a-68e3f2ec6258",
+        "chatSessionId": "sess_f5b97c5b-45f8-403a-91dc-50d0f2bca420",
+        "timestamp": 1789369015304
+      },
+      {
+        "executionId": "b74f589c-a06a-446b-802a-bf22b99a1ae5",
+        "chatSessionId": "sess_c55b5d7c-2f46-43fe-85ce-6f518428713f",
+        "timestamp": 1789372760556
+      },
+      {
+        "executionId": "8ee77c3c-d5cf-4c29-b0f3-93530847301f",
+        "chatSessionId": "sess_4b696cd1-d562-4d64-ae51-8ed5a6f0223f",
+        "timestamp": 1789441976630
+      },
+      {
+        "executionId": "8ee77c3c-d5cf-4c29-b0f3-93530847301f",
+        "chatSessionId": "sess_4b696cd1-d562-4d64-ae51-8ed5a6f0223f",
+        "timestamp": 1789442100581
+      }
+    ],
+    "15. Checkpoint — Verifikasi tampilan dan alur pengguna": [
+      {
+        "executionId": "c5970f88-541a-4979-ae3a-68e3f2ec6258",
+        "chatSessionId": "sess_f5b97c5b-45f8-403a-91dc-50d0f2bca420",
+        "timestamp": 1789369015352
+      },
+      {
+        "executionId": "b74f589c-a06a-446b-802a-bf22b99a1ae5",
+        "chatSessionId": "sess_c55b5d7c-2f46-43fe-85ce-6f518428713f",
+        "timestamp": 1789372760592
+      },
+      {
+        "executionId": "8ee77c3c-d5cf-4c29-b0f3-93530847301f",
+        "chatSessionId": "sess_4b696cd1-d562-4d64-ae51-8ed5a6f0223f",
+        "timestamp": 1789442106733
+      },
+      {
+        "executionId": "8ee77c3c-d5cf-4c29-b0f3-93530847301f",
+        "chatSessionId": "sess_4b696cd1-d562-4d64-ae51-8ed5a6f0223f",
+        "timestamp": 1789442544266
+      }
+    ],
+    "16.1 Setup framework testing Jest": [
+      {
+        "executionId": "c5970f88-541a-4979-ae3a-68e3f2ec6258",
+        "chatSessionId": "sess_f5b97c5b-45f8-403a-91dc-50d0f2bca420",
+        "timestamp": 1789369015381
+      },
+      {
+        "executionId": "b74f589c-a06a-446b-802a-bf22b99a1ae5",
+        "chatSessionId": "sess_c55b5d7c-2f46-43fe-85ce-6f518428713f",
+        "timestamp": 1789372760627
+      },
+      {
+        "executionId": "8ee77c3c-d5cf-4c29-b0f3-93530847301f",
+        "chatSessionId": "sess_4b696cd1-d562-4d64-ae51-8ed5a6f0223f",
+        "timestamp": 1789442558549
+      },
+      {
+        "executionId": "8ee77c3c-d5cf-4c29-b0f3-93530847301f",
+        "chatSessionId": "sess_4b696cd1-d562-4d64-ae51-8ed5a6f0223f",
+        "timestamp": 1789442665565
+      }
+    ],
+    "17.1 Buat script `scripts/seed-admin.js`": [
+      {
+        "executionId": "c5970f88-541a-4979-ae3a-68e3f2ec6258",
+        "chatSessionId": "sess_f5b97c5b-45f8-403a-91dc-50d0f2bca420",
+        "timestamp": 1789369015407
+      },
+      {
+        "executionId": "b74f589c-a06a-446b-802a-bf22b99a1ae5",
+        "chatSessionId": "sess_c55b5d7c-2f46-43fe-85ce-6f518428713f",
+        "timestamp": 1789372760666
+      },
+      {
+        "executionId": "8ee77c3c-d5cf-4c29-b0f3-93530847301f",
+        "chatSessionId": "sess_4b696cd1-d562-4d64-ae51-8ed5a6f0223f",
+        "timestamp": 1789442558788
+      },
+      {
+        "executionId": "8ee77c3c-d5cf-4c29-b0f3-93530847301f",
+        "chatSessionId": "sess_4b696cd1-d562-4d64-ae51-8ed5a6f0223f",
+        "timestamp": 1789442665766
+      }
+    ],
+    "18. Checkpoint akhir — Semua test lulus": [
+      {
+        "executionId": "c5970f88-541a-4979-ae3a-68e3f2ec6258",
+        "chatSessionId": "sess_f5b97c5b-45f8-403a-91dc-50d0f2bca420",
+        "timestamp": 1789369015440
+      },
+      {
+        "executionId": "b74f589c-a06a-446b-802a-bf22b99a1ae5",
+        "chatSessionId": "sess_c55b5d7c-2f46-43fe-85ce-6f518428713f",
+        "timestamp": 1789372760707
+      },
+      {
+        "executionId": "8ee77c3c-d5cf-4c29-b0f3-93530847301f",
+        "chatSessionId": "sess_4b696cd1-d562-4d64-ae51-8ed5a6f0223f",
+        "timestamp": 1789442672537
+      },
+      {
+        "executionId": "8ee77c3c-d5cf-4c29-b0f3-93530847301f",
+        "chatSessionId": "sess_4b696cd1-d562-4d64-ae51-8ed5a6f0223f",
+        "timestamp": 1789442771804
+      }
+    ],
+    "3. Implementasi Model Layer": [
+      {
+        "executionId": "57b5437e-27f8-4357-a7c9-cc251ada4f1a",
+        "chatSessionId": "sess_02d35ec9-ada8-4485-8c0c-5ad3877b9315",
+        "timestamp": 1789370342627
+      }
+    ],
+    "4. Implementasi Middleware": [
+      {
+        "executionId": "31cbf3b0-51d1-45cd-a22f-f63d50c69cc3",
+        "chatSessionId": "sess_359f948c-ebbd-4546-9c31-92224cd905ed",
+        "timestamp": 1789371981096
+      }
+    ],
+    "5. Implementasi Utilitas": [
+      {
+        "executionId": "31cbf3b0-51d1-45cd-a22f-f63d50c69cc3",
+        "chatSessionId": "sess_359f948c-ebbd-4546-9c31-92224cd905ed",
+        "timestamp": 1789371981512
+      }
+    ],
+    "2. Konfigurasi database dan skema SQL": [
+      {
+        "executionId": "31cbf3b0-51d1-45cd-a22f-f63d50c69cc3",
+        "chatSessionId": "sess_359f948c-ebbd-4546-9c31-92224cd905ed",
+        "timestamp": 1789372021209
+      }
+    ],
+    "7. Implementasi Controller Publik dan Pendaftaran": [
+      {
+        "executionId": "31cbf3b0-51d1-45cd-a22f-f63d50c69cc3",
+        "chatSessionId": "sess_359f948c-ebbd-4546-9c31-92224cd905ed",
+        "timestamp": 1789372582099
+      }
+    ],
+    "8. Implementasi Controller Admin": [
+      {
+        "executionId": "31cbf3b0-51d1-45cd-a22f-f63d50c69cc3",
+        "chatSessionId": "sess_359f948c-ebbd-4546-9c31-92224cd905ed",
+        "timestamp": 1789372582662
+      }
+    ],
+    "9. Implementasi Routes": [
+      {
+        "executionId": "b74f589c-a06a-446b-802a-bf22b99a1ae5",
+        "chatSessionId": "sess_c55b5d7c-2f46-43fe-85ce-6f518428713f",
+        "timestamp": 1789372925362
+      }
+    ],
+    "11. Implementasi EJS Views — Layout dan Halaman Publik": [
+      {
+        "executionId": "8ee77c3c-d5cf-4c29-b0f3-93530847301f",
+        "chatSessionId": "sess_4b696cd1-d562-4d64-ae51-8ed5a6f0223f",
+        "timestamp": 1789441274901
+      },
+      {
+        "executionId": "8ee77c3c-d5cf-4c29-b0f3-93530847301f",
+        "chatSessionId": "sess_4b696cd1-d562-4d64-ae51-8ed5a6f0223f",
+        "timestamp": 1789441741087
+      }
+    ],
+    "12. Implementasi EJS Views — Admin": [
+      {
+        "executionId": "8ee77c3c-d5cf-4c29-b0f3-93530847301f",
+        "chatSessionId": "sess_4b696cd1-d562-4d64-ae51-8ed5a6f0223f",
+        "timestamp": 1789441747321
+      },
+      {
+        "executionId": "8ee77c3c-d5cf-4c29-b0f3-93530847301f",
+        "chatSessionId": "sess_4b696cd1-d562-4d64-ae51-8ed5a6f0223f",
+        "timestamp": 1789441963215
+      }
+    ],
+    "13. Implementasi Frontend JavaScript": [
+      {
+        "executionId": "8ee77c3c-d5cf-4c29-b0f3-93530847301f",
+        "chatSessionId": "sess_4b696cd1-d562-4d64-ae51-8ed5a6f0223f",
+        "timestamp": 1789441969731
+      },
+      {
+        "executionId": "8ee77c3c-d5cf-4c29-b0f3-93530847301f",
+        "chatSessionId": "sess_4b696cd1-d562-4d64-ae51-8ed5a6f0223f",
+        "timestamp": 1789442100180
+      }
+    ],
+    "14. Setup Tailwind CSS": [
+      {
+        "executionId": "8ee77c3c-d5cf-4c29-b0f3-93530847301f",
+        "chatSessionId": "sess_4b696cd1-d562-4d64-ae51-8ed5a6f0223f",
+        "timestamp": 1789441970101
+      },
+      {
+        "executionId": "8ee77c3c-d5cf-4c29-b0f3-93530847301f",
+        "chatSessionId": "sess_4b696cd1-d562-4d64-ae51-8ed5a6f0223f",
+        "timestamp": 1789442100630
+      }
+    ],
+    "16. Property-Based Testing dengan fast-check": [
+      {
+        "executionId": "8ee77c3c-d5cf-4c29-b0f3-93530847301f",
+        "chatSessionId": "sess_4b696cd1-d562-4d64-ae51-8ed5a6f0223f",
+        "timestamp": 1789442551436
+      },
+      {
+        "executionId": "8ee77c3c-d5cf-4c29-b0f3-93530847301f",
+        "chatSessionId": "sess_4b696cd1-d562-4d64-ae51-8ed5a6f0223f",
+        "timestamp": 1789442665615
+      }
+    ],
+    "17. Buat seeder admin awal": [
+      {
+        "executionId": "8ee77c3c-d5cf-4c29-b0f3-93530847301f",
+        "chatSessionId": "sess_4b696cd1-d562-4d64-ae51-8ed5a6f0223f",
+        "timestamp": 1789442551999
+      },
+      {
+        "executionId": "8ee77c3c-d5cf-4c29-b0f3-93530847301f",
+        "chatSessionId": "sess_4b696cd1-d562-4d64-ae51-8ed5a6f0223f",
+        "timestamp": 1789442665817
+      }
+    ],
+    "4.3 Tulis property test untuk fileFilter (Property 7)": [
+      {
+        "executionId": "dcc3e2d6-267f-41c4-ae89-72a5488de1fa",
+        "chatSessionId": "sess_82ba67e9-a458-4b72-b3d0-f32f5c7d7571",
+        "timestamp": 1789544838016
+      },
+      {
+        "executionId": "dcc3e2d6-267f-41c4-ae89-72a5488de1fa",
+        "chatSessionId": "sess_82ba67e9-a458-4b72-b3d0-f32f5c7d7571",
+        "timestamp": 1789545964584
+      }
+    ],
+    "5.2 Tulis property test untuk generateWhatsAppUrl (Property 3)": [
+      {
+        "executionId": "dcc3e2d6-267f-41c4-ae89-72a5488de1fa",
+        "chatSessionId": "sess_82ba67e9-a458-4b72-b3d0-f32f5c7d7571",
+        "timestamp": 1789544839276
+      },
+      {
+        "executionId": "dcc3e2d6-267f-41c4-ae89-72a5488de1fa",
+        "chatSessionId": "sess_82ba67e9-a458-4b72-b3d0-f32f5c7d7571",
+        "timestamp": 1789545967114
+      }
+    ],
+    "7.3 Tulis property test untuk calculateFinalPrice (Property 1)": [
+      {
+        "executionId": "dcc3e2d6-267f-41c4-ae89-72a5488de1fa",
+        "chatSessionId": "sess_82ba67e9-a458-4b72-b3d0-f32f5c7d7571",
+        "timestamp": 1789544839717
+      },
+      {
+        "executionId": "dcc3e2d6-267f-41c4-ae89-72a5488de1fa",
+        "chatSessionId": "sess_82ba67e9-a458-4b72-b3d0-f32f5c7d7571",
+        "timestamp": 1789545966355
+      }
+    ],
+    "7.4 Tulis property test untuk validateRegistrationInput (Property 5 & 6)": [
+      {
+        "executionId": "dcc3e2d6-267f-41c4-ae89-72a5488de1fa",
+        "chatSessionId": "sess_82ba67e9-a458-4b72-b3d0-f32f5c7d7571",
+        "timestamp": 1789544840838
+      },
+      {
+        "executionId": "dcc3e2d6-267f-41c4-ae89-72a5488de1fa",
+        "chatSessionId": "sess_82ba67e9-a458-4b72-b3d0-f32f5c7d7571",
+        "timestamp": 1789545968047
+      }
+    ],
+    "8.2 Tulis unit test untuk adminController postLogin": [
+      {
+        "executionId": "dcc3e2d6-267f-41c4-ae89-72a5488de1fa",
+        "chatSessionId": "sess_82ba67e9-a458-4b72-b3d0-f32f5c7d7571",
+        "timestamp": 1789544841492
+      },
+      {
+        "executionId": "dcc3e2d6-267f-41c4-ae89-72a5488de1fa",
+        "chatSessionId": "sess_82ba67e9-a458-4b72-b3d0-f32f5c7d7571",
+        "timestamp": 1789545965495
+      }
+    ],
+    "16.2 Tulis property test untuk konsistensi final_price di database (Property 2)": [
+      {
+        "executionId": "dcc3e2d6-267f-41c4-ae89-72a5488de1fa",
+        "chatSessionId": "sess_82ba67e9-a458-4b72-b3d0-f32f5c7d7571",
+        "timestamp": 1789545973608
+      }
+    ],
+    "16.3 Tulis property test untuk status pendaftaran (Property 4)": [
+      {
+        "executionId": "dcc3e2d6-267f-41c4-ae89-72a5488de1fa",
+        "chatSessionId": "sess_82ba67e9-a458-4b72-b3d0-f32f5c7d7571",
+        "timestamp": 1789545974410
+      }
+    ],
+    "16.4 Tulis property test untuk middleware auth (Property 8)": [
+      {
+        "executionId": "dcc3e2d6-267f-41c4-ae89-72a5488de1fa",
+        "chatSessionId": "sess_82ba67e9-a458-4b72-b3d0-f32f5c7d7571",
+        "timestamp": 1789545975493
+      }
+    ],
+    "16.5 Tulis property test untuk filter dashboard (Property 9)": [
+      {
+        "executionId": "dcc3e2d6-267f-41c4-ae89-72a5488de1fa",
+        "chatSessionId": "sess_82ba67e9-a458-4b72-b3d0-f32f5c7d7571",
+        "timestamp": 1789545975982
+      }
+    ],
+    "17.2 Tulis unit test untuk script seeder": [
+      {
+        "executionId": "dcc3e2d6-267f-41c4-ae89-72a5488de1fa",
+        "chatSessionId": "sess_82ba67e9-a458-4b72-b3d0-f32f5c7d7571",
+        "timestamp": 1789545976894
+      }
+    ]
+  }
+}

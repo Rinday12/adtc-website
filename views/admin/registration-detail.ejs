@@ -1,0 +1,432 @@
+<%- include('../layout/header') %>
+
+<%
+  const fmt = new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    minimumFractionDigits: 0
+  });
+
+  const startDate = registration.start_date ? new Date(registration.start_date) : null;
+  const formattedStartDate = startDate
+    ? startDate.toLocaleDateString('id-ID', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      })
+    : 'Belum ditentukan';
+
+  const createdAt = registration.created_at ? new Date(registration.created_at) : null;
+  const formattedCreatedAt = createdAt
+    ? createdAt.toLocaleDateString('id-ID', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+    : '-';
+
+  const categoryLabel = {
+    umum: 'Umum',
+    mahasiswa_uad: 'Mahasiswa UAD',
+    karyawan_uad: 'Karyawan UAD'
+  }[registration.category] || registration.category;
+
+  const statusConfig = {
+    pending:            { label: 'Menunggu Persetujuan',        cls: 'bg-yellow-100 text-yellow-800 border border-yellow-200' },
+    approved:           { label: 'Disetujui — Tunggu Bayar',   cls: 'bg-blue-100 text-blue-800 border border-blue-200' },
+    payment_uploaded:   { label: 'Bukti Terkirim',             cls: 'bg-orange-100 text-orange-800 border border-orange-200' },
+    verified:           { label: 'Terverifikasi',              cls: 'bg-green-100  text-green-800  border border-green-200'  },
+    rejected:           { label: 'Ditolak',                    cls: 'bg-red-100    text-red-800    border border-red-200'    }
+  };
+  const status = statusConfig[registration.status] || { label: registration.status, cls: 'bg-gray-100 text-gray-700 border border-gray-200' };
+
+  const identityCardUrl = registration.identity_card_proof
+    ? '/' + registration.identity_card_proof.replace(/\\/g, '/')
+    : null;
+
+  const paymentProofUrl = registration.payment_proof
+    ? '/' + registration.payment_proof.replace(/\\/g, '/')
+    : null;
+%>
+
+<div class="max-w-3xl mx-auto">
+
+  <!-- Back link -->
+  <a href="/admin/dashboard" class="inline-flex items-center gap-1 text-brand-500 hover:text-navy-800 text-sm mb-6 transition-colors">
+    <span aria-hidden="true">&#8592;</span>
+    <span>Kembali ke Dashboard</span>
+  </a>
+
+  <!-- Page heading -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+    <h1 class="text-2xl font-bold text-gray-800">
+      Detail Pendaftaran <span class="text-gray-400 font-normal">#<%= registration.id %></span>
+    </h1>
+    <span class="inline-flex items-center self-start sm:self-auto px-3 py-1 rounded-full text-sm font-semibold <%= status.cls %>">
+      <%= status.label %>
+    </span>
+  </div>
+
+  <!-- Training Info -->
+  <div class="bg-white rounded-xl border border-gray-200 shadow-sm mb-6 overflow-hidden">
+    <div class="px-6 py-4 bg-navy-700">
+      <h2 class="text-base font-semibold text-white">Informasi Pelatihan</h2>
+    </div>
+    <dl class="divide-y divide-gray-100">
+      <div class="px-6 py-4 grid grid-cols-3 gap-4">
+        <dt class="text-sm text-gray-500 col-span-1">Program</dt>
+        <dd class="text-sm font-semibold text-gray-900 col-span-2"><%= registration.training_title %></dd>
+      </div>
+      <div class="px-6 py-4 grid grid-cols-3 gap-4">
+        <dt class="text-sm text-gray-500 col-span-1">Jadwal Mulai</dt>
+        <dd class="text-sm text-gray-900 col-span-2"><%= formattedStartDate %></dd>
+      </div>
+    </dl>
+  </div>
+
+  <!-- Participant Info -->
+  <div class="bg-white rounded-xl border border-gray-200 shadow-sm mb-6 overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-100">
+      <h2 class="text-base font-semibold text-gray-800">Data Peserta</h2>
+    </div>
+    <dl class="divide-y divide-gray-100">
+      <div class="px-6 py-4 grid grid-cols-3 gap-4">
+        <dt class="text-sm text-gray-500 col-span-1">Nama Lengkap</dt>
+        <dd class="text-sm font-medium text-gray-900 col-span-2"><%= registration.full_name %></dd>
+      </div>
+      <div class="px-6 py-4 grid grid-cols-3 gap-4">
+        <dt class="text-sm text-gray-500 col-span-1">Email</dt>
+        <dd class="text-sm text-gray-900 col-span-2">
+          <a href="mailto:<%= registration.email %>" class="text-brand-500 hover:underline"><%= registration.email %></a>
+        </dd>
+      </div>
+      <div class="px-6 py-4 grid grid-cols-3 gap-4">
+        <dt class="text-sm text-gray-500 col-span-1">Nomor Telepon</dt>
+        <dd class="text-sm text-gray-900 col-span-2"><%= registration.phone %></dd>
+      </div>
+      <div class="px-6 py-4 grid grid-cols-3 gap-4">
+        <dt class="text-sm text-gray-500 col-span-1">Kategori</dt>
+        <dd class="text-sm text-gray-900 col-span-2"><%= categoryLabel %></dd>
+      </div>
+      <% if (registration.identity_number) { %>
+      <div class="px-6 py-4 grid grid-cols-3 gap-4">
+        <dt class="text-sm text-gray-500 col-span-1">NIM / NIY</dt>
+        <dd class="text-sm font-mono text-gray-900 col-span-2"><%= registration.identity_number %></dd>
+      </div>
+      <% } %>
+    </dl>
+  </div>
+
+  <!-- Payment Info -->
+  <div class="bg-white rounded-xl border border-gray-200 shadow-sm mb-6 overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-100">
+      <h2 class="text-base font-semibold text-gray-800">Informasi Pembayaran</h2>
+    </div>
+    <dl class="divide-y divide-gray-100">
+      <div class="px-6 py-4 grid grid-cols-3 gap-4">
+        <dt class="text-sm text-gray-500 col-span-1">Kode Referensi</dt>
+        <dd class="text-sm font-mono font-semibold text-brand-600 bg-brand-50 px-2 py-0.5 rounded border border-brand-200 col-span-2">
+          <%= registration.reference_code %>
+        </dd>
+      </div>
+      <div class="px-6 py-4 grid grid-cols-3 gap-4">
+        <dt class="text-sm text-gray-500 col-span-1">Total Tagihan</dt>
+        <dd class="text-base font-bold text-navy-700 col-span-2">
+          <%= fmt.format(registration.final_price) %>
+        </dd>
+      </div>
+      <div class="px-6 py-4 grid grid-cols-3 gap-4">
+        <dt class="text-sm text-gray-500 col-span-1">Tanggal Daftar</dt>
+        <dd class="text-sm text-gray-900 col-span-2"><%= formattedCreatedAt %></dd>
+      </div>
+      <% if (paymentProofUrl) { %>
+      <div class="px-6 py-4 grid grid-cols-3 gap-4 items-start">
+        <dt class="text-sm text-gray-500 col-span-1">Bukti Pembayaran</dt>
+        <dd class="col-span-2">
+          <a href="<%= paymentProofUrl %>" target="_blank" rel="noopener noreferrer" class="inline-block">
+            <img src="<%= paymentProofUrl %>" alt="Bukti Pembayaran" class="max-w-xs rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow" />
+          </a>
+          <div class="mt-2">
+            <a href="<%= paymentProofUrl %>" target="_blank" rel="noopener noreferrer" class="text-sm text-brand-500 hover:underline">
+              Buka gambar asli <span class="text-gray-400 font-normal">&#8599;</span>
+            </a>
+          </div>
+        </dd>
+      </div>
+      <% } else { %>
+      <div class="px-6 py-4 grid grid-cols-3 gap-4">
+        <dt class="text-sm text-gray-500 col-span-1">Bukti Pembayaran</dt>
+        <dd class="text-sm text-gray-400 col-span-2">Belum diunggah</dd>
+      </div>
+      <% } %>
+    </dl>
+  </div>
+
+  <!-- Identity Document -->
+  <div class="bg-white rounded-xl border border-gray-200 shadow-sm mb-6 overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-100">
+      <h2 class="text-base font-semibold text-gray-800">Dokumen Identitas</h2>
+    </div>
+    <div class="px-6 py-5">
+      <% if (identityCardUrl) { %>
+        <div class="space-y-3">
+          <img
+            src="<%= identityCardUrl %>"
+            alt="KTM / ID Card Peserta"
+            class="w-full max-w-md rounded-lg border border-gray-200 shadow-sm"
+          >
+          <p class="text-sm text-gray-500">Pastikan nama dan NIM/NIY pada KTM/ID Card sesuai dengan data peserta.</p>
+        </div>
+      <% } else { %>
+        <p class="text-sm text-gray-400 italic">Tidak ada dokumen identitas yang diunggah.</p>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- Rejection reason (if rejected) -->
+  <% if (registration.status === 'rejected' && registration.rejection_reason) { %>
+  <div class="bg-red-50 border border-red-200 rounded-xl p-5 mb-6">
+    <div class="flex items-start gap-3">
+      <svg class="w-5 h-5 text-red-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
+      </svg>
+      <div>
+        <p class="text-sm font-semibold text-red-800">Alasan Penolakan</p>
+        <p class="text-sm text-red-700 mt-1 whitespace-pre-wrap"><%= registration.rejection_reason %></p>
+      </div>
+    </div>
+  </div>
+  <% } %>
+
+  <!-- Action buttons based on status -->
+  <% if (registration.status === 'pending') { %>
+  <div class="bg-white rounded-xl border border-gray-200 shadow-sm mb-6 overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-100">
+      <h2 class="text-base font-semibold text-gray-800">Tindakan</h2>
+    </div>
+    <div class="px-6 py-5 flex flex-col sm:flex-row gap-3">
+
+      <!-- Approve -->
+      <form method="POST" action="/admin/registrations/<%= registration.id %>/approve" id="approve-form-<%= registration.id %>">
+        <% if (identityCardUrl) { %>
+        <div class="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <label class="flex items-start gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              id="verify-ktm-<%= registration.id %>"
+              name="verify_ktm"
+              class="mt-0.5 w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+              required
+              onchange="toggleApproveBtn(<%= registration.id %>)"
+            >
+            <span class="text-sm text-yellow-800">
+              <strong>Saya telah memeriksa KTM/ID Card</strong> dan memastikan data peserta sesuai.
+            </span>
+          </label>
+        </div>
+        <% } %>
+        <button
+          type="submit"
+          id="approve-btn-<%= registration.id %>"
+          disabled
+          class="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 active:bg-green-800 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-semibold px-6 py-2.5 rounded-lg shadow-sm transition-colors text-sm"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+          Approve
+        </button>
+      </form>
+
+      <!-- Reject -->
+      <button
+        type="button"
+        onclick="toggleRejectForm(<%= registration.id %>)"
+        class="inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 active:bg-red-800 text-white font-semibold px-6 py-2.5 rounded-lg shadow-sm transition-colors text-sm"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+        Reject
+      </button>
+    </div>
+
+    <!-- Reject form (hidden by default) -->
+    <div id="reject-form-<%= registration.id %>" class="hidden border-t border-gray-100 px-6 py-4 bg-gray-50">
+      <form method="POST" action="/admin/registrations/<%= registration.id %>/reject">
+        <div class="mb-3">
+          <label for="rejection_reason_<%= registration.id %>" class="block text-sm font-medium text-gray-700 mb-1">
+            Alasan Penolakan <span class="text-gray-400 font-normal">(opsional)</span>
+          </label>
+          <textarea
+            id="rejection_reason_<%= registration.id %>"
+            name="rejection_reason"
+            rows="3"
+            class="w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500"
+            placeholder="Tambahkan alasan penolakan (akan ditampilkan ke peserta)"
+          ></textarea>
+        </div>
+        <div class="flex gap-2">
+          <button
+            type="submit"
+            class="inline-flex items-center gap-1 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
+            onclick="return confirm('Tolak pendaftaran ini?')"
+          >
+            Konfirmasi Penolakan
+          </button>
+          <button
+            type="button"
+            onclick="toggleRejectForm(<%= registration.id %>)"
+            class="inline-flex items-center gap-1 bg-gray-200 hover:bg-gray-300 text-gray-700 text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
+          >
+            Batal
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <% } else if (registration.status === 'payment_uploaded') { %>
+  <div class="bg-white rounded-xl border border-gray-200 shadow-sm mb-6 overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-100">
+      <h2 class="text-base font-semibold text-gray-800">Tindakan</h2>
+    </div>
+    <div class="px-6 py-5 flex flex-col sm:flex-row gap-3">
+
+      <!-- Verifikasi -->
+      <form method="POST" action="/admin/registrations/<%= registration.id %>/verify">
+        <button
+          type="submit"
+          class="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 active:bg-green-800 text-white font-semibold px-6 py-2.5 rounded-lg shadow-sm transition-colors text-sm"
+          onclick="return confirm('Verifikasi bukti pembayaran ini? Peserta akan diverifikasi dan ditambahkan ke grup WhatsApp.')"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+          Verifikasi Pembayaran
+        </button>
+      </form>
+
+      <!-- Tolak -->
+      <button
+        type="button"
+        onclick="toggleRejectForm(<%= registration.id %>)"
+        class="inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 active:bg-red-800 text-white font-semibold px-6 py-2.5 rounded-lg shadow-sm transition-colors text-sm"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+        Tolak Bukti
+      </button>
+    </div>
+
+    <!-- Reject form (hidden by default) -->
+    <div id="reject-form-<%= registration.id %>" class="hidden border-t border-gray-100 px-6 py-4 bg-gray-50">
+      <form method="POST" action="/admin/registrations/<%= registration.id %>/reject-payment">
+        <div class="mb-3">
+          <label for="rejection_reason_<%= registration.id %>" class="block text-sm font-medium text-gray-700 mb-1">
+            Alasan Penolakan <span class="text-gray-400 font-normal">(opsional)</span>
+          </label>
+          <textarea
+            id="rejection_reason_<%= registration.id %>"
+            name="rejection_reason"
+            rows="3"
+            class="w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500"
+            placeholder="Contoh: Foto bukti transfer tidak jelas, nomor rekening salah, dll."
+          ></textarea>
+        </div>
+        <div class="flex gap-2">
+          <button
+            type="submit"
+            class="inline-flex items-center gap-1 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
+            onclick="return confirm('Tolak bukti pembayaran ini? Peserta akan menerima notifikasi penolakan.')"
+          >
+            Konfirmasi Penolakan
+          </button>
+          <button
+            type="button"
+            onclick="toggleRejectForm(<%= registration.id %>)"
+            class="inline-flex items-center gap-1 bg-gray-200 hover:bg-gray-300 text-gray-700 text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
+          >
+            Batal
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <% } %>
+
+  <!-- Certificate URL (for verified registrations) -->
+  <% if (registration.status === 'verified') { %>
+  <div class="bg-white rounded-xl border border-gray-200 shadow-sm mb-6 overflow-hidden">
+    <div class="px-6 py-4 bg-green-700">
+      <h2 class="text-base font-semibold text-white">Link Sertifikat Google Drive</h2>
+    </div>
+    <div class="px-6 py-5">
+      <form method="POST" action="/admin/registrations/<%= registration.id %>/certificate">
+        <div class="mb-4">
+          <label for="certificate_url" class="block text-sm font-medium text-gray-700 mb-2">
+            URL Sertifikat <span class="text-gray-400 font-normal">(Google Drive)</span>
+          </label>
+          <input type="url"
+                 id="certificate_url"
+                 name="certificate_url"
+                 value="<%= registration.certificate_url || '' %>"
+                 placeholder="https://drive.google.com/file/d/..."
+                 class="w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-green-500 focus:ring-green-500"
+                 required>
+          <p class="text-xs text-gray-400 mt-1">Masukkan link Google Drive sertifikat peserta setelah dibuat.</p>
+        </div>
+        <button type="submit" class="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+          Simpan Link Sertifikat
+        </button>
+      </form>
+      <% if (registration.certificate_url) { %>
+      <div class="mt-4 pt-4 border-t border-gray-100">
+        <p class="text-sm text-gray-500 mb-2">Link saat ini:</p>
+        <a href="<%= registration.certificate_url %>" target="_blank" rel="noopener noreferrer" class="text-sm text-green-600 hover:underline break-all">
+          <%= registration.certificate_url %>
+          <span class="text-gray-400 font-normal" aria-hidden="true">&#8599;</span>
+        </a>
+      </div>
+      <% } %>
+    </div>
+  </div>
+  <% } %>
+
+  <!-- Already actioned notice -->
+  <% if (registration.status === 'verified' || registration.status === 'rejected') { %>
+  <div class="flex items-start gap-3 bg-gray-50 border border-gray-200 rounded-xl px-5 py-4 mb-6 text-sm text-gray-600">
+    <svg class="w-5 h-5 mt-0.5 shrink-0 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+    <span>
+      Pendaftaran ini telah
+      <strong><%= registration.status === 'verified' ? 'diverifikasi' : 'ditolak' %></strong>
+      dan tidak dapat diubah ulang melalui halaman ini.
+    </span>
+  </div>
+  <% } %>
+
+</div>
+
+<script>
+  function toggleRejectForm(id) {
+    const form = document.getElementById('reject-form-' + id);
+    form.classList.toggle('hidden');
+  }
+
+  function toggleApproveBtn(id) {
+    const checkbox = document.getElementById('verify-ktm-' + id);
+    const button = document.getElementById('approve-btn-' + id);
+    if (button) button.disabled = !checkbox.checked;
+  }
+</script>
+
+<%- include('../layout/footer') %>

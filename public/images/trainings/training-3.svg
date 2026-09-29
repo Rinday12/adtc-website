@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
+  <defs>
+    <linearGradient id="bg3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#065f46"/>
+      <stop offset="100%" style="stop-color:#059669"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="450" fill="url(#bg3)"/>
+  <!-- Decorative elements -->
+  <circle cx="700" cy="50" r="150" fill="rgba(255,255,255,0.04)"/>
+  <circle cx="100" cy="420" r="100" fill="rgba(255,255,255,0.04)"/>
+  <!-- Certificate frame -->
+  <rect x="200" y="70" width="380" height="260" rx="12" fill="white" opacity="0.97"/>
+  <rect x="212" y="82" width="356" height="236" rx="8" fill="none" stroke="#059669" stroke-width="3" stroke-dasharray="8,4"/>
+  <!-- Certificate content -->
+  <text x="390" y="130" text-anchor="middle" fill="#065f46" font-size="13" font-family="Arial" font-weight="bold" letter-spacing="3">SERTIFIKAT</text>
+  <text x="390" y="150" text-anchor="middle" fill="#065f46" font-size="10" font-family="Arial" letter-spacing="2">KELULUSAN PELATIHAN</text>
+  <line x1="230" y1="162" x2="550" y2="162" stroke="#059669" stroke-width="1.5"/>
+  <!-- Trophy icon (SVG paths simplified) -->
+  <text x="390" y="210" text-anchor="middle" font-size="48">🏆</text>
+  <!-- Name line -->
+  <rect x="260" y="225" width="260" height="14" rx="3" fill="#d1fae5"/>
+  <text x="390" y="238" text-anchor="middle" fill="#065f46" font-size="11" font-family="Arial">Nama Peserta Pelatihan</text>
+  <!-- Description -->
+  <rect x="240" y="250" width="300" height="8" rx="3" fill="#d1fae5" opacity="0.7"/>
+  <rect x="260" y="265" width="260" height="8" rx="3" fill="#d1fae5" opacity="0.5"/>
+  <!-- Signatures -->
+  <line x1="240" y1="295" x2="330" y2="295" stroke="#9ca3af" stroke-width="1.5"/>
+  <line x1="450" y1="295" x2="540" y2="295" stroke="#9ca3af" stroke-width="1.5"/>
+  <text x="285" y="308" text-anchor="middle" fill="#6b7280" font-size="9" font-family="Arial">Instruktur</text>
+  <text x="495" y="308" text-anchor="middle" fill="#6b7280" font-size="9" font-family="Arial">Direktur ADTC</text>
+  <!-- Seal -->
+  <circle cx="390" cy="312" r="16" fill="#059669" opacity="0.15" stroke="#059669" stroke-width="1.5"/>
+  <text x="390" y="318" text-anchor="middle" fill="#059669" font-size="12" font-family="Arial">✓</text>
+  <!-- Floating badges -->
+  <rect x="600" y="120" width="130" height="55" rx="10" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.4)" stroke-width="1.5"/>
+  <text x="665" y="143" text-anchor="middle" fill="white" font-size="11" font-family="Arial" font-weight="bold">Bersertifikat</text>
+  <text x="665" y="162" text-anchor="middle" fill="#a7f3d0" font-size="10" font-family="Arial">Resmi &amp; Diakui</text>
+  <rect x="80" y="160" width="100" height="55" rx="10" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.4)" stroke-width="1.5"/>
+  <text x="130" y="183" text-anchor="middle" fill="white" font-size="11" font-family="Arial" font-weight="bold">30+ Jam</text>
+  <text x="130" y="202" text-anchor="middle" fill="#a7f3d0" font-size="10" font-family="Arial">Pelatihan</text>
+  <!-- Bottom text -->
+  <text x="400" y="390" text-anchor="middle" fill="rgba(255,255,255,0.95)" font-size="22" font-family="Arial" font-weight="bold">Sertifikasi Profesional ADTC</text>
+  <text x="400" y="415" text-anchor="middle" fill="rgba(255,255,255,0.65)" font-size="13" font-family="Arial">Ahmad Dahlan Training Center</text>
+</svg>

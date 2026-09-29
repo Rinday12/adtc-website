@@ -1,0 +1,31 @@
+{
+  "watch": [
+    "app.js",
+    "routes",
+    "controllers",
+    "models",
+    "middleware",
+    "utils",
+    "views",
+    "public"
+  ],
+  "ignore": [
+    "node_modules",
+    ".git",
+    "uploads",
+    "*.test.js",
+    "coverage",
+    ".server.pid"
+  ],
+  "ext": "js,ejs,css,json,env",
+  "delay": 750,
+  "verbose": false,
+  "events": {
+    "start": "echo '🚀 Server dimulai (nodemon hot-reload)'",
+    "restart": "echo '🔄 File berubah — server di-restart...'",
+    "crash": "echo '⚠️  Server crash — mencoba restart...'"
+  },
+  "env": {
+    "NODE_ENV": "development"
+  }
+}

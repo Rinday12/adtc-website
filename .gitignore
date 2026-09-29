@@ -1,0 +1,14 @@
+
+.env
+.env.*
+node_modules/
+uploads/
+.server.pid
+# Generated output
+exports/
+coverage/
+
+# Sample data files (bukan source code)
+itinerary_bandung_3h2m.xlsx
+
+# Environment files (sudah dipisah ke .env.development / .env.production)

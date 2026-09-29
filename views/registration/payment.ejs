@@ -1,0 +1,112 @@
+<%- include('../layout/header') %>
+
+<div class="max-w-2xl mx-auto">
+
+  <!-- Page heading -->
+  <div class="mb-6">
+    <a href="/trainings" class="text-sm text-brand-500 hover:underline mb-2 inline-block">&larr; Kembali ke Katalog Pelatihan</a>
+    <h1 class="text-2xl font-bold text-gray-800">Konfirmasi Pembayaran</h1>
+    <p class="text-gray-500 text-sm mt-1">Silakan transfer sesuai jumlah tagihan, lalu unggah bukti pembayaran di bawah.</p>
+  </div>
+
+  <!-- Registration summary -->
+  <div class="bg-white rounded-xl border border-gray-200 shadow-sm mb-6">
+    <div class="px-6 py-4 border-b border-gray-100">
+      <h2 class="text-base font-semibold text-gray-800">Ringkasan Pendaftaran</h2>
+    </div>
+    <dl class="divide-y divide-gray-100">
+      <div class="px-6 py-4 flex justify-between gap-4">
+        <dt class="text-sm text-gray-500 shrink-0">Peserta</dt>
+        <dd class="text-sm font-medium text-gray-900 text-right"><%= registration.full_name %></dd>
+      </div>
+      <div class="px-6 py-4 flex justify-between gap-4">
+        <dt class="text-sm text-gray-500 shrink-0">Program</dt>
+        <dd class="text-sm font-medium text-gray-900 text-right"><%= registration.training_title %></dd>
+      </div>
+      <div class="px-6 py-4 flex justify-between gap-4">
+        <dt class="text-sm text-gray-500 shrink-0">Kode Referensi</dt>
+        <dd class="text-sm font-mono font-semibold text-brand-600 bg-brand-50 px-2 py-0.5 rounded border border-brand-200 text-right"><%= registration.reference_code %></dd>
+      </div>
+      <div class="px-6 py-4 flex justify-between gap-4">
+        <dt class="text-sm text-gray-500 shrink-0">Total Tagihan</dt>
+        <dd class="text-base font-bold text-navy-700 text-right"><%= fmt.format(registration.final_price) %></dd>
+      </div>
+    </dl>
+  </div>
+
+  <!-- Reference Code Note -->
+  <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6">
+    <div class="flex items-start gap-3">
+      <svg class="w-5 h-5 text-amber-600 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      <div>
+        <p class="text-sm font-semibold text-amber-800">Kode Referensi Transfer</p>
+        <p class="text-sm text-amber-700 mt-1">
+          Gunakan kode <strong class="font-mono"><%= registration.reference_code %></strong> sebagai keterangan transfer bank agar pembayaran Anda dapat dilacak dengan mudah.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bank account info -->
+  <div class="bg-blue-50 rounded-xl border border-blue-200 shadow-sm mb-6">
+    <div class="px-6 py-5">
+      <div class="flex items-start gap-3">
+        <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center shrink-0">
+          <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+          </svg>
+        </div>
+        <div>
+          <h2 class="text-base font-semibold text-blue-900 mb-2">Informasi Rekening Pembayaran</h2>
+          <p class="text-sm text-blue-800 leading-relaxed">
+            Detail nomor rekening akan dikirimkan ke email Anda (<strong><%= registration.email %></strong>) dalam beberapa menit.
+            Silakan cek inbox atau folder spam.
+          </p>
+          <div class="mt-4 pt-4 border-t border-blue-200">
+            <p class="text-xs text-blue-700">
+              <strong>Total tagihan:</strong> <span class="font-semibold text-blue-900"><%= fmt.format(registration.final_price) %></span>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Upload form -->
+  <div class="bg-white rounded-xl border border-gray-200 shadow-sm mb-6 overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-100">
+      <h2 class="text-base font-semibold text-gray-800">Unggah Bukti Pembayaran</h2>
+    </div>
+    <form method="POST" action="/registrations/<%= registration.id %>/payment" enctype="multipart/form-data" class="px-6 py-5">
+      <div class="mb-4">
+        <label for="payment_proof" class="block text-sm font-medium text-gray-700 mb-1">
+          File bukti transfer <span class="text-red-500">*</span>
+        </label>
+        <input
+          type="file"
+          id="payment_proof"
+          name="payment_proof"
+          accept=".jpg,.jpeg,.png,.pdf,.webp"
+          required
+          class="block w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-brand-500 hover:file:bg-blue-100 transition-colors"
+        />
+        <p class="mt-1 text-xs text-gray-400">Format: JPG, PNG, PDF, atau WEBP. Maksimal 5MB.</p>
+      </div>
+
+      <button
+        type="submit"
+        class="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 active:bg-green-800 text-white font-semibold px-6 py-2.5 rounded-lg shadow-sm transition-colors text-sm"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+        </svg>
+        Kirim Bukti Pembayaran
+      </button>
+    </form>
+  </div>
+
+</div>
+
+<%- include('../layout/footer') %>

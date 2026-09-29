@@ -1,0 +1,257 @@
+<%- include('../layout/header') %>
+
+<div class="max-w-6xl mx-auto">
+
+  <!-- Page Header -->
+  <div class="mb-8">
+    <h1 class="text-3xl font-bold text-gray-900">Katalog Pelatihan</h1>
+    <p class="mt-1 text-gray-500">Pilih program pelatihan sesuai kebutuhan Anda.</p>
+  </div>
+
+  <% if (groups && groups.length > 0) { %>
+
+    <!-- ── Tab Kategori (sticky) ──────────────────────────── -->
+    <div id="category-tabs"
+         class="sticky top-0 z-30 bg-white/95 backdrop-blur-sm border-b border-gray-200
+                mb-10 -mx-4 px-4 shadow-sm">
+      <div class="flex items-center gap-1 overflow-x-auto py-3 scrollbar-hide">
+        <!-- Tab "Semua" -->
+        <a href="#semua"
+           data-tab="semua"
+           class="tab-btn shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold
+                  border transition-colors whitespace-nowrap
+                  text-navy-700 border-navy-700 bg-navy-50">
+          Semua
+          <span class="text-xs bg-navy-700 text-white rounded-full px-1.5 py-0.5">
+            <%= groups.reduce(function(sum,g){ return sum + g.trainings.length }, 0) %>
+          </span>
+        </a>
+
+        <% groups.forEach(function(group) { %>
+          <a href="#<%= group.anchor %>"
+             data-tab="<%= group.anchor %>"
+             class="tab-btn shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium
+                    border transition-colors whitespace-nowrap
+                    text-gray-600 border-gray-300 hover:border-navy-400 hover:text-navy-700">
+            <%= group.category %>
+            <span class="text-xs bg-gray-100 text-gray-500 rounded-full px-1.5 py-0.5">
+              <%= group.trainings.length %>
+            </span>
+          </a>
+        <% }) %>
+      </div>
+    </div>
+
+    <!-- Anchor semua -->
+    <div id="semua"></div>
+
+    <!-- ── Section per Kategori ───────────────────────────── -->
+    <% groups.forEach(function(group) { %>
+      <section id="<%= group.anchor %>" class="category-section mb-16 scroll-mt-20">
+
+        <!-- Section heading -->
+        <div class="flex items-center gap-4 mb-6">
+          <div class="flex items-center gap-3">
+            <span class="inline-block w-1 h-8 rounded-full bg-brand-500"></span>
+            <h2 class="text-2xl font-extrabold text-navy-700"><%= group.category %></h2>
+          </div>
+          <span class="text-xs font-semibold bg-navy-50 text-navy-700 border border-navy-200
+                       rounded-full px-3 py-1">
+            <%= group.trainings.length %> program
+          </span>
+        </div>
+
+        <!-- Cards grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <% group.trainings.forEach(function(training) { %>
+            <%
+              const fmt = new Intl.NumberFormat('id-ID', {
+                style: 'currency', currency: 'IDR', minimumFractionDigits: 0
+              })
+              const formattedDate = training.start_date
+                ? new Date(training.start_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
+                : 'Segera diumumkan'
+              const registeredCount = training.registered_count || 0
+              const isFull = registeredCount >= training.quota
+              const isInactive = training.status === 'inactive'
+              const isCompleted = training.start_date && new Date(training.start_date) < new Date()
+              const statusLabel = isCompleted ? 'Selesai' : (isInactive ? 'Nonaktif' : (isFull ? 'Penuh' : 'Buka'))
+              const statusClass = isCompleted ? 'bg-blue-100 text-blue-700' : (isInactive ? 'bg-gray-100 text-gray-600' : (isFull ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'))
+              const shortDesc = training.description
+                ? (training.description.length > 120 ? training.description.substring(0, 120).trimEnd() + '...' : training.description)
+                : ''
+            %>
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col
+                        hover:shadow-xl hover:-translate-y-1 hover:border-brand-200
+                        transition-all duration-300">
+
+              <% if (training.cover_image) { %>
+              <div class="relative h-40 overflow-hidden rounded-t-2xl">
+                <img src="/<%= training.cover_image %>" alt="<%= training.title %>" class="w-full h-full object-cover">
+                <div class="absolute top-3 right-3">
+                  <span class="inline-block text-xs font-semibold px-2.5 py-1 rounded-full <%= statusClass %>"><%= statusLabel %></span>
+                </div>
+                <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent px-4 py-3">
+                  <h3 class="text-base font-bold text-white leading-snug"><%= training.title %></h3>
+                  <span class="inline-block mt-1 text-xs text-white/80 font-medium uppercase tracking-wide"><%= group.category %></span>
+                </div>
+              </div>
+              <% } else { %>
+              <div class="bg-navy-700 px-5 py-4 rounded-t-2xl">
+                <div class="flex items-start justify-between gap-2">
+                  <h3 class="text-base font-bold text-white leading-snug flex-1"><%= training.title %></h3>
+                  <span class="shrink-0 text-xs font-semibold px-2 py-0.5 rounded-full <%= statusClass %>"><%= statusLabel %></span>
+                </div>
+                <span class="inline-block mt-2 text-xs text-white/60 font-medium uppercase tracking-wide"><%= group.category %></span>
+              </div>
+              <% } %>
+
+              <!-- Card body -->
+              <div class="px-5 py-4 flex flex-col flex-1 gap-3">
+                <% if (shortDesc) { %>
+                  <p class="text-sm text-gray-600 leading-relaxed"><%= shortDesc %></p>
+                <% } %>
+
+                <div class="space-y-1.5 text-sm">
+                  <div class="flex items-center gap-2 text-gray-500">
+                    <svg class="w-4 h-4 shrink-0 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    <span><%= formattedDate %></span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 shrink-0 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
+                    </svg>
+                    <span class="text-gray-500">Mulai dari</span>
+                    <span class="font-bold text-navy-700"><%= fmt.format(training.price_general) %></span>
+                  </div>
+                </div>
+
+                <div class="flex-1"></div>
+
+                <!-- CTAs -->
+                <div class="flex flex-col gap-2 pt-1">
+                  <% if (isInactive || isCompleted || isFull) { %>
+                    <button disabled class="inline-flex justify-center items-center gap-1.5 w-full
+                            bg-gray-300 text-gray-500 font-bold text-sm
+                            px-4 py-2.5 rounded-xl cursor-not-allowed">
+                      <% if (isCompleted) { %>Selesai<% } else if (isInactive) { %>Nonaktif<% } else { %>Kuota Penuh<% } %>
+                    </button>
+                  <% } else { %>
+                    <a href="/trainings/<%= training.slug %>/register"
+                       class="inline-flex justify-center items-center gap-1.5 w-full
+                              bg-brand-500 hover:bg-brand-600 text-white font-bold text-sm
+                              px-4 py-2.5 rounded-xl transition-colors shadow-sm">
+                      Daftar Sekarang
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+                      </svg>
+                    </a>
+                  <% } %>
+                  <a href="/trainings/<%= training.slug %>"
+                     class="inline-flex justify-center items-center gap-1 w-full
+                            border border-gray-200 text-gray-600 hover:border-navy-400 hover:text-navy-700
+                            font-medium text-sm px-4 py-2 rounded-xl transition-colors">
+                    Lihat Detail
+                  </a>
+                </div>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+
+      </section>
+    <% }) %>
+
+  <% } else { %>
+    <div class="flex flex-col items-center justify-center py-24 text-center">
+      <div class="text-6xl mb-4">📋</div>
+      <h2 class="text-xl font-semibold text-gray-700 mb-1">Belum ada pelatihan aktif</h2>
+      <p class="text-gray-400 text-sm max-w-xs">Silakan kunjungi kembali halaman ini nanti.</p>
+    </div>
+  <% } %>
+
+</div>
+
+<!-- ── JS: Tab filter + smooth scroll + scroll spy ──────── -->
+<script>
+(function () {
+  const tabs    = document.querySelectorAll('.tab-btn')
+  const sections = document.querySelectorAll('.category-section')
+
+  if (!tabs.length || !sections.length) return
+
+  const activeClass    = ['text-navy-700','border-navy-700','bg-navy-50']
+  const inactiveClass  = ['text-gray-600','border-gray-300']
+
+  function setActiveTab(anchor) {
+    tabs.forEach(t => {
+      const isActive = t.dataset.tab === anchor || (anchor === 'semua' && t.dataset.tab === 'semua')
+      if (isActive) {
+        t.classList.remove(...inactiveClass)
+        t.classList.add(...activeClass)
+      } else {
+        t.classList.remove(...activeClass)
+        t.classList.add(...inactiveClass)
+      }
+    })
+  }
+
+  // Click → scroll to section
+  tabs.forEach(tab => {
+    tab.addEventListener('click', function (e) {
+      e.preventDefault()
+      const anchor  = this.dataset.tab
+      const target  = anchor === 'semua'
+        ? document.getElementById('semua')
+        : document.getElementById(anchor)
+      if (target) {
+        const offset = 72 // tinggi sticky tab
+        const top = target.getBoundingClientRect().top + window.scrollY - offset
+        window.scrollTo({ top, behavior: 'smooth' })
+      }
+      setActiveTab(anchor)
+    })
+  })
+
+  // Scroll spy — update tab aktif saat scroll
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const anchor = entry.target.id
+        setActiveTab(anchor)
+      }
+    })
+  }, { rootMargin: '-30% 0px -60% 0px', threshold: 0 })
+
+  sections.forEach(s => observer.observe(s))
+
+  // Hash pada URL saat pertama load
+  if (window.location.hash) {
+    const anchor = window.location.hash.replace('#', '')
+    const target = document.getElementById(anchor)
+    if (target) {
+      setTimeout(() => {
+        const offset = 72
+        const top = target.getBoundingClientRect().top + window.scrollY - offset
+        window.scrollTo({ top, behavior: 'smooth' })
+        setActiveTab(anchor)
+      }, 100)
+    }
+  }
+
+  // ─── Animate cards on page load with staggered delay ──────────────────────
+  const cards = document.querySelectorAll('.reveal-card')
+  cards.forEach((card, i) => {
+    setTimeout(() => {
+      card.style.opacity = '1'
+      card.style.transform = 'translateY(0)'
+    }, 50 + i * 80)
+  })
+})()
+</script>
+
+<%- include('../layout/footer') %>
