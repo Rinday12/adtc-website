@@ -76,7 +76,8 @@
               const isPostpone = training.status === 'postpone'
               const isCompleted = training.start_date && new Date(training.start_date) < new Date()
               const statusLabel = isCompleted ? 'Selesai' : (isPostpone ? 'Postpone' : (isFull ? 'Penuh' : 'Buka'))
-              const statusClass = isCompleted ? 'bg-blue-100 text-blue-700' : (isPostpone ? 'bg-yellow-100 text-yellow-800' : (isFull ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'))
+              const statusClass = isCompleted ? 'bg-blue-100 text-blue-800 border-blue-200' : (isPostpone ? 'bg-yellow-100 text-yellow-800 border-yellow-300' : (isFull ? 'bg-red-100 text-red-800 border-red-200' : 'bg-green-100 text-green-800 border-green-200'))
+              const statusDot = isCompleted ? 'bg-blue-500' : (isPostpone ? 'bg-yellow-500' : (isFull ? 'bg-red-500' : 'bg-green-500'))
               const shortDesc = training.description
                 ? (training.description.length > 120 ? training.description.substring(0, 120).trimEnd() + '...' : training.description)
                 : ''
@@ -89,7 +90,10 @@
               <div class="relative h-40 overflow-hidden rounded-t-2xl">
                 <img src="/<%= training.cover_image %>" alt="<%= training.title %>" class="w-full h-full object-cover">
                 <div class="absolute top-3 right-3">
-                  <span class="inline-block text-xs font-semibold px-2.5 py-1 rounded-full <%= statusClass %>"><%= statusLabel %></span>
+                  <span class="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full border <%= statusClass %>">
+                    <span class="w-2 h-2 rounded-full <%= statusDot %>"></span>
+                    <%= statusLabel %>
+                  </span>
                 </div>
                 <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent px-4 py-3">
                   <h3 class="text-base font-bold text-white leading-snug"><%= training.title %></h3>
@@ -100,7 +104,10 @@
               <div class="bg-navy-700 px-5 py-4 rounded-t-2xl">
                 <div class="flex items-start justify-between gap-2">
                   <h3 class="text-base font-bold text-white leading-snug flex-1"><%= training.title %></h3>
-                  <span class="shrink-0 text-xs font-semibold px-2 py-0.5 rounded-full <%= statusClass %>"><%= statusLabel %></span>
+                  <span class="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full border <%= statusClass %>">
+                    <span class="w-2 h-2 rounded-full <%= statusDot %>"></span>
+                    <%= statusLabel %>
+                  </span>
                 </div>
                 <span class="inline-block mt-2 text-xs text-white/60 font-medium uppercase tracking-wide"><%= group.category %></span>
               </div>
@@ -135,10 +142,11 @@
                 <!-- CTAs -->
                 <div class="flex flex-col gap-2 pt-1">
                   <% if (isPostpone || isCompleted || isFull) { %>
-                    <button disabled class="inline-flex justify-center items-center gap-1.5 w-full
-                            bg-gray-300 text-gray-500 font-bold text-sm
-                            px-4 py-2.5 rounded-xl cursor-not-allowed">
-                      <% if (isCompleted) { %>Selesai<% } else if (isPostpone) { %>Postpone<% } else { %>Kuota Penuh<% } %>
+                    <button disabled class="inline-flex justify-center items-center gap-2 w-full
+                            bg-gray-100 text-gray-600 font-semibold text-sm
+                            px-4 py-2.5 rounded-xl cursor-not-allowed border border-gray-200">
+                      <span class="w-2 h-2 rounded-full <%= isPostpone ? 'bg-yellow-500' : (isCompleted ? 'bg-blue-500' : 'bg-red-500') %>"></span>
+                      <% if (isCompleted) { %>Sudah Selesai<% } else if (isPostpone) { %>Sedang Postpone<% } else { %>Kuota Penuh<% } %>
                     </button>
                   <% } else { %>
                     <a href="/trainings/<%= training.slug %>/register"
