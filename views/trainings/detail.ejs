@@ -80,17 +80,17 @@
           </div>
           <div>
             <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-0.5">Jadwal Mulai</p>
-            <% if (training.status === 'postpone' && training.reschedule_date) {
-              const rescheduledDate = new Date(training.reschedule_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
-              const originalDate = training.start_date
-                ? new Date(training.start_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
-                : formattedDate;
+            <%
+              let displayDate = formattedDate
+              if (training.status === 'postpone' && training.reschedule_date) {
+                displayDate = new Date(training.reschedule_date).toLocaleDateString('id-ID', {
+                  weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+                })
+              }
             %>
-              <p class="text-gray-400 font-semibold line-through text-sm"><%= originalDate %></p>
-              <p class="text-yellow-700 font-bold text-lg mt-0.5">🔄 <%= rescheduledDate %></p>
-              <p class="text-xs text-yellow-600 mt-1">Tanggal dijadwalkan ulang</p>
-            <% } else { %>
-              <p class="text-gray-800 font-semibold"><%= formattedDate %></p>
+            <p class="text-gray-800 font-semibold"><%= displayDate %></p>
+            <% if (training.status === 'postpone' && training.reschedule_date) { %>
+              <p class="text-xs text-yellow-600 mt-1">Jadwal diundur ke tanggal baru</p>
             <% } %>
           </div>
         </div>
@@ -159,7 +159,13 @@
 
       <!-- CTA -->
       <div class="flex flex-col sm:flex-row items-center gap-4 pt-2">
-        <% if (training.status === 'active' && (training.registered_count || 0) < training.quota) { %>
+        <%
+          const canRegister =
+            (training.status === 'active' ||
+             (training.status === 'postpone' && training.reschedule_date)) &&
+            (training.registered_count || 0) < training.quota
+        %>
+        <% if (canRegister) { %>
           <a
             href="/trainings/<%= training.slug %>/register"
             class="w-full sm:w-auto inline-flex justify-center items-center gap-2 bg-brand-500 hover:bg-navy-700 active:bg-brand-700 text-white font-semibold px-8 py-3 rounded-xl shadow-sm transition-colors text-base"
