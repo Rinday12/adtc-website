@@ -93,8 +93,8 @@
                         transition-all duration-300">
 
               <% if (training.cover_image) { %>
-              <div class="relative h-40 overflow-hidden rounded-t-2xl">
-                <img src="/<%= training.cover_image %>" alt="<%= training.title %>" class="w-full h-full object-cover">
+              <div class="relative h-40 rounded-t-2xl overflow-visible">
+                <img src="/<%= training.cover_image %>" alt="<%= training.title %>" class="w-full h-full object-cover overflow-hidden">
                 <div class="absolute top-3 right-3">
                   <span class="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full border <%= statusClass %>">
                     <span class="w-2 h-2 rounded-full <%= statusDot %>"></span>
