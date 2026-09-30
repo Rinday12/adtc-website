@@ -74,10 +74,10 @@
               const registeredCount = training.registered_count || 0
               const isFull = registeredCount >= training.quota
               const isPostpone = training.status === 'postpone'
-              const isCompleted = !isPostpone && training.start_date && new Date(training.start_date) < new Date()
-              const statusLabel = isCompleted ? 'Selesai' : (isPostpone ? 'Postpone' : (isFull ? 'Penuh' : 'Buka'))
-              const statusClass = isCompleted ? 'bg-blue-100 text-blue-800 border-blue-200' : (isPostpone ? 'bg-yellow-100 text-yellow-800 border-yellow-300' : (isFull ? 'bg-red-100 text-red-800 border-red-200' : 'bg-green-100 text-green-800 border-green-200'))
-              const statusDot = isCompleted ? 'bg-blue-500' : (isPostpone ? 'bg-yellow-500' : (isFull ? 'bg-red-500' : 'bg-green-500'))
+              const isCompleted = !isPostpone && !isFull && training.start_date && new Date(training.start_date) < new Date()
+              const statusLabel = isPostpone ? 'Postpone' : (isFull ? 'Penuh' : (isCompleted ? 'Selesai' : 'Buka'))
+              const statusClass = isPostpone ? 'bg-yellow-100 text-yellow-800 border-yellow-300' : (isFull ? 'bg-red-100 text-red-800 border-red-200' : (isCompleted ? 'bg-blue-100 text-blue-800 border-blue-200' : 'bg-green-100 text-green-800 border-green-200'))
+              const statusDot = isPostpone ? 'bg-yellow-500' : (isFull ? 'bg-red-500' : (isCompleted ? 'bg-blue-500' : 'bg-green-500'))
               const rescheduleDate = training.reschedule_date
                 ? new Date(training.reschedule_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
                 : null

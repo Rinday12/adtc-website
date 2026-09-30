@@ -189,8 +189,11 @@ const Training = {
    */
   async findAllGrouped() {
     const [rows] = await db.execute(
-      `SELECT * FROM trainings
-       ORDER BY category_order ASC, start_date ASC`
+      `SELECT t.*,
+              (SELECT COUNT(*) FROM registrations r
+               WHERE r.training_id = t.id AND r.status != 'rejected') AS registered_count
+       FROM trainings t
+       ORDER BY t.category_order ASC, t.start_date ASC`
     )
     const map = new Map()
     for (const row of rows) {
