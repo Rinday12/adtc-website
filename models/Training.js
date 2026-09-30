@@ -190,7 +190,7 @@ const Training = {
   async findAllGrouped() {
     const [rows] = await db.execute(
       `SELECT * FROM trainings
-       WHERE status != 'inactive'
+       WHERE status != 'postpone'
        ORDER BY category_order ASC, start_date ASC`
     )
     const map = new Map()
@@ -217,7 +217,7 @@ const Training = {
               MIN(category_order) AS category_order,
               COUNT(*) AS \`count\`
        FROM trainings
-       WHERE status != 'inactive'
+       WHERE status != 'postpone'
        GROUP BY category
        ORDER BY MIN(category_order) ASC`
     )

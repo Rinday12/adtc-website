@@ -49,9 +49,9 @@
         <span class="inline-block bg-red-500 text-white text-xs font-semibold px-3 py-1 rounded-full">
           Kuota Penuh
         </span>
-      <% } else if (training.status === 'inactive') { %>
-        <span class="inline-block bg-gray-400 text-white text-xs font-semibold px-3 py-1 rounded-full">
-          Tidak Aktif
+      <% } else if (training.status === 'postpone') { %>
+        <span class="inline-block bg-yellow-500 text-white text-xs font-semibold px-3 py-1 rounded-full">
+          Postpone
         </span>
       <% } else { %>
         <span class="inline-block bg-green-400 text-white text-xs font-semibold px-3 py-1 rounded-full">
@@ -162,7 +162,7 @@
             aria-disabled="true"
             class="w-full sm:w-auto inline-flex justify-center items-center gap-2 bg-gray-300 text-gray-500 font-semibold px-8 py-3 rounded-xl cursor-not-allowed text-base"
           >
-            <% if (training.status === 'inactive') { %>Pendaftaran Ditutup<% } else { %>Kuota Penuh<% } %>
+            <% if (training.status === 'postpone') { %>Postpone<% } else { %>Kuota Penuh<% } %>
           </button>
         <% } %>
 

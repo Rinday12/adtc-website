@@ -73,10 +73,10 @@
                 : 'Segera diumumkan'
               const registeredCount = training.registered_count || 0
               const isFull = registeredCount >= training.quota
-              const isInactive = training.status === 'inactive'
+              const isPostpone = training.status === 'postpone'
               const isCompleted = training.start_date && new Date(training.start_date) < new Date()
-              const statusLabel = isCompleted ? 'Selesai' : (isInactive ? 'Nonaktif' : (isFull ? 'Penuh' : 'Buka'))
-              const statusClass = isCompleted ? 'bg-blue-100 text-blue-700' : (isInactive ? 'bg-gray-100 text-gray-600' : (isFull ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'))
+              const statusLabel = isCompleted ? 'Selesai' : (isPostpone ? 'Postpone' : (isFull ? 'Penuh' : 'Buka'))
+              const statusClass = isCompleted ? 'bg-blue-100 text-blue-700' : (isPostpone ? 'bg-yellow-100 text-yellow-800' : (isFull ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'))
               const shortDesc = training.description
                 ? (training.description.length > 120 ? training.description.substring(0, 120).trimEnd() + '...' : training.description)
                 : ''
@@ -138,7 +138,7 @@
                     <button disabled class="inline-flex justify-center items-center gap-1.5 w-full
                             bg-gray-300 text-gray-500 font-bold text-sm
                             px-4 py-2.5 rounded-xl cursor-not-allowed">
-                      <% if (isCompleted) { %>Selesai<% } else if (isInactive) { %>Nonaktif<% } else { %>Kuota Penuh<% } %>
+                      <% if (isCompleted) { %>Selesai<% } else if (isPostpone) { %>Postpone<% } else { %>Kuota Penuh<% } %>
                     </button>
                   <% } else { %>
                     <a href="/trainings/<%= training.slug %>/register"

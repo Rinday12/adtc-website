@@ -93,7 +93,7 @@
         <label for="status" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
         <select id="status" name="status" class="w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500">
           <option value="active"  <%= isEdit && training?.status === 'active'  ? 'selected' : '' %>>Aktif</option>
-          <option value="inactive" <%= isEdit && training?.status === 'inactive' ? 'selected' : '' %>>Nonaktif</option>
+          <option value="postpone" <%= isEdit && training?.status === 'postpone' ? 'selected' : '' %>>Postpone</option>
           <option value="full"     <%= isEdit && training?.status === 'full'     ? 'selected' : '' %>>Penuh</option>
         </select>
       </div>

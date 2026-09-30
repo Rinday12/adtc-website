@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS trainings (
   start_date          DATE,                                  -- Tanggal mulai pelatihan
   whatsapp_group_link VARCHAR(500) NULL,                    -- Link invite grup WA khusus pelatihan ini (opsional)
   cover_image         VARCHAR(500) NULL,                    -- Path file gambar cover pelatihan (opsional)
-  status              ENUM('active', 'inactive', 'full') NOT NULL DEFAULT 'active',
+  status              ENUM('active', 'postpone', 'full') NOT NULL DEFAULT 'active',
   created_at          TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 

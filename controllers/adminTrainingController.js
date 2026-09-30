@@ -156,7 +156,7 @@ const adminTrainingController = {
         })
       }
 
-      const status = req.body.status === 'inactive' ? 'inactive' : (req.body.status === 'full' ? 'full' : 'active')
+      const status = req.body.status === 'postpone' ? 'postpone' : (req.body.status === 'full' ? 'full' : 'active')
       const coverImage = req.file?.path || training.cover_image
 
       await Training.update(training.id, {
