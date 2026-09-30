@@ -167,12 +167,16 @@
 
                 <!-- CTAs -->
                 <div class="flex flex-col gap-2 pt-1">
-                  <% if (isPostpone || isCompleted || isFull) { %>
+                  <%
+                    const canRegister = !isPostpone || rescheduleDate
+                    const isBlocked = !canRegister || isCompleted || isFull
+                  %>
+                  <% if (isBlocked) { %>
                     <button disabled class="inline-flex justify-center items-center gap-2 w-full
                             bg-gray-100 text-gray-600 font-semibold text-sm
                             px-4 py-2.5 rounded-xl cursor-not-allowed border border-gray-200">
                       <span class="w-2 h-2 rounded-full <%= isPostpone ? 'bg-yellow-500' : (isCompleted ? 'bg-blue-500' : 'bg-red-500') %>"></span>
-                      <% if (isPostpone) { %>Sedang Postpone<% } else if (isCompleted) { %>Sudah Selesai<% } else { %>Kuota Penuh<% } %>
+                      <% if (isPostpone && !rescheduleDate) { %>Sedang Postpone<% } else if (isCompleted) { %>Sudah Selesai<% } else { %>Kuota Penuh<% } %>
                     </button>
                   <% } else { %>
                     <a href="/trainings/<%= training.slug %>/register"
