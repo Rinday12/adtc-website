@@ -190,7 +190,6 @@ const Training = {
   async findAllGrouped() {
     const [rows] = await db.execute(
       `SELECT * FROM trainings
-       WHERE status != 'postpone'
        ORDER BY category_order ASC, start_date ASC`
     )
     const map = new Map()
