@@ -81,6 +81,11 @@
           <div>
             <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-0.5">Jadwal Mulai</p>
             <p class="text-gray-800 font-semibold"><%= formattedDate %></p>
+            <% if (training.status === 'postpone' && training.reschedule_date) {
+              const rescheduledDate = new Date(training.reschedule_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+            %>
+              <p class="text-xs text-yellow-700 mt-1 font-medium">🔄 Jadwal baru: <%= rescheduledDate %></p>
+            <% } %>
           </div>
         </div>
 
