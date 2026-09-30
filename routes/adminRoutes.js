@@ -42,6 +42,7 @@ router.post('/registrations/:id/verify', isAuthenticated, adminController.verify
 
 // Tolak bukti pembayaran (dilindungi)
 router.post('/registrations/:id/reject-payment', isAuthenticated, adminController.rejectPayment)
+router.post('/registrations/:id/delete', isAuthenticated, adminController.deleteRegistration)
 
 // ─── News Routes ─────────────────────────────────────────────────────────────
 // Persyaratan: 5.13

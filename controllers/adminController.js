@@ -286,6 +286,38 @@ const adminController = {
     }
   },
 
+  deleteRegistration: async (req, res, next) => {
+    try {
+      const registration = await Registration.findById(req.params.id)
+      if (!registration) {
+        return res.status(404).render('error', {
+          message: 'Pendaftaran tidak ditemukan', code: 404
+        })
+      }
+      if (registration.status === 'rejected') {
+        req.flash('error', 'Pendaftaran ini sudah ditolak.')
+        return res.redirect('/admin/dashboard')
+      }
+
+      const rejectionReason = (req.body.rejection_reason || '').trim()
+      const affected = await Registration.updateStatusWithReason(
+        req.params.id, 'rejected', rejectionReason
+      )
+      if (affected === 0) {
+        return res.status(404).render('error', {
+          message: 'Pendaftaran tidak ditemukan', code: 404
+        })
+      }
+
+      sendStatusNotification(registration, 'rejected').catch(() => {})
+
+      req.flash('success', `Peserta ${registration.full_name} berhasil dihapus. Alasan: ${rejectionReason || '-'}`)
+      res.redirect('/admin/dashboard')
+    } catch (err) {
+      next(err)
+    }
+  },
+
   verifyPayment: async (req, res, next) => {
     try {
       const registration = await Registration.findById(req.params.id)
