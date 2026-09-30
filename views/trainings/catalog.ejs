@@ -81,6 +81,9 @@
               const rescheduleDate = training.reschedule_date
                 ? new Date(training.reschedule_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
                 : null
+              const originalDate = training.start_date
+                ? new Date(training.start_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
+                : null
               const shortDesc = training.description
                 ? (training.description.length > 120 ? training.description.substring(0, 120).trimEnd() + '...' : training.description)
                 : ''
@@ -124,13 +127,22 @@
 
                 <div class="space-y-1.5 text-sm">
                   <% if (isPostpone && rescheduleDate) { %>
-                    <div class="flex items-center gap-2 text-yellow-700">
-                      <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                      </svg>
-                      <span class="font-medium">Jadwal Baru:</span>
-                      <span class="font-semibold"><%= rescheduleDate %></span>
+                    <div class="flex flex-col gap-0.5">
+                      <div class="flex items-center gap-2 text-gray-400 line-through">
+                        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                        <span class="text-xs">Asli: <%= originalDate || '-' %></span>
+                      </div>
+                      <div class="flex items-center gap-2 text-yellow-700">
+                        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <span class="font-medium text-xs">Jadwal Baru:</span>
+                        <span class="font-semibold text-xs"><%= rescheduleDate %></span>
+                      </div>
                     </div>
                   <% } else { %>
                     <div class="flex items-center gap-2 text-gray-500">

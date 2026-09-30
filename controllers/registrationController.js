@@ -44,13 +44,6 @@ const registrationController = {
         return res.status(404).render('error', { message: 'Pelatihan tidak ditemukan', code: 404 })
       }
 
-      // Block registration if training is postponed
-      if (training.status === 'postpone') {
-        return res.render('error', {
-          message: 'Pendaftaran ditunda. Pelatihan ini sedang dalam status Postpone.',
-          code: 403
-        })
-      }
 
       res.render('registration/form', {
         training,
