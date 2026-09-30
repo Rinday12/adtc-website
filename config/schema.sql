@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS trainings (
   price_employee_uad  DECIMAL(10, 2)  NOT NULL,              -- Harga untuk karyawan UAD
   quota               INT             NOT NULL DEFAULT 30,   -- Jumlah peserta maksimal
   start_date          DATE,                                  -- Tanggal mulai pelatihan
+  reschedule_date     DATE NULL,                            -- Tanggal dijadwalkan ulang (untuk status postpone)
   whatsapp_group_link VARCHAR(500) NULL,                    -- Link invite grup WA khusus pelatihan ini (opsional)
   cover_image         VARCHAR(500) NULL,                    -- Path file gambar cover pelatihan (opsional)
   status              ENUM('active', 'postpone', 'full') NOT NULL DEFAULT 'active',

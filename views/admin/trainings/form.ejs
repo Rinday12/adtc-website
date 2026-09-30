@@ -97,6 +97,32 @@
           <option value="full"     <%= isEdit && training?.status === 'full'     ? 'selected' : '' %>>Penuh</option>
         </select>
       </div>
+
+      <!-- Reschedule Date (only show for postpone) -->
+      <div id="reschedule-date-container" class="mt-4 <% if (!isEdit || training?.status !== 'postpone') { %>hidden<% } %>">
+        <label for="reschedule_date" class="block text-sm font-medium text-gray-700 mb-1">Tanggal Dijadwalkan Ulang</label>
+        <input type="date" id="reschedule_date" name="reschedule_date" value="<%= isEdit ? (training?.reschedule_date || '') : '' %>" class="w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500">
+        <p class="text-xs text-gray-500 mt-1">Kosongkan jika tanggal belum ditentukan</p>
+      </div>
+
+      <script>
+        // Show/hide reschedule date based on status
+        document.getElementById('status').addEventListener('change', function() {
+          const container = document.getElementById('reschedule-date-container');
+          if (this.value === 'postpone') {
+            container.classList.remove('hidden');
+          } else {
+            container.classList.add('hidden');
+          }
+        });
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+          const statusSelect = document.getElementById('status');
+          if (statusSelect && statusSelect.value === 'postpone') {
+            document.getElementById('reschedule-date-container').classList.remove('hidden');
+          }
+        });
+      </script>
     </div>
 
     <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end gap-3">

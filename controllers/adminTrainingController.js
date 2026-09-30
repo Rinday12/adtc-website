@@ -170,6 +170,7 @@ const adminTrainingController = {
         price_employee_uad: parseFloat(req.body.price_employee_uad),
         quota:              parseInt(req.body.quota, 10),
         start_date:         req.body.start_date || null,
+        reschedule_date:    req.body.reschedule_date || null,
         status,
         whatsapp_group_link: req.body.whatsapp_group_link?.trim() || null,
         cover_image:        coverImage
