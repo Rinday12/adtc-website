@@ -1,3 +1,20 @@
+### Fix #17 — Tampilan Kedua Tanggal untuk Training Postpone (Asli + Baru)
+Tanggal: 2026-09-30
+File: views/trainings/catalog.ejs, views/trainings/detail.ejs
+Masalah: Training dengan status postpone hanya menampilkan tanggal baru (`start_date` diupdate ke jadwal baru), sehingga user tidak tahu jadwal asli yang dijadwalkan ulang.
+Akar: Model dan view hanya menyimpan dan menampilkan satu tanggal (`start_date`). Kolom `reschedule_date` sudah ada di DB tapi tidak dipakai di view.
+Fix:
+- Tambah kolom `reschedule_date DATE NULL` di tabel trainings (sudah ada di schema.sql, tidak perlu ALTER)
+- Tambah field `reschedule_date` di form admin trainings (create & edit)
+- Tambah validasi: `reschedule_date` wajib diisi saat status = postpone
+- Di catalog.ejs: untuk training postpone dengan `reschedule_date`, tampilkan dua baris tanggal — tanggal asli (dicoret, abu-abu) + tanggal baru (kuning, tebal)
+- Di detail.ejs: untuk training postpone dengan `reschedule_date`, tampilkan tanggal asli dicoret + jadwal baru dengan emoji 🔄 dan subtitle "Tanggal dijadwalkan ulang"
+- Tambah `reschedule_date` ke model Training (CREATE, UPDATE)
+Verifikasi: 110 test passing. Katalog menampilkan "Asli: 29 September 2026" (dicoret) + "Jadwal Baru: 15 April 2025" (kuning). Detail page menampilkan format yang sama. Button Daftar tetap disabled untuk status postpone.
+Pelajaran: Fitur postpone sudah ada di backend, tapi detail tampilan kedua tanggal belum diimplementasikan sampai sekarang.
+Log Keyword: postpone, reschedule-date, kedua-tanggal, original-date
+Deploy: ✅ LIVE 2026-09-30
+
 ### Fix #11 — Grup WhatsApp di Payment Success & Thumbnail Bukti di Dashboard Admin
 Tanggal: 2026-09-17
 File: controllers/paymentController.js, views/registration/payment-success.ejs, views/admin/dashboard.ejs
