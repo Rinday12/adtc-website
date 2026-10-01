@@ -100,35 +100,15 @@ const adminController = {
 
   getDashboard: async (req, res, next) => {
     try {
-      const { status, search, training_search } = req.query
-      const filters = {
-        status: validStatuses.includes(status) ? status : undefined,
-        search: search || '',
-        training_search: training_search || ''
-      }
-
-      const [registrations, regStats, totalTrainings] = await Promise.all([
-        Registration.findAll(filters),
+      const [regStats, totalTrainings] = await Promise.all([
         Registration.countByStatus(),
         Training.count()
       ])
-      const fmt = new Intl.NumberFormat('id-ID', {
-        style: 'currency',
-        currency: 'IDR',
-        minimumFractionDigits: 0
-      })
       res.render('admin/dashboard', {
-        registrations,
         stats: { ...regStats, total_trainings: totalTrainings },
         title: 'Dashboard Admin',
-        activeFilter: status || 'all',
-        filters: {
-          search: filters.search,
-          training_search: filters.training_search
-        },
         adminUser: req.session.adminUsername || 'Admin',
-        currentPath: req.originalUrl,
-        fmt
+        currentPath: req.originalUrl
       })
     } catch (err) {
       next(err)
