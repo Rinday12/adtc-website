@@ -107,7 +107,11 @@ const adminController = {
         training_search: training_search || ''
       }
 
-      const registrations = await Registration.findAll(filters)
+      const [registrations, regStats, totalTrainings] = await Promise.all([
+        Registration.findAll(filters),
+        Registration.countByStatus(),
+        Training.count()
+      ])
       const fmt = new Intl.NumberFormat('id-ID', {
         style: 'currency',
         currency: 'IDR',
@@ -115,6 +119,7 @@ const adminController = {
       })
       res.render('admin/dashboard', {
         registrations,
+        stats: { ...regStats, total_trainings: totalTrainings },
         title: 'Dashboard Admin',
         activeFilter: status || 'all',
         filters: {
@@ -124,6 +129,36 @@ const adminController = {
         adminUser: req.session.adminUsername || 'Admin',
         currentPath: req.originalUrl,
         fmt
+      })
+    } catch (err) {
+      next(err)
+    }
+  },
+
+  getRegistrations: async (req, res, next) => {
+    try {
+      const { status, search, training_search } = req.query
+      const filters = {
+        status: validStatuses.includes(status) ? status : undefined,
+        search: search || '',
+        training_search: training_search || ''
+      }
+
+      const [registrations, regStats] = await Promise.all([
+        Registration.findAll(filters),
+        Registration.countByStatus()
+      ])
+      res.render('admin/registrations', {
+        registrations,
+        stats: regStats,
+        title: 'Peserta',
+        activeFilter: status || 'all',
+        filters: {
+          search: filters.search,
+          training_search: filters.training_search
+        },
+        adminUser: req.session.adminUsername || 'Admin',
+        currentPath: req.originalUrl
       })
     } catch (err) {
       next(err)
@@ -299,19 +334,27 @@ const adminController = {
         return res.redirect('/admin/dashboard')
       }
 
-      const rejectionReason = (req.body.rejection_reason || '').trim()
-      const affected = await Registration.updateStatusWithReason(
-        req.params.id, 'rejected', rejectionReason
-      )
+      const deletionReason = (req.body.rejection_reason || '').trim()
+      const affected = await Registration.removeById(req.params.id)
       if (affected === 0) {
         return res.status(404).render('error', {
           message: 'Pendaftaran tidak ditemukan', code: 404
         })
       }
 
-      sendStatusNotification(registration, 'rejected').catch(() => {})
+      // Bersihkan file bukti pembayaran & KTM/ID card agar tidak menyisakan
+      // artefak yatim di uploads/. Kegagalan hapus file tidak boleh
+      // membatalkan penghapusan data di database (record sudah terhapus).
+      for (const relPath of [registration.payment_proof, registration.identity_card_proof]) {
+        if (!relPath) continue
+        try {
+          fs.unlinkSync(path.join(__dirname, '..', relPath))
+        } catch (_) {
+          // file sudah hilang / path tidak valid — aman diabaikan
+        }
+      }
 
-      req.flash('success', `Peserta ${registration.full_name} berhasil dihapus. Alasan: ${rejectionReason || '-'}`)
+      req.flash('success', `Pendaftaran ${registration.full_name} berhasil dihapus. Alasan: ${deletionReason || '-'}`)
       res.redirect('/admin/dashboard')
     } catch (err) {
       next(err)

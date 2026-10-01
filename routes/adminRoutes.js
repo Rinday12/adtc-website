@@ -28,6 +28,7 @@ router.get('/dashboard', isAuthenticated, adminController.getDashboard)
 // agar Express tidak menginterpretasikan literal "export" sebagai parameter :id.
 
 router.get('/registrations/export', isAuthenticated, adminController.getExportRegistrations)
+router.get('/registrations', isAuthenticated, adminController.getRegistrations)
 router.get('/registrations/:id', isAuthenticated, adminController.getRegistrationDetail)
 router.post('/registrations/:id/certificate', isAuthenticated, adminController.postUpdateCertificateUrl)
 

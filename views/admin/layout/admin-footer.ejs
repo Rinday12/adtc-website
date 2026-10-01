@@ -1,0 +1,13 @@
+<!-- Footer Admin — simple, khusus panel admin. Ditampilkan bila res.locals.footer === 'admin'. -->
+<% if (footer === 'admin') { %>
+<!-- margin kiri mengosongkan ruang sidebar (lg:pl-64) agar teks tidak terpotong -->
+<footer class="bg-white border-t border-gray-200 mt-auto py-3 px-4 lg:px-6 lg:ml-64">
+  <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-gray-400">
+    <p>&copy; <%= new Date().getFullYear() %> PT. Adi Multi Teknologi — ADTC Admin</p>
+    <p>All rights reserved.</p>
+  </div>
+</footer>
+<% } %>
+
+</body>
+</html>

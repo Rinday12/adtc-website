@@ -16,13 +16,20 @@ jest.mock('../../config/db', () => ({
   promise: jest.fn()
 }))
 
+// fs di-spy per-test (lihat deleteRegistration) untuk mengisolasi
+// pembersihan file bukti saat deleteRegistration — record DB yang
+// sudah terhapus tidak boleh bergantung pada ketersediaan file.
 const adminController = require('../../controllers/adminController')
 const Admin = require('../../models/Admin')
 const bcrypt = require('bcrypt')
+const fs = require('fs')
+
+const Registration = require('../../models/Registration')
 
 // Mock dependencies
 jest.mock('../../models/Admin')
 jest.mock('bcrypt')
+jest.mock('../../models/Registration')
 
 describe('adminController', () => {
   describe('postLogin', () => {
@@ -440,6 +447,133 @@ describe('adminController', () => {
 
       expect(req.session.destroy).toHaveBeenCalled()
       expect(res.redirect).toHaveBeenCalledWith('/admin/login')
+    })
+  })
+
+  describe('deleteRegistration', () => {
+    let req, res, next, fsSpy
+
+    beforeEach(() => {
+      jest.clearAllMocks()
+      req = {
+        params: { id: '42' },
+        body: {},
+        flash: jest.fn()
+      }
+      res = {
+        status: jest.fn().mockReturnThis(),
+        render: jest.fn(),
+        redirect: jest.fn()
+      }
+      next = jest.fn()
+      fsSpy = jest.spyOn(fs, 'unlinkSync').mockImplementation(() => {})
+    })
+
+    afterEach(() => {
+      if (fsSpy) fsSpy.mockRestore()
+    })
+
+    it('renders 404 when registration not found', async () => {
+      Registration.findById.mockResolvedValue(null)
+
+      await adminController.deleteRegistration(req, res, next)
+
+      expect(res.status).toHaveBeenCalledWith(404)
+      expect(res.render).toHaveBeenCalledWith('error', expect.objectContaining({ message: 'Pendaftaran tidak ditemukan' }))
+      expect(Registration.removeById).not.toHaveBeenCalled()
+      expect(res.redirect).not.toHaveBeenCalled()
+    })
+
+    it('flashes error and redirects without deleting when already rejected', async () => {
+      Registration.findById.mockResolvedValue({
+        id: 42,
+        full_name: 'Budi Santoso',
+        status: 'rejected',
+        payment_proof: 'uploads/payment_proofs/x.png'
+      })
+
+      await adminController.deleteRegistration(req, res, next)
+
+      expect(req.flash).toHaveBeenCalledWith('error', 'Pendaftaran ini sudah ditolak.')
+      expect(res.redirect).toHaveBeenCalledWith('/admin/dashboard')
+      expect(Registration.removeById).not.toHaveBeenCalled()
+      expect(fsSpy).not.toHaveBeenCalled()
+    })
+
+    it('permanently deletes the record, removes proof files, and flashes success', async () => {
+      Registration.findById.mockResolvedValue({
+        id: 42,
+        full_name: 'Budi Santoso',
+        status: 'verified',
+        payment_proof: 'uploads/payment_proofs/payment-proof-1.png',
+        identity_card_proof: 'uploads/identity_cards/identity-card-proof-2.jpg'
+      })
+      Registration.removeById.mockResolvedValue(1)
+      req.body = { rejection_reason: ' Peserta minta refund ' }
+
+      await adminController.deleteRegistration(req, res, next)
+
+      expect(Registration.removeById).toHaveBeenCalledWith('42')
+      expect(Registration.updateStatusWithReason).not.toHaveBeenCalled()
+      expect(fsSpy).toHaveBeenCalledWith(expect.stringContaining('uploads/payment_proofs/payment-proof-1.png'))
+      expect(fsSpy).toHaveBeenCalledWith(expect.stringContaining('uploads/identity_cards/identity-card-proof-2.jpg'))
+      expect(req.flash).toHaveBeenCalledWith('success', expect.stringContaining('Budi Santoso'))
+      expect(req.flash).toHaveBeenCalledWith('success', expect.stringContaining('Peserta minta refund'))
+      expect(res.redirect).toHaveBeenCalledWith('/admin/dashboard')
+      expect(next).not.toHaveBeenCalled()
+    })
+
+    it('still succeeds and flashes when proof files are missing or fail to delete', async () => {
+      Registration.findById.mockResolvedValue({
+        id: 42,
+        full_name: 'Budi Santoso',
+        status: 'approved',
+        payment_proof: 'uploads/payment_proofs/already-gone.png'
+      })
+      Registration.removeById.mockResolvedValue(1)
+      fsSpy.mockImplementation(() => {
+        throw new Error('ENOENT')
+      })
+
+      await adminController.deleteRegistration(req, res, next)
+
+      // Kegagalan hapus file tidak boleh membatalkan penghapusan data
+      expect(Registration.removeById).toHaveBeenCalledWith('42')
+      expect(req.flash).toHaveBeenCalledWith('success', expect.stringContaining('berhasil dihapus'))
+      expect(res.redirect).toHaveBeenCalledWith('/admin/dashboard')
+      expect(next).not.toHaveBeenCalled()
+    })
+
+    it('renders 404 when record vanished between find and delete (affectedRows = 0)', async () => {
+      Registration.findById.mockResolvedValue({
+        id: 42,
+        full_name: 'Budi Santoso',
+        status: 'pending',
+        payment_proof: null,
+        identity_card_proof: null
+      })
+      Registration.removeById.mockResolvedValue(0)
+
+      await adminController.deleteRegistration(req, res, next)
+
+      expect(res.status).toHaveBeenCalledWith(404)
+      expect(res.render).toHaveBeenCalled()
+      expect(res.redirect).not.toHaveBeenCalled()
+      expect(next).not.toHaveBeenCalled()
+    })
+
+    it('calls next with the error when removeById throws', async () => {
+      Registration.findById.mockResolvedValue({
+        id: 42,
+        full_name: 'Budi Santoso',
+        status: 'pending'
+      })
+      Registration.removeById.mockRejectedValue(new Error('DB down'))
+
+      await adminController.deleteRegistration(req, res, next)
+
+      expect(next).toHaveBeenCalledWith(expect.objectContaining({ message: 'DB down' }))
+      expect(res.redirect).not.toHaveBeenCalled()
     })
   })
 })

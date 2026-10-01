@@ -39,6 +39,8 @@ app.use((req, res, next) => {
   res.locals.error_msg    = req.flash('error')
   res.locals.adminUser    = req.session.adminId || null
   res.locals.currentPath  = req.path
+  // Footer: panel admin memakai footer simple, halaman publik memakai footer lengkap
+  res.locals.footer       = req.path.startsWith('/admin') ? 'admin' : 'user'
   // Nomor WA admin untuk tombol floating
   res.locals.waAdmins = [
     { number: process.env.WHATSAPP_ADMIN_1_NUMBER, name: process.env.WHATSAPP_ADMIN_1_NAME || 'Admin 1' },

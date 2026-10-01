@@ -1,0 +1,208 @@
+<%- include('../layout/header', { title, adminUser, currentPath }) %>
+<%- include('./layout/sidebar', { adminUser, currentPath }) %>
+
+<!-- Tombol buka sidebar di layar mobile (sidebar tersembunyi di < lg) -->
+<button
+  type="button"
+  onclick="toggleSidebar()"
+  class="lg:hidden fixed top-4 left-4 z-50 w-10 h-10 bg-navy-800 text-white rounded-lg shadow-lg flex items-center justify-center"
+  aria-label="Buka menu"
+>
+  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+  </svg>
+</button>
+
+<!-- Main content -->
+<div class="lg:pl-64">
+<div class="max-w-6xl mx-auto px-4 py-6 lg:px-6">
+
+  <!-- Page Header -->
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-800">Daftar Peserta</h1>
+      <p class="text-gray-500 text-sm mt-1">Pendaftaran, kelola status, dan verifikasi peserta pelatihan ADTC</p>
+    </div>
+    <button
+      type="button"
+      onclick="window.location.reload()"
+      class="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-green-700 transition-colors border border-gray-300 hover:border-green-400 rounded-lg px-4 py-2"
+      title="Muat ulang data"
+    >
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+      </svg>
+      Refresh
+    </button>
+  </div>
+
+  <!-- Search & Filter -->
+  <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4 mb-6">
+    <form method="GET" action="/admin/registrations" class="flex flex-col sm:flex-row gap-3">
+      <!-- Status Filter -->
+      <select name="status" class="sm:w-40 rounded-lg border-gray-300 text-sm focus:border-brand-500 focus:ring-brand-500">
+        <option value="all" <%= activeFilter === 'all' ? 'selected' : '' %>>Semua Status</option>
+        <option value="pending" <%= activeFilter === 'pending' ? 'selected' : '' %>>Pending</option>
+        <option value="approved" <%= activeFilter === 'approved' ? 'selected' : '' %>>Disetujui</option>
+        <option value="payment_uploaded" <%= activeFilter === 'payment_uploaded' ? 'selected' : '' %>>Bukti Terkirim</option>
+        <option value="verified" <%= activeFilter === 'verified' ? 'selected' : '' %>>Verified</option>
+        <option value="rejected" <%= activeFilter === 'rejected' ? 'selected' : '' %>>Ditolak</option>
+      </select>
+
+      <!-- Name Search -->
+      <div class="flex-1 relative">
+        <input type="text" name="search" value="<%= filters.search %>" placeholder="Cari nama peserta..."
+          class="w-full rounded-lg border-gray-300 pl-10 text-sm focus:border-brand-500 focus:ring-brand-500">
+        <svg class="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        </svg>
+      </div>
+
+      <!-- Training Search -->
+      <div class="flex-1 relative">
+        <input type="text" name="training_search" value="<%= filters.training_search %>" placeholder="Cari jenis/nama pelatihan..."
+          class="w-full rounded-lg border-gray-300 pl-10 text-sm focus:border-brand-500 focus:ring-brand-500">
+        <svg class="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+        </svg>
+      </div>
+
+      <!-- Buttons -->
+      <div class="flex gap-2">
+        <button type="submit" class="flex-1 sm:flex-none bg-navy-700 hover:bg-navy-800 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
+          Terapkan
+        </button>
+        <a href="/admin/registrations" class="flex-1 sm:flex-none px-4 py-2 text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg transition-colors text-center">
+          Reset
+        </a>
+      </div>
+    </form>
+  </div>
+
+  <!-- Registrations Table -->
+  <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+    <% if (registrations && registrations.length > 0) { %>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm text-left min-w-[800px]">
+          <thead class="bg-gray-50 border-b border-gray-200 text-gray-600 uppercase text-xs tracking-wide">
+            <tr>
+              <th class="px-5 py-3 font-semibold">Nama Peserta</th>
+              <th class="px-5 py-3 font-semibold">Kode Ref</th>
+              <th class="px-5 py-3 font-semibold">Pelatihan</th>
+              <th class="px-5 py-3 font-semibold">Kategori</th>
+              <th class="px-5 py-3 font-semibold">Tagihan</th>
+              <th class="px-5 py-3 font-semibold">Status</th>
+              <th class="px-5 py-3 font-semibold">Tanggal</th>
+              <th class="px-5 py-3 font-semibold sr-only">Aksi</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+            <% registrations.forEach(function(reg) { %>
+              <tr class="hover:bg-gray-50 transition-colors">
+
+                <!-- Nama Peserta -->
+                <td class="px-5 py-4 font-medium text-gray-900 max-w-[200px]">
+                  <span class="block truncate" title="<%= reg.full_name %>"><%= reg.full_name %></span>
+                </td>
+
+                <!-- Kode Referensi -->
+                <td class="px-5 py-4">
+                  <span class="font-mono text-xs font-semibold text-brand-600 bg-brand-50 px-2 py-1 rounded border border-brand-200" title="Gunakan kode ini saat transfer">
+                    <%= reg.reference_code %>
+                  </span>
+                </td>
+
+                <!-- Nama Training -->
+                <td class="px-5 py-4 text-gray-700 max-w-[200px]">
+                  <span class="block truncate" title="<%= reg.training_title %>"><%= reg.training_title %></span>
+                </td>
+
+                <!-- Kategori -->
+                <td class="px-5 py-4 text-gray-700">
+                  <%
+                    const categoryLabels = {
+                      'umum':          'Umum',
+                      'mahasiswa_uad': 'Mahasiswa',
+                      'karyawan_uad':  'Karyawan'
+                    }
+                  %>
+                  <%= categoryLabels[reg.category] || reg.category %>
+                </td>
+
+                <!-- Final Price -->
+                <td class="px-5 py-4 font-medium text-navy-700 whitespace-nowrap">
+                  <%= reg.final_price.toLocaleString('id-ID') %>
+                </td>
+
+                <!-- Status Badge -->
+                <td class="px-5 py-4">
+                  <%
+                    const statusConfig = {
+                      pending:            { label: 'Pending',       cls: 'bg-yellow-100 text-yellow-800 border-yellow-200' },
+                      approved:           { label: 'Disetujui',     cls: 'bg-blue-100 text-blue-800 border-blue-200' },
+                      payment_uploaded:   { label: 'Bukti Terkirim', cls: 'bg-orange-100 text-orange-800 border-orange-200' },
+                      verified:           { label: 'Verified',      cls: 'bg-green-100 text-green-800 border-green-200' },
+                      rejected:           { label: 'Ditolak',       cls: 'bg-red-100 text-red-800 border-red-200' }
+                    }
+                    const sc = statusConfig[reg.status] || { label: reg.status, cls: 'bg-gray-100 text-gray-700 border-gray-200' }
+                  %>
+                  <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold border <%= sc.cls %>">
+                    <%= sc.label %>
+                  </span>
+                </td>
+
+                <!-- Tanggal Daftar -->
+                <td class="px-5 py-4 text-gray-500 whitespace-nowrap">
+                  <%= new Date(reg.created_at).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) %>
+                </td>
+
+                <!-- Action: link to detail -->
+                <td class="px-5 py-4">
+                  <a href="/admin/registrations/<%= reg.id %>" class="inline-flex items-center gap-1 text-sm text-brand-600 hover:text-brand-700 hover:underline">
+                    Detail
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                  </a>
+                </td>
+
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Row count summary -->
+      <div class="px-5 py-3 bg-gray-50 border-t border-gray-200 text-xs text-gray-500 flex justify-between items-center">
+        <span>Menampilkan <span class="font-medium text-gray-700"><%= registrations.length %></span> pendaftaran</span>
+        <% if (filters.search || filters.training_search || activeFilter !== 'all') { %>
+          <a href="/admin/registrations" class="text-brand-600 hover:underline">Hapus filter</a>
+        <% } %>
+      </div>
+
+    <% } else { %>
+      <!-- Empty State -->
+      <div class="flex flex-col items-center justify-center py-16 px-4 text-center">
+        <svg class="w-14 h-14 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        <p class="text-gray-500 font-medium">
+          <% if (activeFilter !== 'all' || filters.search || filters.training_search) { %>
+            Tidak ada pendaftaran yang cocok dengan filter.
+          <% } else { %>
+            Belum ada pendaftaran masuk.
+          <% } %>
+        </p>
+        <% if (filters.search || filters.training_search || activeFilter !== 'all') { %>
+          <a href="/admin/registrations" class="mt-3 text-sm text-brand-500 hover:underline">Tampilkan semua</a>
+        <% } %>
+      </div>
+    <% } %>
+  </div>
+
+</div>
+</div>
+
+<%- include('./layout/admin-footer') %>

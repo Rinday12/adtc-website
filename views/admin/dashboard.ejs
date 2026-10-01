@@ -1,6 +1,21 @@
-<%- include('../layout/header', { title }) %>
+<%- include('../layout/header', { title, adminUser, currentPath }) %>
+<%- include('./layout/sidebar', { adminUser, currentPath }) %>
 
-<div class="max-w-6xl mx-auto">
+<!-- Tombol buka sidebar di layar mobile (sidebar tersembunyi di < lg) -->
+<button
+  type="button"
+  onclick="toggleSidebar()"
+  class="lg:hidden fixed top-4 left-4 z-50 w-10 h-10 bg-navy-800 text-white rounded-lg shadow-lg flex items-center justify-center"
+  aria-label="Buka menu"
+>
+  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+  </svg>
+</button>
+
+<!-- Main content — di-offset agar tidak tertutup sidebar di desktop -->
+<div class="lg:pl-64">
+<div class="max-w-6xl mx-auto px-4 py-6 lg:px-6">
 
   <!-- Page Header -->
   <div class="flex items-center justify-between mb-6">
@@ -8,115 +23,134 @@
       <h1 class="text-2xl font-bold text-gray-800">Dashboard Admin</h1>
       <p class="text-gray-500 text-sm mt-1">Manajemen pendaftaran peserta pelatihan</p>
     </div>
-    <div class="flex items-center gap-2">
-      <button
-        type="button"
-        onclick="window.location.reload()"
-        class="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-green-700 transition-colors border border-gray-300 hover:border-green-400 rounded-lg px-4 py-2"
-        title="Muat ulang data"
-      >
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-        </svg>
-        Refresh
-      </button>
-      <a
-        href="/admin/logout"
-        class="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-red-600 transition-colors border border-gray-300 hover:border-red-300 rounded-lg px-4 py-2"
-      >
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-        </svg>
-        Logout
-      </a>
+    <button
+      type="button"
+      onclick="window.location.reload()"
+      class="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-green-700 transition-colors border border-gray-300 hover:border-green-400 rounded-lg px-4 py-2"
+      title="Muat ulang data"
+    >
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+      </svg>
+      Refresh
+    </button>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <!-- Total Pelatihan -->
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm text-gray-500 mb-1">Total Pelatihan</p>
+          <p class="text-2xl font-bold text-gray-800"><%= (stats && stats.total_trainings) || 0 %></p>
+        </div>
+        <div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
+          <svg class="w-5 h-5 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pendaftaran Masuk -->
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm text-gray-500 mb-1">Pendaftaran Masuk</p>
+          <p class="text-2xl font-bold text-gray-800"><%= (stats && stats.total) || 0 %></p>
+        </div>
+        <div class="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center">
+          <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Menunggu -->
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm text-gray-500 mb-1">Menunggu</p>
+          <p class="text-2xl font-bold text-yellow-600"><%= (stats && stats.pending) || 0 %></p>
+        </div>
+        <div class="w-10 h-10 bg-yellow-50 rounded-lg flex items-center justify-center">
+          <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Terverifikasi -->
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm text-gray-500 mb-1">Terverifikasi</p>
+          <p class="text-2xl font-bold text-green-600"><%= (stats && stats.verified) || 0 %></p>
+        </div>
+        <div class="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center">
+          <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M6 9l7 7 7-7M18 8a2 2 0 11-4 0 2 2 0 014 0z"/>
+          </svg>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- Manajemen Konten -->
+  <!-- Menu Cepat -->
   <div class="mb-6">
-    <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Manajemen Konten</h2>
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-
-      <!-- Card: Manajemen Berita -->
-      <a
-        href="/admin/news"
-        class="flex items-center gap-4 bg-white border border-gray-200 rounded-xl px-5 py-4 shadow-sm hover:border-blue-400 hover:shadow-md transition-all group"
-      >
-        <div class="flex-shrink-0 w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center group-hover:bg-orange-100 transition-colors">
-          <svg class="w-5 h-5 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10l6 6v8a2 2 0 01-2 2zM9 12h6M9 16h4" />
+    <h2 class="text-base font-semibold text-gray-800 mb-4">Menu Cepat</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <a href="/admin/registrations" class="flex items-center gap-4 bg-white border border-gray-200 rounded-xl px-5 py-4 shadow-sm hover:border-blue-400 hover:shadow-md transition-all group">
+        <div class="flex-shrink-0 w-12 h-12 rounded-lg bg-blue-50 flex items-center justify-center">
+          <svg class="w-6 h-6 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
           </svg>
         </div>
         <div>
-          <p class="text-sm font-semibold text-gray-800 group-hover:text-navy-700 transition-colors">Manajemen Berita</p>
-          <p class="text-xs text-gray-500 mt-0.5">Kelola artikel dan aktivitas ADTC</p>
+          <p class="text-sm font-semibold text-gray-800">Kelola Pendaftaran</p>
+          <p class="text-xs text-gray-500 mt-0.5">Approve, reject, verifikasi</p>
         </div>
-        <svg class="w-4 h-4 text-gray-400 ml-auto group-hover:text-blue-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-        </svg>
       </a>
 
-      <!-- Card: Manajemen Pelatihan -->
-      <a
-        href="/admin/trainings"
-        class="flex items-center gap-4 bg-white border border-gray-200 rounded-xl px-5 py-4 shadow-sm hover:border-blue-400 hover:shadow-md transition-all group"
-      >
-        <div class="flex-shrink-0 w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center group-hover:bg-orange-100 transition-colors">
-          <svg class="w-5 h-5 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+      <a href="/admin/trainings" class="flex items-center gap-4 bg-white border border-gray-200 rounded-xl px-5 py-4 shadow-sm hover:border-blue-400 hover:shadow-md transition-all group">
+        <div class="flex-shrink-0 w-12 h-12 rounded-lg bg-green-50 flex items-center justify-center">
+          <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
           </svg>
         </div>
         <div>
-          <p class="text-sm font-semibold text-gray-800 group-hover:text-navy-700 transition-colors">Manajemen Pelatihan</p>
-          <p class="text-xs text-gray-500 mt-0.5">Kelola program pelatihan & grup WhatsApp peserta</p>
+          <p class="text-sm font-semibold text-gray-800">Kelola Pelatihan</p>
+          <p class="text-xs text-gray-500 mt-0.5">Tambah, edit, link WA grup</p>
         </div>
-        <svg class="w-4 h-4 text-gray-400 ml-auto group-hover:text-blue-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-        </svg>
       </a>
 
-      <!-- Card: Manajemen Benefit -->
-      <a
-        href="/admin/benefits"
-        class="flex items-center gap-4 bg-white border border-gray-200 rounded-xl px-5 py-4 shadow-sm hover:border-blue-400 hover:shadow-md transition-all group"
-      >
-        <div class="flex-shrink-0 w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center group-hover:bg-orange-100 transition-colors">
-          <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+      <a href="/admin/news" class="flex items-center gap-4 bg-white border border-gray-200 rounded-xl px-5 py-4 shadow-sm hover:border-blue-400 hover:shadow-md transition-all group">
+        <div class="flex-shrink-0 w-12 h-12 rounded-lg bg-purple-50 flex items-center justify-center">
+          <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10l6 6v8a2 2 0 01-2 2zM9 12h6M9 16h4"/>
           </svg>
         </div>
         <div>
-          <p class="text-sm font-semibold text-gray-800 group-hover:text-navy-700 transition-colors">Manajemen Benefit</p>
-          <p class="text-xs text-gray-500 mt-0.5">Kelola keunggulan dan benefit ADTC</p>
+          <p class="text-sm font-semibold text-gray-800">Kelola Berita</p>
+          <p class="text-xs text-gray-500 mt-0.5">Artikel dan aktivitas ADTC</p>
         </div>
-        <svg class="w-4 h-4 text-gray-400 ml-auto group-hover:text-orange-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-        </svg>
       </a>
 
-      <!-- Card: Download Data Peserta -->
-      <a
-        href="/admin/registrations/export"
-        class="flex items-center gap-4 bg-white border border-gray-200 rounded-xl px-5 py-4 shadow-sm hover:border-green-400 hover:shadow-md transition-all group"
-      >
-        <div class="flex-shrink-0 w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center group-hover:bg-green-100 transition-colors">
-          <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+      <a href="/admin/benefits" class="flex items-center gap-4 bg-white border border-gray-200 rounded-xl px-5 py-4 shadow-sm hover:border-blue-400 hover:shadow-md transition-all group">
+        <div class="flex-shrink-0 w-12 h-12 rounded-lg bg-orange-50 flex items-center justify-center">
+          <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
           </svg>
         </div>
         <div>
-          <p class="text-sm font-semibold text-gray-800 group-hover:text-navy-700 transition-colors">Download Data Peserta</p>
-          <p class="text-xs text-gray-500 mt-0.5">Export Excel peserta terverifikasi per kategori pelatihan</p>
+          <p class="text-sm font-semibold text-gray-800">Kelola Benefit</p>
+          <p class="text-xs text-gray-500 mt-0.5">Keunggulan dan benefit ADTC</p>
         </div>
-        <svg class="w-4 h-4 text-gray-400 ml-auto group-hover:text-green-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-        </svg>
       </a>
-
     </div>
   </div>
 
@@ -324,9 +358,12 @@
                   <!-- Hapus Peserta button (always available except rejected) -->
                   <% if (reg.status !== 'rejected') { %>
                     <button onclick="toggleDeleteForm(<%= reg.id %>)" class="text-red-500 hover:text-red-700 hover:bg-red-50 px-2 py-1 rounded text-xs font-medium transition-colors">
-                      Hapus Peserta
+                      Hapus & Keluarkan
                     </button>
                     <div id="delete-form-inline-<%= reg.id %>" class="hidden mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+                      <p class="text-xs text-red-700 mb-2">
+                        <strong>Peringatan:</strong> penghapusan permanen — record peserta dihapus dari database dan kuota slot dibuka kembali.
+                      </p>
                       <p class="text-xs text-red-700 mb-2">Alasan penghapusan:</p>
                       <form method="POST" action="/admin/registrations/<%= reg.id %>/delete">
                         <textarea name="rejection_reason" rows="2" placeholder="Contoh: Peserta minta refund" class="w-full text-xs border border-red-300 rounded px-2 py-1 mb-2 resize-none"></textarea>
@@ -424,4 +461,4 @@
   }
 </script>
 
-<%- include('../layout/footer') %>
+<%- include('./layout/admin-footer') %>

@@ -1,3 +1,18 @@
+### Fix #18 — Tombol "Hapus Peserta" Sebenarnya Tidak Menghapus (Hanya Ubah Status ke Rejected)
+Tanggal: 2026-09-30
+File: controllers/adminController.js, models/Registration.js, views/admin/dashboard.ejs, tests/unit/adminController.test.js
+Masalah: Fitur hapus peserta di dashboard admin (commit 5e4e379) diimplementasi sebagai `updateStatusWithReason(id, 'rejected', ...)` — tombol "Hapus Peserta" hanyalah alias tombol "Tolak", record tidak pernah dihapus, kuota slot (`registered_count`) tidak terbuka, dan flash message-nya ("berhasil dihapus") tidak sesuai fakta.
+Akar: `registered_count` dihitung dinamis dari `registrations WHERE status != 'rejected'` (models/Training.js), jadi satu-satunya cara kuota slot benar-benar terbuka adalah record-nya tidak ada di tabel (bukan statusnya jadi rejected — rejected tetap dihitung keluar karena filter `!= 'rejected'` hanya untuk count, tapi record masih mengokupasi baris dan file bukti tetap tersisa di uploads/).
+Fix:
+- Tambah `Registration.removeById(id)` (DELETE FROM registrations, return affectedRows) di models/Registration.js
+- `deleteRegistration` di adminController.js: hapus record dengan `removeById`, lalu bersihkan file `payment_proof` & `identity_card_proof` (fs.unlinkSync, error di-swallow karena record DB sudah terhapus — tidak boleh gagal balik); tidak mengirim email notifikasi ke peserta lagi (record sudah tidak ada, dan peserta biasanya minta refund/keberatan sendiri)
+- Ganti label tombol dari "Hapus Peserta" menjadi "Hapus & Keluarkan" + peringatan inline "penghapusan permanen" di dashboard.ejs agar admin paham konsekuensinya
+- Tambah 6 unit test baru untuk `deleteRegistration` (404 not-found, sudah rejected, sukses hapus + bersihkan file, file hilang tidak membatalkan, affectedRows=0, DB error → next(err))
+Verifikasi: 116 test passing (sebelumnya 110; +6 test baru). EJS dashboard compile OK.
+Pelajaran: Implementasi "hapus" yang sebenarnya adalah "ubah status" adalah bug diam-diam — commit message-nya sendiri bilang "hapus" tapi kodenya reject. Test unit (termasuk test yang assert method mana yang dipanggil, tidak hanya hasilnya) seharusnya bisa menangkapnya lebih awal.
+Log Keyword: deleteRegistration, removeById, hapus-peserta, registered_count, kuota, updateStatusWithReason
+Deploy: PENDING — belum di-deploy ke production
+
 ### Fix #17 — Tampilan Kedua Tanggal untuk Training Postpone (Asli + Baru)
 Tanggal: 2026-09-30
 File: views/trainings/catalog.ejs, views/trainings/detail.ejs

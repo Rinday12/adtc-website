@@ -131,6 +131,14 @@ const Registration = {
     return result
   },
 
+  async removeById(id) {
+    const [result] = await db.execute(
+      'DELETE FROM registrations WHERE id = ?',
+      [id]
+    )
+    return result.affectedRows
+  },
+
   async updateStatus(id, status) {
     if (!validStatuses.includes(status)) {
       throw new Error(`Invalid status: ${status}`)
