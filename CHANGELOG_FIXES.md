@@ -11,7 +11,7 @@ Fix:
 Verifikasi: 116 test passing (sebelumnya 110; +6 test baru). EJS dashboard compile OK.
 Pelajaran: Implementasi "hapus" yang sebenarnya adalah "ubah status" adalah bug diam-diam — commit message-nya sendiri bilang "hapus" tapi kodenya reject. Test unit (termasuk test yang assert method mana yang dipanggil, tidak hanya hasilnya) seharusnya bisa menangkapnya lebih awal.
 Log Keyword: deleteRegistration, removeById, hapus-peserta, registered_count, kuota, updateStatusWithReason
-Deploy: PENDING — belum di-deploy ke production
+Deploy: ✅ LIVE 2026-09-30 — commit 628a44d
 
 ### Fix #17 — Tampilan Kedua Tanggal untuk Training Postpone (Asli + Baru)
 Tanggal: 2026-09-30
