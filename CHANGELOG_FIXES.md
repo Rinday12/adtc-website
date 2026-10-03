@@ -1,3 +1,18 @@
+### Fix #19 — Fallback Data Kosong untuk Katalog & Berita Saat DB Down (Hanya homepage yang Sudah Aman)
+Tanggal: 2026-10-03
+File: controllers/publicController.js, controllers/contentController.js
+Masalah: Saat koneksi database gagal (ECONNREFUSED), hanya homepage (`/`) yang tahan karena sudah pakai `Promise.allSettled` sejak commit c80341b. Halaman `/trainings` (katalog) dan `/berita` masih memanggil `next(err)` langsung dari query, sehingga menghasilkan error 500 total, bukan tampilan dengan data kosong.
+Akar: Pola fallback `Promise.allSettled`/try-catch per-query baru diterapkan di `contentController.getHome`, belum di-propagasi ke `publicController.getCatalog`, `publicController.getTrainingDetail`, `contentController.getNewsList`, `contentController.getNewsDetail`.
+Fix:
+- `getCatalog`: ganti `Promise.all` dengan `Promise.allSettled`, fallback ke `[]` untuk `groups` & `categories`, log error via `console.error`.
+- `getTrainingDetail`: query `findBySlug` dibungkus try/catch sendiri; jika gagal (mis. DB down), `training` dianggap `null` → 404, bukan 500.
+- `getNewsList`: query `News.findAll()` dibungkus try/catch; gagal → `newsList = []` + log.
+- `getNewsDetail`: sama dengan `getTrainingDetail` — gagal → `news = null` → 404.
+Verifikasi: 76 unit test passing (jeda lokal, DB memang tidak bisa dihubungi dari laptop — error yang muncul adalah `ECONNREFUSED`, persis gejala production saat DB down). Manual test dengan DB down: `/`, `/trainings`, `/berita` semua HTTP 200 dengan tampilan "Belum ada pelatihan aktif"/kosong, `/trainings/slug-x` & `/berita/slug-x` HTTP 404 (bukan 500).
+Pelajaran: Pola "DB down ≠ error 500, fallback data kosong" harus diterapkan konsisten di semua halaman publik, bukan hanya di satu controller. Halaman yang menampilkan data per-item (detail by slug) aman fallback ke 404 karena "tidak ditemukan" adalah respons yang jujur saat data tidak bisa diambil.
+Log Keyword: ECONNREFUSED, getCatalog, getNewsList, allSettled, fallback, db-down
+Deploy: PENDING verifikasi (belum di-deploy ke production; DB production masih ECONNREFUSED sejak 2026-10-03, jadi halaman publik masih 500 karena DB, bukan karena logika)
+
 ### Fix #18 — Tombol "Hapus Peserta" Sebenarnya Tidak Menghapus (Hanya Ubah Status ke Rejected)
 Tanggal: 2026-09-30
 File: controllers/adminController.js, models/Registration.js, views/admin/dashboard.ejs, tests/unit/adminController.test.js

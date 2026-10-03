@@ -10,10 +10,18 @@ const publicController = {
    */
   getCatalog: async (req, res, next) => {
     try {
-      const [groups, categories] = await Promise.all([
+      const [groupsResult, categoriesResult] = await Promise.allSettled([
         Training.findAllGrouped(),
         Training.findCategories()
       ])
+      const groups = groupsResult.status === 'fulfilled' ? groupsResult.value : []
+      const categories = categoriesResult.status === 'fulfilled' ? categoriesResult.value : []
+      if (groupsResult.status === 'rejected') {
+        console.error('[getCatalog] Query training gagal, fallback ke array kosong:', groupsResult.reason)
+      }
+      if (categoriesResult.status === 'rejected') {
+        console.error('[getCatalog] Query kategori gagal, fallback ke array kosong:', categoriesResult.reason)
+      }
       res.render('trainings/catalog', {
         groups,
         categories,
@@ -31,7 +39,13 @@ const publicController = {
    */
   getTrainingDetail: async (req, res, next) => {
     try {
-      const training = await Training.findBySlug(req.params.slug)
+      let training
+      try {
+        training = await Training.findBySlug(req.params.slug)
+      } catch (err) {
+        console.error('[getTrainingDetail] Query detail gagal:', err.message)
+        training = null
+      }
       if (!training) {
         return res.status(404).render('error', {
           message: 'Pelatihan tidak ditemukan', code: 404

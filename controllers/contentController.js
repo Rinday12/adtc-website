@@ -66,7 +66,12 @@ const contentController = {
    */
   getNewsList: async (req, res, next) => {
     try {
-      const newsList = await News.findAll()
+      let newsList = []
+      try {
+        newsList = await News.findAll()
+      } catch (err) {
+        console.error('[getNewsList] Query berita gagal, fallback ke array kosong:', err.message)
+      }
       res.render('news/list', { title: 'Berita ADTC', newsList })
     } catch (err) {
       next(err)
@@ -85,7 +90,13 @@ const contentController = {
    */
   getNewsDetail: async (req, res, next) => {
     try {
-      const news = await News.findBySlug(req.params.slug)
+      let news
+      try {
+        news = await News.findBySlug(req.params.slug)
+      } catch (err) {
+        console.error('[getNewsDetail] Query berita gagal:', err.message)
+        news = null
+      }
       if (!news) {
         return res.status(404).render('error', {
           message: 'Berita tidak ditemukan', code: 404

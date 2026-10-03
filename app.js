@@ -56,10 +56,12 @@ app.use(async (req, res, next) => {
   try {
     if (!req.path.startsWith('/admin')) {
       res.locals.navCategories = await Training.findCategories()
+      console.log('[MW] Categories loaded:', res.locals.navCategories?.length || 0)
     } else {
       res.locals.navCategories = []
     }
-  } catch (_) {
+  } catch (err) {
+    console.error('[MW] Categories load failed:', err.message)
     res.locals.navCategories = []
   }
   next()
