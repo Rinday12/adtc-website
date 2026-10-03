@@ -277,3 +277,15 @@ Verifikasi: 13 kartu pelatihan muncul di halaman /trainings. Semua 12 training t
 Pelajaran: Pastikan script interaktif dimuat di semua halaman yang membutuhkannya, atau gunakan inline script di template yang relevan.
 Log Keyword: catalog, reveal-card, intersection-observer, opacity, hidden cards
 Deploy: Belum deploy
+
+### Fix #26 — getSuccess SyntaxError Saat App Startup (Fix #25 补充)
+Tanggal: 2026-10-03
+File: controllers/registrationController.js
+Masalah: Function `getSuccess` memiliki struktur `try-catch` yang tidak valid — ada `catch` tanpa `try` yang cocok. Error ini muncul setelah Fix #22 menambahkan try-catch di `submitForm` tetapi tidak konsisten di `getSuccess`. Ketika Phusion Passenger mencoba load module ini, Node.js berhenti dengan SyntaxError.
+Akar: Fix #22 hanya memperbaiki `submitForm`, lupa menerapkan pola yang sama ke `getSuccess`.
+Fix: Tambahkan `try {` sebelum block render dan `} catch (err) { next(err) }` di akhir, sesuai pola di `submitForm`.
+Verifikasi: `/usr/local/bin/node --check controllers/registrationController.js` → Syntax OK.
+Pelajaran: Setiap method async perlu try-catch konsistensi jika ada operasi yang bisa gagal.
+Log Keyword: SyntaxError, getSuccess, catch, try-catch, Phusion Passenger
+Deploy: ✅ COMMITTED — perlu re-deploy ke production
+
