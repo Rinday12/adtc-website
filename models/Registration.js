@@ -40,11 +40,13 @@ const Registration = {
 
     const referenceCode = generateReferenceCode()
 
+    // INSERT tanpa identity_card_proof — kolom ini ditangani terpisah agar
+    // kompatibel dengan skema DB yang tidak punya kolom tersebut.
     const [result] = await db.execute(
       `INSERT INTO registrations
         (training_id, full_name, email, phone, category,
-         identity_number, identity_card_proof, final_price, reference_code, status)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         identity_number, final_price, reference_code, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         training_id,
         full_name,
@@ -52,14 +54,29 @@ const Registration = {
         phone,
         category,
         identity_number || null,
-        identity_card_proof || null,
         final_price,
         referenceCode,
         'pending'
       ]
     )
 
-    return result.insertId
+    const insertId = result.insertId
+
+    // UPDATE terpisah untuk identity_card_proof — error di-swallow agar
+    // pendaftaran tetap sukses jika kolom tidak ada di skema DB.
+    if (identity_card_proof) {
+      try {
+        await db.execute(
+          'UPDATE registrations SET identity_card_proof = ? WHERE id = ?',
+          [identity_card_proof, insertId]
+        )
+      } catch (err) {
+        console.error('[Registration.create] identity_card_proof update gagal:', err.message)
+        // Tidak membatalkan pendaftaran — data sudah tersimpan.
+      }
+    }
+
+    return insertId
   },
 
   async findById(id) {
