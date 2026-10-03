@@ -11,7 +11,16 @@ set -euo pipefail
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PID_FILE="$PROJECT_ROOT/.server.pid"
-NODE_BIN="/opt/homebrew/bin/node"
+# Cari node: cek environment yang ada di cPanel (nodevenv) atau PATH system
+if command -v node &>/dev/null; then
+  NODE_BIN="$(command -v node)"
+elif [[ -x "/usr/local/bin/node" ]]; then
+  NODE_BIN="/usr/local/bin/node"
+elif [[ -x "/opt/homebrew/bin/node" ]]; then
+  NODE_BIN="/opt/homebrew/bin/node"
+else
+  NODE_BIN="node"
+fi
 PORT=3000
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
