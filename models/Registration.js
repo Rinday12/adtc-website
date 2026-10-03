@@ -43,8 +43,8 @@ const Registration = {
     const [result] = await db.execute(
       `INSERT INTO registrations
         (training_id, full_name, email, phone, category,
-         identity_number, identity_card_proof, final_price, reference_code)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         identity_number, identity_card_proof, final_price, reference_code, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         training_id,
         full_name,
@@ -54,7 +54,8 @@ const Registration = {
         identity_number || null,
         identity_card_proof || null,
         final_price,
-        referenceCode
+        referenceCode,
+        'pending'
       ]
     )
 
