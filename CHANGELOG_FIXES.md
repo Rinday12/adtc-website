@@ -1,4 +1,15 @@
 ### Fix #20 — Register Halaman 500 Saat DB Down (Fix #19 补充)
+### Fix #25 — server.sh nodevenv fallback bug（NODE_BIN 被设为字面量 "{}"）
+Tanggal: 2026-10-03
+File: scripts/server.sh
+Masalah: 当 nodevenv 目录为空或不存在时，第 27 行 `ls | head -1 | xargs -I{} test -x {}` 中 xargs 收到空输入仍返回成功（test 无参数=exists），导致 `echo "{}" | head -1` 输出字面量 `"{}"` 而非空字符串。后续 `[[ ! -x "{}" ]]` 触发 fatal error "Node.js tidak ditemukan di {}"，Phusion Passenger 无法启动 app，所有页面显示 500。
+Akar: bash 中 xargs 在空输入时默认执行一次命令（无参数），test -x 无参数返回 true（exists）。
+Fix: 改用变量捕获 + `[[ -n "$FIRST_NODE" ]] && [[ -x "$FIRST_NODE" ]]` 显式判断空值和可执行性，避免 xargs 空输入的歧义。
+Verifikasi: 本地测试非存在 nodevenv 路径 → NODE_BIN="node"（fallback）；真实路径存在且可执行 → NODE_BIN=/usr/local/bin/node。
+Pelajaran: xargs 空输入行为是陷阱，管道末尾必须显式检查空值。
+Log Keyword: server.sh, nodevenv, NODE_BIN, xargs, fallback, 500, Phusion Passenger
+Deploy: ✅ COMMITTED dd8a7db — 需手动 re-deploy 到生产服务器
+
 Tanggal: 2026-10-03
 File: controllers/registrationController.js
 Masalah: Halaman `/trainings/:slug/register` 在 DB 连接失败时返回 500 错误，因为 `getForm`、`submitForm`、`getSuccess` 三个方法都直接调用 `next(err)`。
