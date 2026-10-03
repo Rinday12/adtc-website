@@ -24,8 +24,8 @@ elif [[ -x "/opt/cpanel/ea-nodejs16/root/usr/bin/node" ]]; then
   NODE_BIN="/opt/cpanel/ea-nodejs16/root/usr/bin/node"
 elif [[ -x "/opt/cpanel/ea-nodejs18/root/usr/bin/node" ]]; then
   NODE_BIN="/opt/cpanel/ea-nodejs18/root/usr/bin/node"
-elif ls "$HOME/nodevenv/"*/root/usr/bin/node 2>/dev/null | head -1 | xargs -I{} test -x {} && echo "{}" | head -1; then
-  NODE_BIN=$(ls "$HOME/nodevenv/"*/root/usr/bin/node 2>/dev/null | head -1)
+elif { FIRST_NODE=$(ls "$HOME/nodevenv/"*/root/usr/bin/node 2>/dev/null | head -1) && [[ -n "$FIRST_NODE" ]] && [[ -x "$FIRST_NODE" ]]; }; then
+  NODE_BIN="$FIRST_NODE"
 else
   NODE_BIN="node"
 fi
