@@ -55,35 +55,42 @@ function validateRegistrationInput(body, files) {
 const registrationController = {
 
   getForm: async (req, res, next) => {
+    let training
     try {
-      const training = await Training.findBySlug(req.params.slug)
-      if (!training) {
-        return res.status(404).render('error', { message: 'Pelatihan tidak ditemukan', code: 404 })
-      }
-
-      // Pelatihan sudah selesai (tanggal mulai/reschedule sudah lewat) — form
-      // tidak lagi dibuka; arahkan ke halaman detail.
-      if (isTrainingClosed(training)) {
-        return res.redirect(`/trainings/${training.slug}`)
-      }
-
-      res.render('registration/form', {
-        training,
-        title: `Daftar - ${training.title}`,
-        errors: [],
-        formData: {}
-      })
+      training = await Training.findBySlug(req.params.slug)
     } catch (err) {
-      next(err)
+      console.error('[getForm] Query pelatihan gagal:', err.message)
+      training = null
     }
+    if (!training) {
+      return res.status(404).render('error', { message: 'Pelatihan tidak ditemukan', code: 404 })
+    }
+
+    // Pelatihan sudah selesai (tanggal mulai/reschedule sudah lewat) — form
+    // tidak lagi dibuka; arahkan ke halaman detail.
+    if (isTrainingClosed(training)) {
+      return res.redirect(`/trainings/${training.slug}`)
+    }
+
+    res.render('registration/form', {
+      training,
+      title: `Daftar - ${training.title}`,
+      errors: [],
+      formData: {}
+    })
   },
 
   submitForm: async (req, res, next) => {
+    let training
     try {
-      const training = await Training.findBySlug(req.params.slug)
-      if (!training) {
-        return res.status(404).render('error', { message: 'Pelatihan tidak ditemukan', code: 404 })
-      }
+      training = await Training.findBySlug(req.params.slug)
+    } catch (err) {
+      console.error('[submitForm] Query pelatihan gagal:', err.message)
+      training = null
+    }
+    if (!training) {
+      return res.status(404).render('error', { message: 'Pelatihan tidak ditemukan', code: 404 })
+    }
 
       // Validasi server-side: pelatihan sudah selesai (tanggal efektif lewat)
       // ditolak — tidak bisa mengandalkan form yang di-redirect saja.
@@ -117,8 +124,36 @@ const registrationController = {
         })
       }
 
-      const final_price = calculateFinalPrice(req.body.category, training)
+      const final_price = calculateFinalPrice(req.body.category, training) || 0
       const identity_card_proof = req.files?.identity_card_proof?.[0]?.path || null
+
+      console.log('[Register] Pre-insert data:', {
+        training_id: training.id,
+        full_name: req.body.full_name.trim(),
+        email: req.body.email.trim().toLowerCase(),
+        phone: req.body.phone.trim(),
+        category: req.body.category,
+        final_price,
+        identity_card_proof
+      })
+
+      // Validate training exists and has required fields
+      if (!training || !training.id) {
+        return res.status(404).render('error', { message: 'Pelatihan tidak ditemukan', code: 404 })
+      }
+
+      // Ensure final_price is a valid number
+      const safeFinalPrice = typeof final_price === 'number' && !isNaN(final_price) ? final_price : 0
+
+      console.log('[Register] Attempting to insert with data:', {
+        training_id: training.id,
+        full_name: req.body.full_name.trim(),
+        email: req.body.email.trim().toLowerCase(),
+        phone: req.body.phone.trim(),
+        category: req.body.category,
+        final_price: safeFinalPrice,
+        identity_card_proof
+      })
 
       const registrationId = await Registration.create({
         training_id:         training.id,
@@ -128,21 +163,37 @@ const registrationController = {
         category:            req.body.category,
         identity_number:     req.body.identity_number?.trim() || null,
         identity_card_proof,
-        final_price
+        final_price: safeFinalPrice
       })
 
+      console.log('[Register] Created registration with ID:', registrationId)
       res.redirect(`/registrations/${registrationId}/success`)
     } catch (err) {
-      next(err)
+      console.error('[Register] Critical error:', err)
+      console.error('[Register] Error code:', err.code)
+      console.error('[Register] Error message:', err.message)
+      console.error('[Register] SQL state:', err.sqlState)
+      console.error('[Register] Stack:', err.stack)
+
+      // Return user-friendly error
+      return res.status(500).render('error', {
+        message: 'Terjadi kesalahan saat memproses pendaftaran. Silakan coba lagi.',
+        code: 500
+      })
     }
   },
 
   getSuccess: async (req, res, next) => {
+    let registration
     try {
-      const registration = await Registration.findById(req.params.id)
-      if (!registration) {
-        return res.status(404).render('error', { message: 'Data pendaftaran tidak ditemukan', code: 404 })
-      }
+      registration = await Registration.findById(req.params.id)
+    } catch (err) {
+      console.error('[getSuccess] Query pendaftaran gagal:', err.message)
+      registration = null
+    }
+    if (!registration) {
+      return res.status(404).render('error', { message: 'Data pendaftaran tidak ditemukan', code: 404 })
+    }
 
       const whatsappUrl = generateWhatsAppUrl(
         registration.full_name,
