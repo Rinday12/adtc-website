@@ -1,5 +1,5 @@
-// Muat .env dasar, lalu timpa dengan file spesifik environment
-require('dotenv').config()
+// Muat .env spesifik environment (development atau production)
+// Jangan load .env default dulu agar tidak override NODE_ENV dari cPanel
 const envFile = process.env.NODE_ENV === 'production' ? '.env.production' : '.env.development'
 try { require('dotenv').config({ path: envFile, override: true }) } catch (_) {}
 const express = require('express')
@@ -76,8 +76,15 @@ app.use((req, res) => {
 
 // 500 Handler
 app.use((err, req, res, next) => {
-  console.error(err.stack)
-  res.status(500).render('error', { message: 'Terjadi kesalahan server', code: 500 })
+  console.error('[500]', new Date().toISOString(), req.method, req.originalUrl, err.stack || err)
+  if (req.xhr || req.headers.accept?.includes('application/json')) {
+    return res.status(500).json({ error: err.message || 'Internal Server Error' })
+  }
+  res.status(500).render('error', {
+    message: 'Terjadi kesalahan server',
+    code: 500,
+    error: process.env.NODE_ENV === 'development' ? err.message : undefined
+  })
 })
 
 app.listen(PORT, () => {
