@@ -12,6 +12,23 @@ function calculateFinalPrice(category, training) {
   return priceMap[category] ?? training.price_general
 }
 
+/**
+ * Tanggal efektif pelatihan: reschedule_date (postpone) bila terisi,
+ * selain itu start_date. Return null jika keduanya kosong.
+ */
+function effectiveDate(training) {
+  const raw = training.reschedule_date || training.start_date
+  if (!raw) return null
+  // DATE MySQL bisa jadi string 'YYYY-MM-DD' — jadikan Date UTC yang aman
+  const d = raw instanceof Date ? raw : new Date(raw)
+  return isNaN(d.getTime()) ? null : d
+}
+
+function isTrainingClosed(training) {
+  const d = effectiveDate(training)
+  return !!d && d < new Date()
+}
+
 function validateRegistrationInput(body, files) {
   const errors = []
   const { full_name, email, phone, category } = body
@@ -44,6 +61,11 @@ const registrationController = {
         return res.status(404).render('error', { message: 'Pelatihan tidak ditemukan', code: 404 })
       }
 
+      // Pelatihan sudah selesai (tanggal mulai/reschedule sudah lewat) — form
+      // tidak lagi dibuka; arahkan ke halaman detail.
+      if (isTrainingClosed(training)) {
+        return res.redirect(`/trainings/${training.slug}`)
+      }
 
       res.render('registration/form', {
         training,
@@ -61,6 +83,17 @@ const registrationController = {
       const training = await Training.findBySlug(req.params.slug)
       if (!training) {
         return res.status(404).render('error', { message: 'Pelatihan tidak ditemukan', code: 404 })
+      }
+
+      // Validasi server-side: pelatihan sudah selesai (tanggal efektif lewat)
+      // ditolak — tidak bisa mengandalkan form yang di-redirect saja.
+      if (isTrainingClosed(training)) {
+        return res.render('registration/form', {
+          training,
+          title: `Daftar - ${training.title}`,
+          errors: ['Pelatihan ini sudah selesai. Pendaftaran ditutup.'],
+          formData: req.body
+        })
       }
 
       const { valid, errors } = validateRegistrationInput(req.body, req.files)

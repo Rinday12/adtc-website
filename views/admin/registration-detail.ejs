@@ -72,9 +72,9 @@
 <div class="max-w-3xl mx-auto pb-10">
 
   <!-- Back link -->
-  <a href="/admin/dashboard" class="inline-flex items-center gap-1 text-brand-500 hover:text-navy-800 text-sm mb-6 transition-colors">
+  <a href="/admin/registrations" class="inline-flex items-center gap-1 text-brand-500 hover:text-navy-800 text-sm mb-6 transition-colors">
     <span aria-hidden="true">&#8592;</span>
-    <span>Kembali ke Dashboard</span>
+    <span>Kembali ke Daftar Peserta</span>
   </a>
 
   <!-- Page heading -->
@@ -220,7 +220,7 @@
 
   <!-- Action buttons based on status -->
   <% if (registration.status === 'pending') { %>
-  <div class="bg-white rounded-xl border border-gray-200 shadow-sm mb-6 overflow-hidden">
+  <div id="tindakan" class="bg-white rounded-xl border border-gray-200 shadow-sm mb-6 overflow-hidden scroll-mt-20">
     <div class="px-6 py-4 border-b border-gray-100">
       <h2 class="text-base font-semibold text-gray-800">Tindakan</h2>
     </div>
@@ -248,7 +248,7 @@
         <button
           type="submit"
           id="approve-btn-<%= registration.id %>"
-          disabled
+          <%= identityCardUrl ? 'disabled' : '' %>
           class="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 active:bg-green-800 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-semibold px-6 py-2.5 rounded-lg shadow-sm transition-colors text-sm"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">

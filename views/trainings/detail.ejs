@@ -45,7 +45,16 @@
       <h1 class="text-2xl md:text-3xl font-bold text-gray-900 leading-snug mb-3">
         <%= training.title %>
       </h1>
-      <% if (training.status === 'full') { %>
+      <%
+        const isFull    = training.status === 'full' || (training.registered_count || 0) >= training.quota
+        const effective = training.reschedule_date || training.start_date
+        const isEnded   = !!effective && new Date(effective) < new Date()
+      %>
+      <% if (isEnded) { %>
+        <span class="inline-block bg-blue-500 text-white text-xs font-semibold px-3 py-1 rounded-full">
+          Selesai
+        </span>
+      <% } else if (isFull) { %>
         <span class="inline-block bg-red-500 text-white text-xs font-semibold px-3 py-1 rounded-full">
           Kuota Penuh
         </span>
@@ -160,10 +169,15 @@
       <!-- CTA -->
       <div class="flex flex-col sm:flex-row items-center gap-4 pt-2">
         <%
-          const canRegister =
-            (training.status === 'active' ||
-             (training.status === 'postpone' && training.reschedule_date)) &&
-            (training.registered_count || 0) < training.quota
+          // Postpone = jadwal diundur, bukan ditutup: peserta tetap boleh mendaftar
+          // (termasuk sebelum reschedule_date terisi oleh admin).
+          // Yang mengunci tombol: kuota habis ATAU pelatihan sudah selesai
+          // (tanggal efektif = reschedule_date bila ada, selain itu start_date,
+          // sudah lewat hari ini).
+          const isFullNow = (training.registered_count || 0) >= training.quota
+          const effDate   = training.reschedule_date || training.start_date
+          const isEndedCTA = !!effDate && new Date(effDate) < new Date()
+          const canRegister = !isFullNow && !isEndedCTA
         %>
         <% if (canRegister) { %>
           <a
@@ -173,13 +187,19 @@
             Daftar Sekarang
             <span aria-hidden="true">&#8594;</span>
           </a>
+          <% if (training.status === 'postpone') { %>
+            <p class="text-xs text-yellow-600">
+              Jadwal sedang diundur — pendaftaran tetap terbuka
+              <%= training.reschedule_date ? '(tanggal baru: ' + new Date(training.reschedule_date).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) + ')' : '(menunggu jadwal baru)' %>
+            </p>
+          <% } %>
         <% } else { %>
           <button
             disabled
             aria-disabled="true"
             class="w-full sm:w-auto inline-flex justify-center items-center gap-2 bg-gray-300 text-gray-500 font-semibold px-8 py-3 rounded-xl cursor-not-allowed text-base"
           >
-            <% if (training.status === 'postpone') { %>Postpone<% } else { %>Kuota Penuh<% } %>
+            <% if (isEndedCTA) { %>Sudah Selesai<% } else { %>Kuota Penuh<% } %>
           </button>
         <% } %>
 

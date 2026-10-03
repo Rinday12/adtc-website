@@ -191,7 +191,9 @@
   </nav>
   <% } %>
 
-  <!-- Flash messages -->
+  <!-- Flash messages — di-offset lg:pl-64 agar tidak tersembunyi di balik
+       sidebar admin saat layar desktop; tetap full-width di mobile. -->
+  <div class="lg:pl-64">
   <% if (typeof success_msg !== 'undefined' && success_msg && success_msg.length > 0) { %>
     <div class="bg-green-50 border-l-4 border-green-500 text-green-800 px-4 py-3 mx-4 mt-4 rounded-r-lg flex items-center gap-2" role="alert">
       <svg class="w-5 h-5 shrink-0 text-green-500" fill="currentColor" viewBox="0 0 20 20">
@@ -208,6 +210,7 @@
       <%= error_msg %>
     </div>
   <% } %>
+  </div>
 
   <main class="container mx-auto px-4 py-8 flex-grow">
 

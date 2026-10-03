@@ -74,7 +74,9 @@
               const registeredCount = training.registered_count || 0
               const isFull = registeredCount >= training.quota
               const isPostpone = training.status === 'postpone'
-              const isCompleted = !isPostpone && !isFull && training.start_date && new Date(training.start_date) < new Date()
+              // Selesai = mulai (asli atau reschedule) sudah lewat, terlepas dari status.
+              const effectiveDate = training.reschedule_date || training.start_date
+              const isCompleted = !isFull && effectiveDate && new Date(effectiveDate) < new Date()
               const statusLabel = isPostpone ? 'Postpone' : (isFull ? 'Penuh' : (isCompleted ? 'Selesai' : 'Buka'))
               const statusClass = isPostpone ? 'bg-yellow-100 text-yellow-800 border-yellow-300' : (isFull ? 'bg-red-100 text-red-800 border-red-200' : (isCompleted ? 'bg-blue-100 text-blue-800 border-blue-200' : 'bg-green-100 text-green-800 border-green-200'))
               const statusDot = isPostpone ? 'bg-yellow-500' : (isFull ? 'bg-red-500' : (isCompleted ? 'bg-blue-500' : 'bg-green-500'))
@@ -168,15 +170,17 @@
                 <!-- CTAs -->
                 <div class="flex flex-col gap-2 pt-1">
                   <%
-                    const canRegister = !isPostpone || rescheduleDate
-                    const isBlocked = !canRegister || isCompleted || isFull
+                    // Postpone = jadwal diundur, bukan ditutup: tombol tetap aktif
+                    // selama kuota belum penuh. Hanya 'full' (kuota habis) yang
+                    // membuat tombol non-fungsional.
+                    const isBlocked = isFull || isCompleted
                   %>
                   <% if (isBlocked) { %>
                     <button disabled class="inline-flex justify-center items-center gap-2 w-full
                             bg-gray-100 text-gray-600 font-semibold text-sm
                             px-4 py-2.5 rounded-xl cursor-not-allowed border border-gray-200">
-                      <span class="w-2 h-2 rounded-full <%= isPostpone ? 'bg-yellow-500' : (isCompleted ? 'bg-blue-500' : 'bg-red-500') %>"></span>
-                      <% if (isPostpone && !rescheduleDate) { %>Sedang Postpone<% } else if (isCompleted) { %>Sudah Selesai<% } else { %>Kuota Penuh<% } %>
+                      <span class="w-2 h-2 rounded-full <%= isCompleted ? 'bg-blue-500' : 'bg-red-500' %>"></span>
+                      <%= isCompleted ? 'Sudah Selesai' : 'Kuota Penuh' %>
                     </button>
                   <% } else { %>
                     <a href="/trainings/<%= training.slug %>/register"
