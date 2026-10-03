@@ -31,22 +31,26 @@ const contentController = {
         Benefit.findAllActive()
       ])
 
-      // Jika query training gagal, teruskan ke error handler
-      if (trainingsResult.status === 'rejected') {
-        return next(trainingsResult.reason)
-      }
+      // Fallback ke array kosong jika query gagal
+      const trainings = trainingsResult.status === 'fulfilled'
+        ? trainingsResult.value : []
+      const benefits = benefitsResult.status === 'fulfilled'
+        ? benefitsResult.value : []
 
-      // Jika query benefit gagal, fallback ke array kosong dan log error
+      if (trainingsResult.status === 'rejected') {
+        console.error('[getHome] Training query failed:', trainingsResult.reason)
+      }
       if (benefitsResult.status === 'rejected') {
-        console.error('Gagal memuat benefit untuk halaman Beranda:', benefitsResult.reason)
+        console.error('[getHome] Benefit query failed:', benefitsResult.reason)
       }
 
       res.render('home', {
         title:     'Beranda',
-        trainings: trainingsResult.value,
-        benefits:  benefitsResult.status === 'fulfilled' ? benefitsResult.value : []
+        trainings,
+        benefits
       })
     } catch (err) {
+      console.error('[getHome] Unexpected error:', err)
       next(err)
     }
   },
