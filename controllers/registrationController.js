@@ -196,6 +196,7 @@ const registrationController = {
       return res.status(404).render('error', { message: 'Data pendaftaran tidak ditemukan', code: 404 })
     }
 
+    try {
       const whatsappUrl = generateWhatsAppUrl(
         registration.full_name,
         registration.training_title,
