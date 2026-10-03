@@ -81,16 +81,17 @@ const registrationController = {
   },
 
   submitForm: async (req, res, next) => {
-    let training
     try {
-      training = await Training.findBySlug(req.params.slug)
-    } catch (err) {
-      console.error('[submitForm] Query pelatihan gagal:', err.message)
-      training = null
-    }
-    if (!training) {
-      return res.status(404).render('error', { message: 'Pelatihan tidak ditemukan', code: 404 })
-    }
+      let training
+      try {
+        training = await Training.findBySlug(req.params.slug)
+      } catch (err) {
+        console.error('[submitForm] Query pelatihan gagal:', err.message)
+        training = null
+      }
+      if (!training) {
+        return res.status(404).render('error', { message: 'Pelatihan tidak ditemukan', code: 404 })
+      }
 
       // Validasi server-side: pelatihan sudah selesai (tanggal efektif lewat)
       // ditolak — tidak bisa mengandalkan form yang di-redirect saja.
