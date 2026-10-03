@@ -1,6 +1,6 @@
 // Muat .env spesifik environment (development atau production)
-// Jangan load .env default dulu agar tidak override NODE_ENV dari cPanel
-const envFile = process.env.NODE_ENV === 'production' ? '.env.production' : '.env.development'
+// Jika NODE_ENV tidak di-set (misal di cPanel Passenger), fallback ke .env.production
+const envFile = process.env.NODE_ENV === 'development' ? '.env.development' : '.env.production'
 try { require('dotenv').config({ path: envFile, override: true }) } catch (_) {}
 const express = require('express')
 const session = require('express-session')
