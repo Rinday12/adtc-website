@@ -18,6 +18,14 @@ elif [[ -x "/usr/local/bin/node" ]]; then
   NODE_BIN="/usr/local/bin/node"
 elif [[ -x "/opt/homebrew/bin/node" ]]; then
   NODE_BIN="/opt/homebrew/bin/node"
+elif [[ -x "$HOME/.nvm/versions/node/*/bin/node" ]]; then
+  NODE_BIN="$HOME/.nvm/versions/node/$(ls "$HOME/.nvm/versions/node/" | sort -V | tail -1)/bin/node"
+elif [[ -x "/opt/cpanel/ea-nodejs16/root/usr/bin/node" ]]; then
+  NODE_BIN="/opt/cpanel/ea-nodejs16/root/usr/bin/node"
+elif [[ -x "/opt/cpanel/ea-nodejs18/root/usr/bin/node" ]]; then
+  NODE_BIN="/opt/cpanel/ea-nodejs18/root/usr/bin/node"
+elif ls "$HOME/nodevenv/"*/root/usr/bin/node 2>/dev/null | head -1 | xargs -I{} test -x {} && echo "{}" | head -1; then
+  NODE_BIN=$(ls "$HOME/nodevenv/"*/root/usr/bin/node 2>/dev/null | head -1)
 else
   NODE_BIN="node"
 fi
