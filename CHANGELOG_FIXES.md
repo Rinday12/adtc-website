@@ -1,3 +1,18 @@
+### Fix #20 — Register Halaman 500 Saat DB Down (Fix #19 补充)
+Tanggal: 2026-10-03
+File: controllers/registrationController.js
+Masalah: Halaman `/trainings/:slug/register` 在 DB 连接失败时返回 500 错误，因为 `getForm`、`submitForm`、`getSuccess` 三个方法都直接调用 `next(err)`。
+Akar: Fix #19 只修复了 `publicController` 和 `contentController`，但 `registrationController` 的三个方法未应用相同的 fallback 模式。
+Fix:
+- `getForm`: `findBySlug` 查询改为 try-catch，失败时 `training = null` → 返回 404。
+- `submitForm`: 同上处理。
+- `getSuccess`: `findById` 查询改为 try-catch，失败时 `registration = null` → 返回 404。
+- 保留原有的用户友好错误消息（500 时显示 "Terjadi kesalahan saat memproses pendaftaran. Silakan coba lagi."）。
+Verifikasi: 本地测试 DB 断开时 `/trainings/public-speaking/register` 返回 404 而非 500。生产环境当前正常（HTTP 200）。
+Pelajaran: DB 容错模式需要应用到所有公开页面，不能只修一部分。
+Log Keyword: ECONNREFUSED, registration, getForm, submitForm, getSuccess, fallback
+Deploy: ✅ LIVE 2026-10-03 — commit 9c8c9dd
+
 ### Fix #19 — Fallback Data Kosong untuk Katalog & Berita Saat DB Down (Hanya homepage yang Sudah Aman)
 Tanggal: 2026-10-03
 File: controllers/publicController.js, controllers/contentController.js
@@ -11,7 +26,7 @@ Fix:
 Verifikasi: 76 unit test passing (jeda lokal, DB memang tidak bisa dihubungi dari laptop — error yang muncul adalah `ECONNREFUSED`, persis gejala production saat DB down). Manual test dengan DB down: `/`, `/trainings`, `/berita` semua HTTP 200 dengan tampilan "Belum ada pelatihan aktif"/kosong, `/trainings/slug-x` & `/berita/slug-x` HTTP 404 (bukan 500).
 Pelajaran: Pola "DB down ≠ error 500, fallback data kosong" harus diterapkan konsisten di semua halaman publik, bukan hanya di satu controller. Halaman yang menampilkan data per-item (detail by slug) aman fallback ke 404 karena "tidak ditemukan" adalah respons yang jujur saat data tidak bisa diambil.
 Log Keyword: ECONNREFUSED, getCatalog, getNewsList, allSettled, fallback, db-down
-Deploy: PENDING verifikasi (belum di-deploy ke production; DB production masih ECONNREFUSED sejak 2026-10-03, jadi halaman publik masih 500 karena DB, bukan karena logika)
+Deploy: ✅ LIVE 2026-10-03 — commit 89473ec
 
 ### Fix #18 — Tombol "Hapus Peserta" Sebenarnya Tidak Menghapus (Hanya Ubah Status ke Rejected)
 Tanggal: 2026-09-30

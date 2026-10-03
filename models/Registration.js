@@ -14,8 +14,9 @@ const validStatuses = ['pending', 'approved', 'payment_uploaded', 'verified', 'r
  */
 function generateReferenceCode() {
   const year = new Date().getFullYear()
-  const rand = Math.floor(Math.random() * 9000) + 1000
-  return `ADTC-${year}-${rand}`
+  const ts = Date.now().toString(36).toUpperCase()
+  const rand = (Math.floor(Math.random() * 9000) + 1000).toString()
+  return `ADTC-${year}-${ts}${rand}`
 }
 
 const Registration = {
