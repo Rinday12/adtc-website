@@ -4,6 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title><%= typeof title !== 'undefined' ? title : 'ADTC' %> | ADTC</title>
+  <% if (typeof seoTags !== 'undefined') { %>
+    <%- seoTags %>
+  <% } %>
   <link rel="stylesheet" href="/css/output.css" />
   <link rel="icon" type="image/svg+xml" href="/images/logo/adtc-icon.svg">
   <link rel="apple-touch-icon" href="/images/logo/adtc-icon.svg">

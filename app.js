@@ -10,6 +10,8 @@ const path = require('path')
 const Training     = require('./models/Training')
 const publicRoutes = require('./routes/publicRoutes')
 const adminRoutes = require('./routes/adminRoutes')
+const News         = require('./models/News')
+const { metaTags } = require('./utils/seo')
 
 const app = express()
 const PORT = process.env.PORT || 3000
@@ -67,9 +69,71 @@ app.use(async (req, res, next) => {
   next()
 })
 
+// SEO: set res.locals.seoTags sebelum render, mengambil title/metaDescription
+// dari opsi render (dipakai layout/header publik).
+app.use((req, res, next) => {
+  const origRender = res.render.bind(res)
+  res.render = (view, opts, fn) => {
+    if (typeof opts === 'function') { fn = opts; opts = {} }
+    if (!req.path.startsWith('/admin')) {
+      res.locals.seoTags = metaTags({
+        title: opts.title,
+        description: opts.metaDescription,
+        url: req.path
+      })
+    }
+    return origRender(view, opts, fn)
+  }
+  next()
+})
+
 // Routes
 app.use('/', publicRoutes)
 app.use('/admin', adminRoutes)
+
+// Sitemap dinamis (untuk mesin pencari)
+app.get('/sitemap.xml', async (req, res) => {
+  try {
+    const base = process.env.BASE_URL || 'https://adtcuad.id'
+    const [trainings, news] = await Promise.all([
+      Training.findAll(),
+      News.findAll()
+    ])
+
+    const staticUrls = [
+      { loc: base + '/', priority: '1.0' },
+      { loc: base + '/trainings', priority: '0.9' },
+      { loc: base + '/berita', priority: '0.8' },
+      { loc: base + '/sertifikat', priority: '0.5' }
+    ]
+
+    const dynamicUrls = []
+    if (Array.isArray(trainings)) {
+      trainings.forEach(t => {
+        if (t && t.slug) dynamicUrls.push({ loc: `${base}/trainings/${t.slug}`, priority: '0.7', changefreq: 'weekly', lastmod: t.updated_at })
+      })
+    }
+    if (Array.isArray(news)) {
+      news.forEach(n => {
+        if (n && n.slug) dynamicUrls.push({ loc: `${base}/berita/${n.slug}`, priority: '0.6', changefreq: 'monthly', lastmod: n.published_at })
+      })
+    }
+
+    const all = [...staticUrls, ...dynamicUrls]
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${all.map(u => `<url>
+  <loc>${u.loc}</loc>${u.lastmod ? `\n  <lastmod>${new Date(u.lastmod).toISOString().split('T')[0]}</lastmod>` : ''}${u.changefreq ? `\n  <changefreq>${u.changefreq}</changefreq>` : ''}${u.priority ? `\n  <priority>${u.priority}</priority>` : ''}
+</url>`).join('\n')}
+</urlset>`
+
+    res.set('Content-Type', 'application/xml')
+    res.send(xml)
+  } catch (err) {
+    console.error('[sitemap] Gagal generate:', err.message)
+    res.status(500).send('<?xml version="1.0" encoding="UTF-8"?><urlset></urlset>')
+  }
+})
 
 // 404 Handler
 app.use((req, res) => {

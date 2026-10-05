@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /registrations
+Disallow: /uploads
+
+Sitemap: https://adtcuad.id/sitemap.xml
