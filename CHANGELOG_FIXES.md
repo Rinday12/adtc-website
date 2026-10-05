@@ -1,3 +1,14 @@
+### Fix #30 — POST /admin/trainings/:id/delete Error 500 (Bug Destructuring db)
+Tanggal: 2026-10-05
+File: controllers/adminTrainingController.js, tests/unit/trainingDelete.test.js
+Masalah: Saat admin menghapus pelatihan (POST /admin/trainings/3/delete), server mengembalikan 500 "Terjadi kesalahan server" — tidak ada data yang terhapus.
+Akar: `postDelete` memakai `const { db } = require('../config/db')`, tetapi `config/db.js` mengeksport promise pool secara langsung (`module.exports = promisePool`), bukan objek `{ db }`. Akibatnya `db` = `undefined` dan `db.execute(...)` melempar `Cannot read properties of undefined (reading 'execute')` → Express error handler → 500. Bug ini sudah ada sejak `postDelete` ditulis; semua `require('../config/db')` lain di file ini (line 89 dll.) sudah benar, hanya baris ini yang salah.
+Fix: Ganti menjadi `const db = require('../config/db')` + tambah 3 unit test baru (urutan DELETE: registrations dulu lalu trainings; error di DELETE pertama tidak menjangkiti kedua; `next(err)` terpanggil dengan error yang benar).
+Verifikasi: Unit test baru lulus (3/3); suite penuh: 117 lulus, 2 gagal — 2 kegagalan itu di `generateReferenceCode.test.js` dan sudah ada sebelum perubahan ini (regresi lama, tidak terkait).
+Pelajaran: `config/db.js` mengeksport pool langsung, bukan `{ db }` — pola destructuring salah tipe seperti ini tidak terdeteksi oleh test lama karena tidak ada unit test untuk `postDelete`.
+Log Keyword: postDelete, trainings/delete, 500, destructuring, config/db, adminTrainingController
+Deploy: PENDING DEPLOY — commit f2b193d
+
 ### Fix #20 — Register Halaman 500 Saat DB Down (Fix #19 补充)
 ### Fix #25 — server.sh nodevenv fallback bug（NODE_BIN 被设为字面量 "{}"）
 Tanggal: 2026-10-03
