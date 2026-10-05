@@ -234,7 +234,7 @@ const adminTrainingController = {
 
   postDelete: async (req, res, next) => {
     try {
-      const { db } = require('../config/db')
+      const db = require('../config/db')
       await db.execute('DELETE FROM registrations WHERE training_id = ?', [req.params.id])
       await db.execute('DELETE FROM trainings WHERE id = ?', [req.params.id])
       req.flash('success', 'Pelatihan berhasil dihapus.')
