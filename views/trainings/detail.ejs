@@ -31,8 +31,9 @@
 
     <!-- Cover Image -->
     <% if (training.cover_image) { %>
-      <div class="h-64 overflow-hidden">
-        <img src="/<%= training.cover_image %>" alt="<%= training.title %>" class="w-full h-full object-cover">
+      <div class="overflow-hidden bg-white">
+        <img src="/<%= training.cover_image %>" alt="<%= training.title %>"
+             class="w-full h-auto object-contain" style="max-height: 420px;">
       </div>
     <% } else { %>
       <div class="h-48 bg-navy-700 flex items-center justify-center">
@@ -164,6 +165,7 @@
           </table>
         </div>
         <p class="mt-2 text-xs text-gray-400">* Mahasiswa dan karyawan UAD wajib mengunggah dokumen identitas saat pendaftaran.</p>
+        <p class="mt-1 text-xs text-gray-400">Pilih kategori yang sesuai saat mendaftar — kategori menentukan harga yang berlaku dan berkas dokumen yang diminta.</p>
       </section>
 
       <!-- CTA -->
