@@ -93,8 +93,13 @@ const Registration = {
        LIMIT 1`,
       [id]
     )
-
-    return rows[0] || null
+    const row = rows[0] || null
+    // DECIMAL(10,2) dari mysql2 = string → konversi ke number agar
+    // fmt.format() dan Intl.NumberFormat bekerja dengan benar di view.
+    if (row && row.final_price !== undefined) {
+      row.final_price = Number(row.final_price)
+    }
+    return row
   },
 
   async findAll(filters = {}) {

@@ -139,6 +139,12 @@ async function sendPaymentInfoEmail(registration) {
     minimumFractionDigits: 0
   })
 
+  // DECIMAL dari mysql2 = string → konversi ke number sebelum format
+  registration = {
+    ...registration,
+    final_price: Number(registration.final_price || 0)
+  }
+
   const html = await renderEmailTemplate('payment-info', {
     registration,
     bankAccount,

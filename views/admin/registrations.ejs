@@ -167,7 +167,7 @@
 
                 <!-- Final Price -->
                 <td class="px-4 py-4 font-medium text-navy-700 whitespace-nowrap text-right">
-                  Rp <%= reg.final_price.toLocaleString('id-ID') %>
+                  Rp <%= Number(reg.final_price || 0).toLocaleString('id-ID') %>
                 </td>
 
                 <!-- Status Badge -->

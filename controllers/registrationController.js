@@ -4,12 +4,16 @@ const Registration = require('../models/Registration')
 const { generateWhatsAppUrl } = require('../utils/whatsapp')
 
 function calculateFinalPrice(category, training) {
+  if (!training) return 0
   const priceMap = {
     'umum':          training.price_general,
     'mahasiswa_uad': training.price_student_uad,
     'karyawan_uad':  training.price_employee_uad
   }
-  return priceMap[category] ?? training.price_general
+  // DECIMAL(10,2) dari mysql2 = string → konversi ke Number agar aman
+  const raw = priceMap[category] ?? training.price_general
+  const num = Number(raw)
+  return isNaN(num) ? 0 : num
 }
 
 /**
@@ -125,7 +129,7 @@ const registrationController = {
         })
       }
 
-      const final_price = calculateFinalPrice(req.body.category, training) || 0
+      const final_price = calculateFinalPrice(req.body.category, training)
       const identity_card_proof = req.files?.identity_card_proof?.[0]?.path || null
 
       console.log('[Register] Pre-insert data:', {
@@ -143,8 +147,9 @@ const registrationController = {
         return res.status(404).render('error', { message: 'Pelatihan tidak ditemukan', code: 404 })
       }
 
-      // Ensure final_price is a valid number
-      const safeFinalPrice = typeof final_price === 'number' && !isNaN(final_price) ? final_price : 0
+      // final_price sudah berupa number dari calculateFinalPrice;
+      // guard terakhir untuk edge case (harusnya tidak terjadi).
+      const safeFinalPrice = (typeof final_price === 'number' && !isNaN(final_price)) ? final_price : 0
 
       console.log('[Register] Attempting to insert with data:', {
         training_id: training.id,

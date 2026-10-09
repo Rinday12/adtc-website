@@ -46,6 +46,10 @@ const contentController = {
 
       res.render('home', {
         title:     'Beranda',
+        metaDescription:
+          'ADTC — Ahmad Dahlan Training Center UAD, penyelenggara ' +
+          'Pelatihan UAD dan Pelatihan K3 berlisensi, sertifikasi ' +
+          'BNSP untuk tenaga kerja profesional di Yogyakarta.',
         trainings,
         benefits
       })

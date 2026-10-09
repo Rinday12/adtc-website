@@ -1,3 +1,29 @@
+### Fix #32 — Jumlah Pembayaran Rp 0 di Halaman User, Admin & Email (Bug DECIMAL string → 0)
+Tanggal: 2026-10-09
+File: controllers/registrationController.js, models/Registration.js, utils/email.js, views/admin/registrations.ejs
+Masalah: Pendaftaran dengan harga training 2.300.000 menampilkan "Rp 0" di halaman pembayaran user, halaman detail admin, dan email "Informasi Pembayaran".
+Akar: `mysql2` mengembalikan kolom DECIMAL(10,2) sebagai **string** (mis. `"2300000.00"`), bukan number. Di `calculateFinalPrice`, string ini tidak dikonversi ke number. Line `const final_price = calculateFinalPrice(...) || 0` → string truthy → tidak aktif, tapi `safeFinalPrice` cek `typeof === 'number'` dan gagal (string) → `safeFinalPrice = 0` yang di-INSERT ke DB. `Registration.findById` juga mengembalikan `final_price` sebagai string dari DB, sehingga `fmt.format(string)` di semua view menghasilkan "Rp 0" atau format salah.
+Fix:
+- `calculateFinalPrice`: konversi `training.price_*` (string DECIMAL) → `Number()` + guard `isNaN → 0`; tambah guard `if (!training) return 0`.
+- Hapus `|| 0` di line `const final_price = calculateFinalPrice(...)` — fungsi sudah return number.
+- `Registration.findById`: `row.final_price = Number(row.final_price)` sebelum return, agar semua view EJS (user + admin) dan `sendPaymentInfoEmail` menerima number.
+- `utils/email.js sendPaymentInfoEmail`: `{...registration, final_price: Number(registration.final_price || 0)}` sebelum render template.
+- `views/admin/registrations.ejs`: `Number(reg.final_price || 0).toLocaleString('id-ID')`.
+Verifikasi: 117 unit+property test passing. Test `calculateFinalPrice` (tests/property/calculateFinalPrice.test.js): 4/4 PASS — kategori umum/mahasiswa/karyawan & training null semua return number benar. 2 kegagalan lama di `generateReferenceCode.test.js` (regresi lama, bukan dari fix ini).
+Pelajaran: Semua kolom DECIMAL dari mysql2 = string. Setiap tempat yang membaca kolom DECIMAL dari DB dan memakainya sebagai number WAJIB dikonversi dengan `Number()`. Jangan percaya `typeof` check atau `|| 0` untuk handling DECIMAL string — string selalu truthy sehingga fallback tidak pernah aktif.
+Log Keyword: final_price, DECIMAL, mysql2, Rp 0, calculateFinalPrice, payment, toLocaleString
+
+### Fix #31 — Logo tidak muncul di hasil pencarian + keywords SEO tidak ada
+Tanggal: 2026-10-07
+File: utils/seo.js, views/layout/header.ejs, controllers/contentController.js, public/images/logo/favicon-*.png, public/images/logo/adtc-og-image.png
+Masalah: (1) Hasil pencarian Google tidak menampilkan logo/favicon situs — hanya ikon default atau kosong. (2) Meta description tidak mengandung keyword "Pelatihan UAD", "BNSP", "Pelatihan K3", sehingga situs tidak ranking untuk pencarian tersebut.
+Akar: `views/layout/header.ejs` hanya mendaftarkan SVG favicon (`adtc-icon.svg`) tanpa multi-size PNG — Google/Chrome membutuhkan PNG 16/32/180/192/512 untuk menampilkan logo di hasil pencarian. Tidak ada JSON-LD structured data (schema.org Organization/WebSite) sehingga Google tidak punya instruksi formal untuk menampilkan logo. Meta description default di `utils/seo.js` tidak mengandung keyword yang ditargetkan.
+Fix: (a) Generate 5 ukuran favicon PNG (16/32/180/192/512) + og-image 1200×630 dari `adtc-logo.svg` & `adtc-icon.svg` (Pillow + librsvg). (b) Tambah `jsonLd()` ke `utils/seo.js` — output JSON-LD `WebSite` + `Organization` + `WebPage` (schema.org, `@graph`) berisi `logo`, `image`, `sameAs` (Instagram), `url`. (c) Tambah `meta name="keywords"` berisi "Pelatihan UAD, Pelatihan BNSP, Pelatihan K3, Sertifikasi BNSP Yogyakarta, Pelatihan Kerja Ahmad Dahlan". (d) Ganti `og:image` dari SVG ke `adtc-og-image.png` (raster, wajib untuk preview share). (e) `header.ejs`: hapus favicon lama (sudah ditangani `metaTags`). (f) `contentController.getHome`: set `metaDescription` eksplisit dengan keyword.
+Verifikasi: Test suite penuh (unit + property) dijalankan — 2 kegagalan ada di `generateReferenceCode.test.js` (regresi lama, tidak terkait). Output `metaTags({url:'/'})` berisi semua tag baru: favicon multi-size, keywords, JSON-LD Organization dengan logo. Output JSON-LD divalidasi manual: valid syntax, semua `@id` silang konsisten.
+Pelajaran: `meta name="keywords"` tidak lagi dipergunakan Google untuk ranking, tapi tetap berguna untuk Bing/Yandex dan membantu internal Google memahami topik — tidak ada kerugian. JSON-LD `Organization.logo` (SVG) + `image` (PNG raster) keduanya wajib: SVG untuk browser, PNG untuk mesin yang tidak support SVG.
+Log Keyword: favicon, logo search, og-image, JSON-LD, schema.org, keywords, Pelatihan UAD, BNSP, K3, seo.js, header.ejs
+Deploy: PENDING DEPLOY
+
 ### Fix #30 — POST /admin/trainings/:id/delete Error 500 (Bug Destructuring db)
 Tanggal: 2026-10-05
 File: controllers/adminTrainingController.js, tests/unit/trainingDelete.test.js
