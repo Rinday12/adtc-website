@@ -51,6 +51,7 @@ CREATE TABLE IF NOT EXISTS registrations (
   final_price         DECIMAL(10, 2)  NOT NULL,              -- Harga final dihitung server berdasarkan kategori
   payment_proof       VARCHAR(500),                          -- Path file bukti pembayaran (opsional)
   reference_code      VARCHAR(50)   NOT NULL UNIQUE,         -- Kode referensi unik (ADTC-YYYY-NNNN)
+  access_token        VARCHAR(64)   NOT NULL UNIQUE,          -- Token rahasia untuk membuka halaman detail
   certificate_url     VARCHAR(500)  NULL,                    -- Link Google Drive sertifikat (opsional)
   status              ENUM('pending', 'approved', 'payment_uploaded', 'verified', 'rejected') NOT NULL DEFAULT 'pending',
   rejection_reason    TEXT,

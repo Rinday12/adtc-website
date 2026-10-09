@@ -32,24 +32,24 @@ router.post(
   registrationController.submitForm
 )
 
-// Halaman sukses pendaftaran
-router.get('/registrations/:id/success', registrationController.getSuccess)
+// Halaman sukses pendaftaran — :token = access_token rahasia (UUID), bukan ID numerik
+router.get('/registrations/:token/success', registrationController.getSuccess)
 
 // ─── Payment Upload Routes (public) ──────────────────────────────────────────
 // User yang terdaftar dapat mengunggah bukti pembayaran setelah pendaftaran disetujui.
 
 // Halaman upload bukti pembayaran
-router.get('/registrations/:id/payment', paymentController.getPaymentForm)
+router.get('/registrations/:token/payment', paymentController.getPaymentForm)
 
 // Submit bukti pembayaran (dengan upload file)
 router.post(
-  '/registrations/:id/payment',
+  '/registrations/:token/payment',
   upload.single('payment_proof'),
   paymentController.submitPayment
 )
 
 // Halaman sukses setelah upload bukti pembayaran
-router.get('/registrations/:id/payment-success', paymentController.getPaymentSuccess)
+router.get('/registrations/:token/payment-success', paymentController.getPaymentSuccess)
 
 // ─── E-Sertifikat Routes ──────────────────────────────────────────────────────
 // Halaman pencarian dan download e-sertifikat untuk peserta.

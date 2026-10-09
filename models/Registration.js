@@ -5,6 +5,7 @@
 // mencegah SQL injection sesuai Requirement 8.6.
 
 const db = require('../config/db')
+const crypto = require('crypto')
 
 const validStatuses = ['pending', 'approved', 'payment_uploaded', 'verified', 'rejected']
 
@@ -19,12 +20,21 @@ function generateReferenceCode() {
   return `ADTC-${year}-${ts}${rand}`
 }
 
+/**
+ * Generate access token acak (UUID v4) untuk membuka halaman detail
+ * pendaftaran — pengganti ID numerik yang bisa ditebak.
+ */
+function generateAccessToken() {
+  return crypto.randomUUID()
+}
+
 const Registration = {
 
   /**
-   * Fungsi publik untuk generator kode referensi (dipakai oleh unit test).
+   * Fungsi publik untuk generator kode referensi & token (dipakai oleh unit test).
    */
   generateReferenceCode,
+  generateAccessToken,
 
   async create(data) {
     const {
@@ -39,14 +49,15 @@ const Registration = {
     } = data
 
     const referenceCode = generateReferenceCode()
+    const accessToken   = generateAccessToken()
 
     // INSERT tanpa identity_card_proof — kolom ini ditangani terpisah agar
     // kompatibel dengan skema DB yang tidak punya kolom tersebut.
     const [result] = await db.execute(
       `INSERT INTO registrations
         (training_id, full_name, email, phone, category,
-         identity_number, final_price, reference_code, status)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         identity_number, final_price, reference_code, access_token, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         training_id,
         full_name,
@@ -56,6 +67,7 @@ const Registration = {
         identity_number || null,
         final_price,
         referenceCode,
+        accessToken,
         'pending'
       ]
     )
@@ -76,7 +88,28 @@ const Registration = {
       }
     }
 
-    return insertId
+    return { id: insertId, accessToken }
+  },
+
+  async findByToken(token) {
+    const [rows] = await db.execute(
+      `SELECT r.*,
+              t.title            AS training_title,
+              t.slug             AS training_slug,
+              t.start_date,
+              t.description      AS training_description,
+              t.whatsapp_group_link
+       FROM registrations r
+       JOIN trainings t ON r.training_id = t.id
+       WHERE r.access_token = ?
+       LIMIT 1`,
+      [token]
+    )
+    const row = rows[0] || null
+    if (row && row.final_price !== undefined) {
+      row.final_price = Number(row.final_price)
+    }
+    return row
   },
 
   async findById(id) {

@@ -11,7 +11,7 @@ const paymentController = {
    */
   getPaymentForm: async (req, res, next) => {
     try {
-      const registration = await Registration.findById(req.params.id)
+      const registration = await Registration.findByToken(req.params.token)
       if (!registration) {
         return res.status(404).render('error', {
           message: 'Pendaftaran tidak ditemukan', code: 404
@@ -42,12 +42,12 @@ const paymentController = {
   },
 
   /**
-   * POST /registrations/:id/payment
+   * POST /registrations/:token/payment
    * Simpan bukti pembayaran dan ubah status jadi payment_uploaded.
    */
   submitPayment: async (req, res, next) => {
     try {
-      const registration = await Registration.findById(req.params.id)
+      const registration = await Registration.findByToken(req.params.token)
       if (!registration) {
         return res.status(404).render('error', {
           message: 'Pendaftaran tidak ditemukan', code: 404
@@ -66,22 +66,22 @@ const paymentController = {
         })
       }
 
-      await Registration.updatePaymentProof(req.params.id, paymentProof)
-      await Registration.updateStatus(req.params.id, 'payment_uploaded')
+      await Registration.updatePaymentProof(registration.id, paymentProof)
+      await Registration.updateStatus(registration.id, 'payment_uploaded')
 
-      res.redirect(`/registrations/${registration.id}/payment-success`)
+      res.redirect(`/registrations/${registration.access_token}/payment-success`)
     } catch (err) {
       next(err)
     }
   },
 
   /**
-   * GET /registrations/:id/payment-success
+   * GET /registrations/:token/payment-success
    * Tampilkan halaman sukses setelah bukti pembayaran diunggah.
    */
   getPaymentSuccess: async (req, res, next) => {
     try {
-      const registration = await Registration.findById(req.params.id)
+      const registration = await Registration.findByToken(req.params.token)
       if (!registration) {
         return res.status(404).render('error', {
           message: 'Pendaftaran tidak ditemukan', code: 404

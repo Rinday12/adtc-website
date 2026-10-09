@@ -79,7 +79,7 @@
     <div class="px-6 py-4 border-b border-gray-100">
       <h2 class="text-base font-semibold text-gray-800">Unggah Bukti Pembayaran</h2>
     </div>
-    <form method="POST" action="/registrations/<%= registration.id %>/payment" enctype="multipart/form-data" class="px-6 py-5">
+    <form method="POST" action="/registrations/<%= registration.access_token %>/payment" enctype="multipart/form-data" class="px-6 py-5">
       <div class="mb-4">
         <label for="payment_proof" class="block text-sm font-medium text-gray-700 mb-1">
           File bukti transfer <span class="text-red-500">*</span>

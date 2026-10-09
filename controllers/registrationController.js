@@ -161,7 +161,7 @@ const registrationController = {
         identity_card_proof
       })
 
-      const registrationId = await Registration.create({
+      const { accessToken } = await Registration.create({
         training_id:         training.id,
         full_name:           req.body.full_name.trim(),
         email:               req.body.email.trim().toLowerCase(),
@@ -172,8 +172,8 @@ const registrationController = {
         final_price: safeFinalPrice
       })
 
-      console.log('[Register] Created registration with ID:', registrationId)
-      res.redirect(`/registrations/${registrationId}/success`)
+      console.log('[Register] Created registration with token:', accessToken)
+      res.redirect(`/registrations/${accessToken}/success`)
     } catch (err) {
       console.error('[Register] Critical error:', err)
       console.error('[Register] Error code:', err.code)
@@ -189,10 +189,10 @@ const registrationController = {
     }
   },
 
-  getSuccess: async (req, res, next) => {
+  getSuccess: async (req, res, next) {
     let registration
     try {
-      registration = await Registration.findById(req.params.id)
+      registration = await Registration.findByToken(req.params.token)
     } catch (err) {
       console.error('[getSuccess] Query pendaftaran gagal:', err.message)
       registration = null

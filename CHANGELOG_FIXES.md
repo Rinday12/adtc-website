@@ -1,3 +1,19 @@
+### Fix #33 — Halaman Detail Registrasi Bisa Ditebak via ID Numerik (Pencegahan Data Leaking)
+Tanggal: 2026-10-09
+File: models/Registration.js, controllers/registrationController.js, controllers/paymentController.js, routes/publicRoutes.js, views/registration/*.ejs, views/emails/*.ejs, config/schema.sql, migrations/2026-10-09_add_access_token_to_registrations.sql
+Masalah: URL publik seperti `https://adtcuad.id/registrations/6/success` memakai ID numerik sequential — siapa pun yang menebak ID bisa membuka halaman dan melihat data pribadi peserta (nama, email, kode referensi, status pembayaran).
+Akar: `Registrations` memakai `id` (AUTO_INCREMENT) sebagai parameter URL publik. Tidak ada mekanisme autentikasi/pemilik-an untuk membedakan pemilik valid dari pengunjung acak.
+Fix:
+- Tambah kolom `access_token VARCHAR(64) UNIQUE NOT NULL` di tabel `registrations` (UUID v4, di-generate via `crypto.randomUUID()` saat `Registration.create()`).
+- Routes publik berubah dari `/registrations/:id/...` ke `/registrations/:token/...` (`success`, `payment`, `payment-success`).
+- `Registration.findByToken(token)` menggantikan `findById()` di handler publik (`registrationController.getSuccess`, `paymentController.getPaymentForm/submitPayment/getPaymentSuccess`); `findById()` tetap dipertahankan untuk alur admin.
+- Redirect pasca-pendaftaran (`submitForm`) kini mengarah ke `/registrations/${accessToken}/success`.
+- Semua link di email (status-approved/verified/rejected, payment-info) dan form di view publik memakai `registration.access_token`, bukan `registration.id`.
+- Migration SQL standalone tersedia di `migrations/2026-10-09_add_access_token_to_registrations.sql` untuk production yang sudah punya data historis (baris lama diisi `legacy-<UUID>` agar constraint UNIQUE/NOT NULL terpenuhi; token lama tidak valid untuk membuka halaman).
+Verifikasi: 117 unit+property test tetap passing (2 kegagalan lama di `generateReferenceCode.test.js` bukan dari perubahan ini). URL lama `:id` tidak lagi ter-route — akses via ID numerik sekarang 404.
+Pelajaran: Jangan pernah paparkan kunci primary-key numerik yang sequential di URL publik tanpa proteksi tambahan. Ganti dengan token acak entropi tinggi (UUID/≥128 bit) yang disimpan di DB, atau tambah autentikasi berbasis email/session.
+Log Keyword: access_token, findByToken, UUID, data leaking, sequential ID, registration URL
+
 ### Fix #32 — Jumlah Pembayaran Rp 0 di Halaman User, Admin & Email (Bug DECIMAL string → 0)
 Tanggal: 2026-10-09
 File: controllers/registrationController.js, models/Registration.js, utils/email.js, views/admin/registrations.ejs
