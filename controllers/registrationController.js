@@ -189,7 +189,7 @@ const registrationController = {
     }
   },
 
-  getSuccess: async (req, res, next) {
+  getSuccess: async (req, res, next) => {
     let registration
     try {
       registration = await Registration.findByToken(req.params.token)
