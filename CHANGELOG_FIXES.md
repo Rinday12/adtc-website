@@ -1,3 +1,13 @@
+### Fix #34 — Admin Kick Saat Submit Upload Training (Sliding Session)
+Tanggal: 2026-10-13
+File: app.js, tests/unit/generateReferenceCode.test.js
+Masalah: Admin sedang mengunggah form pelatihan → klik submit → tiba-tiba di-redirect ke /admin/login. Session hangus sebelum proses selesai.
+Akar: `cookie.maxAge: 15 menit` terhitung sejak **login**, bukan sejak aktivitas terakhir. Proses upload + save yang memakan >15 menit membuat cookie sudah kadaluarsa sebelum POST selesai diproses.
+Fix: Tambah `rolling: true` di konfigurasi express-session. Sekarang setiap request (termasuk POST upload) memperpanjang cookie, jadi timeout 15 menit terhitung dari aktivitas terakhir. Admin aktif tidak akan kick; yang idle >15 menit tetap keluar.
+Verifikasi: 119 unit+property test passing. Test `generateReferenceCode` perbaiki regex mengikuti format aktual (`ADTC-YYYY-<base36><4-digit>`), bukan format lama yang sudah diganti di Fix #33.
+Pelajaran: `rolling: true` (default `false` di express-session) wajib di-set secara eksplisit saat `saveUninitialized: false` + `resave: false`, karena kombinasi itu membuat cookie tidak diperpanjang otomatis.
+Log Keyword: session, rolling, sliding, maxAge, cookie, admin, kick, login, upload, express-session
+
 ### Fix #33 — Halaman Detail Registrasi Bisa Ditebak via ID Numerik (Pencegahan Data Leaking)
 Tanggal: 2026-10-09
 File: models/Registration.js, controllers/registrationController.js, controllers/paymentController.js, routes/publicRoutes.js, views/registration/*.ejs, views/emails/*.ejs, config/schema.sql, migrations/2026-10-09_add_access_token_to_registrations.sql
