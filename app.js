@@ -26,12 +26,14 @@ app.use(express.json())
 app.use(express.static(path.join(__dirname, 'public')))
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
 
-// Session
+// Session — sliding: setiap request admin aktif memperpanjang cookie,
+// jadi idle timeout 15 menit terhitung dari aktivitas terakhir, bukan sejak login.
 app.use(session({
   secret: process.env.SESSION_SECRET || 'adtc-dev-secret-key-minimum-32-chars',
   resave: false,
   saveUninitialized: false,
-  cookie: { secure: false, maxAge: 1000 * 60 * 15 } // 15 menit (auto-lock admin)
+  rolling: true,
+  cookie: { secure: false, maxAge: 1000 * 60 * 15 } // 15 menit idle (auto-lock)
 }))
 
 // Flash Messages
