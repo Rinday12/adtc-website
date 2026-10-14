@@ -140,6 +140,33 @@
       </script>
     </div>
 
+    <div class="px-6 py-4 border-t border-gray-100">
+      <h2 class="text-base font-semibold text-gray-800 mb-4">Mode Pelaksanaan</h2>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label for="exec_mode" class="block text-sm font-medium text-gray-700 mb-1">Mode Pelaksanaan</label>
+          <select id="exec_mode" name="exec_mode" class="w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500">
+            <option value="offline" <%= (!isEdit || training?.exec_mode === 'offline') ? 'selected' : '' %>>Offline (tatap muka)</option>
+            <option value="online"  <%= isEdit && training?.exec_mode === 'online' ? 'selected' : '' %>>Online</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Fasilitas — hanya untuk offline -->
+      <div id="fasilitas-container" class="mt-4 <% if (isEdit && training?.exec_mode === 'online') { %>hidden<% } %>">
+        <label for="fasilitas" class="block text-sm font-medium text-gray-700 mb-1">Fasilitas yang Didapat Peserta</label>
+        <textarea id="fasilitas" name="fasilitas" rows="4" class="w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500"
+                  placeholder="Satu fasilitas per baris, contoh:&#10;Sertifikat resmi&#10;Materi digital&#10;Catering&#10;Akses WiFi"><%= isEdit ? (training?.fasilitas || '') : '' %></textarea>
+        <p class="text-xs text-gray-500 mt-1">Isi hanya jika mode <strong>Offline</strong>. Satu fasilitas di setiap baris — akan ditampilkan ke peserta di halaman detail.</p>
+      </div>
+
+      <script>
+        document.getElementById('exec_mode').addEventListener('change', function() {
+          document.getElementById('fasilitas-container').classList.toggle('hidden', this.value === 'online')
+        })
+      </script>
+    </div>
+
     <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end gap-3">
       <a href="/admin/trainings" class="text-sm text-gray-600 hover:text-gray-800 transition-colors px-4 py-2">Batal</a>
       <button type="submit" class="bg-navy-700 hover:bg-navy-800 text-white text-sm font-semibold px-6 py-2 rounded-lg transition-colors shadow-sm">

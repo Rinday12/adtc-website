@@ -240,15 +240,17 @@ const Training = {
       `INSERT INTO trainings
         (title, slug, description, category, category_order,
          price_general, price_student_uad, price_employee_uad,
-         quota, start_date, whatsapp_group_link, cover_image, status)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active')`,
+         quota, start_date, whatsapp_group_link, cover_image,
+         exec_mode, fasilitas, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active')`,
       [
         data.title, data.slug, data.description || null,
         data.category, data.category_order || 99,
         data.price_general || 0, data.price_student_uad || 0,
         data.price_employee_uad || 0, data.quota || 30,
         data.start_date || null, data.whatsapp_group_link || null,
-        data.cover_image || null
+        data.cover_image || null,
+        data.exec_mode || 'offline', data.fasilitas || null
       ]
     )
     return result.insertId
@@ -313,7 +315,8 @@ const Training = {
     const allowedFields = [
       'title', 'slug', 'description', 'category', 'category_order',
       'price_general', 'price_student_uad', 'price_employee_uad',
-      'quota', 'start_date', 'status', 'whatsapp_group_link', 'cover_image'
+      'quota', 'start_date', 'status', 'whatsapp_group_link', 'cover_image',
+      'exec_mode', 'fasilitas'
     ]
     const sets = []
     const values = []

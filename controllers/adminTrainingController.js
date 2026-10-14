@@ -95,6 +95,9 @@ const adminTrainingController = {
       }
 
       const coverImage = req.file?.path || null
+      const execMode = req.body.exec_mode === 'online' ? 'online' : 'offline'
+      // fasilitas hanya relevan untuk offline; simpan sebagai teks (satuan per baris)
+      const fasilitas = execMode === 'offline' ? (req.body.fasilitas || '').trim() || null : null
 
       await Training.create({
         title:              req.body.title.trim(),
@@ -108,7 +111,9 @@ const adminTrainingController = {
         quota:              parseInt(req.body.quota, 10),
         start_date:         req.body.start_date || null,
         whatsapp_group_link: req.body.whatsapp_group_link?.trim() || null,
-        cover_image:        coverImage
+        cover_image:        coverImage,
+        exec_mode:          execMode,
+        fasilitas:          fasilitas
       })
 
       req.flash('success', 'Pelatihan berhasil ditambahkan.')
@@ -158,6 +163,8 @@ const adminTrainingController = {
 
       const status = req.body.status === 'postpone' ? 'postpone' : (req.body.status === 'full' ? 'full' : 'active')
       const coverImage = req.file?.path || training.cover_image
+      const execMode = req.body.exec_mode === 'online' ? 'online' : 'offline'
+      const fasilitas = execMode === 'offline' ? (req.body.fasilitas || '').trim() || null : null
 
       await Training.update(training.id, {
         title:              req.body.title.trim(),
@@ -173,7 +180,9 @@ const adminTrainingController = {
         reschedule_date:    req.body.reschedule_date || null,
         status,
         whatsapp_group_link: req.body.whatsapp_group_link?.trim() || null,
-        cover_image:        coverImage
+        cover_image:        coverImage,
+        exec_mode:          execMode,
+        fasilitas:          fasilitas
       })
 
       req.flash('success', 'Pelatihan berhasil diperbarui.')

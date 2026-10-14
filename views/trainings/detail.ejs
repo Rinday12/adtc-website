@@ -125,6 +125,44 @@
 
       <hr class="border-gray-100" />
 
+      <!-- Mode Pelaksanaan & Fasilitas -->
+      <%
+        const isOnline = training.exec_mode === 'online'
+        const fasilitasList = isOnline ? [] :
+          (training.fasilitas || '').split('\n').map(s => s.trim()).filter(Boolean)
+      %>
+      <section aria-label="Mode pelaksanaan" class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div class="flex items-start gap-3">
+          <div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-brand-500 text-lg" aria-hidden="true">
+            <%= isOnline ? '💻' : '🏢' %>
+          </div>
+          <div>
+            <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-0.5">Mode Pelaksanaan</p>
+            <p class="text-gray-800 font-semibold"><%= isOnline ? 'Online' : 'Offline' %></p>
+          </div>
+        </div>
+
+        <% if (!isOnline && fasilitasList.length > 0) { %>
+        <div class="flex items-start gap-3">
+          <div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 text-brand-500 text-lg" aria-hidden="true">
+            🎁
+          </div>
+          <div>
+            <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">Fasilitas</p>
+            <ul class="space-y-1">
+              <% fasilitasList.forEach(function(f) { %>
+                <li class="text-sm text-gray-700 flex items-center gap-2">
+                  <span class="text-brand-500" aria-hidden="true">•</span><%= f %>
+                </li>
+              <% }) %>
+            </ul>
+          </div>
+        </div>
+        <% } %>
+      </section>
+
+      <hr class="border-gray-100" />
+
       <!-- Biaya Pendaftaran -->
       <section aria-labelledby="price-heading">
         <h2 id="price-heading" class="text-lg font-semibold text-gray-800 mb-4">Biaya Pendaftaran</h2>
