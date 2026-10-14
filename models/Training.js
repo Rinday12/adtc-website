@@ -318,10 +318,19 @@ const Training = {
       'quota', 'start_date', 'status', 'whatsapp_group_link', 'cover_image',
       'exec_mode', 'fasilitas'
     ]
+    // Kolom nullable — boleh di-set ke NULL (menghapus isi, mis. hapus fasilitas).
+    // Kolom wajib: null = tidak diubah; undefined = tidak dikirim.
+    const nullableFields = new Set(['description', 'start_date', 'whatsapp_group_link',
+      'cover_image', 'exec_mode', 'fasilitas'])
     const sets = []
     const values = []
     for (const key of allowedFields) {
-      if (data[key] !== undefined && data[key] !== null) {
+      if (data[key] === undefined) continue
+      if (data[key] === null && nullableFields.has(key)) {
+        // eksplisit hapus isi → SET key = NULL
+        sets.push(`${key} = ?`)
+        values.push(null)
+      } else if (data[key] !== null) {
         sets.push(`${key} = ?`)
         values.push(data[key])
       }
