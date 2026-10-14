@@ -115,7 +115,10 @@
 
   <!-- ── Tombol WA Floating ─────────────────────────────────── -->
   <% if (typeof waAdmins !== 'undefined' && waAdmins.length > 0) { %>
-  <div class="flex flex-col items-end sm:items-end sm:gap-3 gap-3 fixed bottom-24 sm:bottom-6 right-4 sm:right-6 z-50" id="wa-floating-group">
+  <div class="flex flex-col items-end sm:gap-3 gap-3 fixed z-50"
+       id="wa-floating-group"
+       style="bottom:6rem; right:1rem;"
+       data-bottom-desktop="1.5rem" data-right-desktop="1.5rem">
 
     <% waAdmins.forEach(function(admin, i) { %>
     <a href="https://wa.me/<%= admin.number %>?text=Halo%20ADTC%2C%20saya%20ingin%20mengetahui%20informasi%20lebih%20lanjut%20mengenai%20program%20pelatihan."
@@ -156,6 +159,23 @@
                  animate-ping opacity-25 pointer-events-none -z-10"></span>
   </div>
   <% } %>
+
+  <!-- WA floating: pindah posisi di desktop (bottom-6, right-6) vs mobile (bottom-24, right-4) -->
+  <script>
+    (function() {
+      const el = document.getElementById('wa-floating-group');
+      if (!el) return;
+      const mq = window.matchMedia('(min-width: 640px)');
+      function applyPosition() {
+        const b = mq.matches ? el.dataset.bottomDesktop : '6rem';
+        const r = mq.matches ? el.dataset.rightDesktop  : '1rem';
+        el.style.bottom = b;
+        el.style.right  = r;
+      }
+      mq.addEventListener('change', applyPosition);
+      applyPosition();
+    })();
+  </script>
 
 </body>
 </html>
