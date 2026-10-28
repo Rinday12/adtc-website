@@ -167,46 +167,78 @@
       <hr class="border-gray-100" />
 
       <!-- Biaya Pendaftaran -->
+      <%
+        // Full gratis (kategori is_free_tier + cert_available=0): tidak ada
+        // pembayaran sama sekali → bagian biaya dinonaktifkan, diganti banner.
+        const isFullFree = !!training.is_free_tier && training.cert_available === false
+      %>
       <section aria-labelledby="price-heading">
-        <h2 id="price-heading" class="text-lg font-semibold text-gray-800 mb-4">Biaya Pendaftaran</h2>
-        <div class="rounded-xl border border-gray-200 overflow-hidden">
-          <table class="w-full text-sm">
-            <thead class="bg-gray-50">
-              <tr>
-                <th class="px-5 py-3 text-left font-semibold text-gray-600" scope="col">Kategori Peserta</th>
-                <th class="px-5 py-3 text-right font-semibold text-gray-600" scope="col">Biaya</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100">
-              <tr class="hover:bg-gray-50 transition-colors">
-                <td class="px-5 py-4 text-gray-700">Umum</td>
-                <td class="px-5 py-4 text-right font-semibold text-gray-800">
-                  <%= training.price_general != null ? fmt.format(training.price_general) : '-' %>
-                </td>
-              </tr>
-              <tr class="hover:bg-gray-50 transition-colors">
-                <td class="px-5 py-4 text-gray-700">
-                  Mahasiswa UAD
-                  <span class="ml-1 inline-block bg-blue-100 text-navy-700 text-xs font-medium px-2 py-0.5 rounded-full">KTM wajib</span>
-                </td>
-                <td class="px-5 py-4 text-right font-semibold text-gray-800">
-                  <%= training.price_student_uad != null ? fmt.format(training.price_student_uad) : '-' %>
-                </td>
-              </tr>
-              <tr class="hover:bg-gray-50 transition-colors">
-                <td class="px-5 py-4 text-gray-700">
-                  Karyawan UAD
-                  <span class="ml-1 inline-block bg-purple-100 text-purple-700 text-xs font-medium px-2 py-0.5 rounded-full">ID Card wajib</span>
-                </td>
-                <td class="px-5 py-4 text-right font-semibold text-gray-800">
-                  <%= training.price_employee_uad != null ? fmt.format(training.price_employee_uad) : '-' %>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <p class="mt-2 text-xs text-gray-400">* Mahasiswa dan karyawan UAD wajib mengunggah dokumen identitas saat pendaftaran.</p>
-        <p class="mt-1 text-xs text-gray-400">Pilih kategori yang sesuai saat mendaftar — kategori menentukan harga yang berlaku dan berkas dokumen yang diminta.</p>
+        <% if (isFullFree) { %>
+          <h2 id="price-heading" class="text-lg font-semibold text-gray-800 mb-4">Biaya Pendaftaran</h2>
+          <div class="rounded-xl border border-green-200 bg-green-50 px-5 py-4 flex items-center gap-3">
+            <span class="text-green-600 text-lg flex-shrink-0" aria-hidden="true">&#9989;</span>
+            <div>
+              <p class="text-sm font-semibold text-green-800">Pelatihan ini sepenuhnya gratis</p>
+              <p class="text-xs text-green-700 mt-0.5">Tidak ada biaya pendaftaran maupun opsi pembayaran lainnya — ikut Rp 0 total.</p>
+            </div>
+          </div>
+        <% } else { %>
+          <h2 id="price-heading" class="text-lg font-semibold text-gray-800 mb-4">Biaya Pendaftaran</h2>
+          <div class="rounded-xl border border-gray-200 overflow-hidden">
+            <table class="w-full text-sm">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="px-5 py-3 text-left font-semibold text-gray-600" scope="col">Kategori Peserta</th>
+                  <th class="px-5 py-3 text-right font-semibold text-gray-600" scope="col">Biaya</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100">
+                <tr class="hover:bg-gray-50 transition-colors">
+                  <td class="px-5 py-4 text-gray-700">Umum</td>
+                  <td class="px-5 py-4 text-right font-semibold text-gray-800">
+                    <%= training.price_general != null ? fmt.format(training.price_general) : '-' %>
+                  </td>
+                </tr>
+                <tr class="hover:bg-gray-50 transition-colors">
+                  <td class="px-5 py-4 text-gray-700">
+                    Mahasiswa UAD
+                    <span class="ml-1 inline-block bg-blue-100 text-navy-700 text-xs font-medium px-2 py-0.5 rounded-full">KTM wajib</span>
+                  </td>
+                  <td class="px-5 py-4 text-right font-semibold text-gray-800">
+                    <%= training.price_student_uad != null ? fmt.format(training.price_student_uad) : '-' %>
+                  </td>
+                </tr>
+                <tr class="hover:bg-gray-50 transition-colors">
+                  <td class="px-5 py-4 text-gray-700">
+                    Karyawan UAD
+                    <span class="ml-1 inline-block bg-purple-100 text-purple-700 text-xs font-medium px-2 py-0.5 rounded-full">ID Card wajib</span>
+                  </td>
+                  <td class="px-5 py-4 text-right font-semibold text-gray-800">
+                    <%= training.price_employee_uad != null ? fmt.format(training.price_employee_uad) : '-' %>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="mt-2 text-xs text-gray-400">* Mahasiswa dan karyawan UAD wajib mengunggah dokumen identitas saat pendaftaran.</p>
+          <p class="mt-1 text-xs text-gray-400">Pilih kategori yang sesuai saat mendaftar — kategori menentukan harga yang berlaku dan berkas dokumen yang diminta.</p>
+
+          <% if (training.is_free_tier && certFee > 0) { %>
+          <div class="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-5 py-4">
+            <div class="flex items-start gap-3">
+              <span class="text-amber-500 text-lg flex-shrink-0 mt-0.5" aria-hidden="true">&#9432;</span>
+              <div>
+                <p class="text-sm font-semibold text-amber-800">Pelatihan ini gratis</p>
+                <p class="text-xs text-amber-700 mt-1">
+                  Pendaftaran tidak dipungut biaya. Untuk mendapatkan sertifikat,
+                  biaya sebesar <strong class="text-amber-800"><%= fmt.format(certFee) %></strong>
+                  akan dibayarkan setelah verifikasi admin.
+                </p>
+              </div>
+            </div>
+          </div>
+          <% } %>
+        <% } %>
       </section>
 
       <!-- CTA -->

@@ -43,6 +43,28 @@
     }
   }
 
+  /**
+   * Highlight the selected payment-option card (Gratis / Dengan Sertifikat).
+   * Tailwind di proyek ini (3.3.5) belum punya varian `has-[:checked]`, jadi
+   * sorotan dipilih di-toggle manual. Form non-gratis tak punya elemen ini.
+   */
+  function togglePaymentOption() {
+    var grid = document.getElementById('paymentOptionGrid');
+    if (!grid) return;
+
+    var cards = grid.querySelectorAll('.pay-opt');
+    cards.forEach(function (card) {
+      var radio = card.querySelector('input[type="radio"]');
+      var on = radio && radio.checked;
+      card.classList.toggle('border-brand-500', on);
+      card.classList.toggle('bg-brand-50', on);
+      card.classList.toggle('ring-1', on);
+      card.classList.toggle('ring-brand-500', on);
+      card.classList.toggle('border-gray-300', !on);
+      card.classList.toggle('bg-white', !on);
+    });
+  }
+
   document.addEventListener('DOMContentLoaded', function () {
     var categorySelect = document.getElementById('categorySelect');
 
@@ -53,5 +75,10 @@
       // Re-run whenever the user changes the category
       categorySelect.addEventListener('change', toggleUadFields);
     }
+
+    // Highlight payment-option card sesuai pilihan (inisial + setiap ganti)
+    togglePaymentOption();
+    var payRadios = document.querySelectorAll('input[name="payment_option"]');
+    payRadios.forEach(function (r) { r.addEventListener('change', togglePaymentOption); });
   });
 })();

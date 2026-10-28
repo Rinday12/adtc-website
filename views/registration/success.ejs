@@ -41,6 +41,11 @@
         <dt class="text-sm text-gray-500 shrink-0">Total Pembayaran</dt>
         <dd class="text-base font-bold text-navy-700 text-right">
           <%= fmt.format(registration.final_price) %>
+          <% if (registration.is_free_tier && certFee > 0) { %>
+            <span class="text-xs font-normal text-gray-400 block">
+              <%= registration.final_price > 0 ? 'termasuk biaya sertifikat' : 'gratis — tanpa sertifikat' %>
+            </span>
+          <% } %>
         </dd>
       </div>
       <div class="px-6 py-4 flex justify-between gap-4">
@@ -79,6 +84,38 @@
   </div>
   <% } %>
 
+  <% if (registration.is_free_tier && certFee > 0) { %>
+    <% if (registration.final_price > 0) { %>
+  <!-- Peserta memilih "Dengan Sertifikat" — wajib bayar CERT_FEE -->
+  <div class="bg-amber-50 border border-amber-200 rounded-xl p-5 mb-6">
+    <div class="flex items-start gap-3">
+      <span class="text-amber-500 text-lg flex-shrink-0 mt-0.5" aria-hidden="true">&#9432;</span>
+      <div>
+        <p class="text-sm font-semibold text-amber-800">Biaya Sertifikat</p>
+        <p class="text-sm text-amber-700 mt-1">
+          Anda memilih <strong>dengan sertifikat</strong>. Silakan bayarkan biaya sebesar
+          <strong class="text-amber-800"><%= fmt.format(registration.final_price) %></strong>
+          setelah pendaftaran diverifikasi admin. Petunjuk pembayaran akan dikirim via WhatsApp/email.
+        </p>
+      </div>
+    </div>
+  </div>
+    <% } else { %>
+  <!-- Peserta memilih "Gratis" — tidak ada biaya & tanpa sertifikat -->
+  <div class="bg-gray-50 border border-gray-200 rounded-xl p-5 mb-6">
+    <div class="flex items-start gap-3">
+      <span class="text-gray-400 text-lg flex-shrink-0 mt-0.5" aria-hidden="true">&#128274;</span>
+      <div>
+        <p class="text-sm font-semibold text-gray-700">Pendaftaran Gratis</p>
+        <p class="text-sm text-gray-600 mt-1">
+          Anda memilih <strong>tanpa biaya</strong> dan <strong>tanpa sertifikat</strong>.
+          Tidak ada pembayaran yang diperlukan — pelatihan tetap Anda ikuti penuh.
+        </p>
+      </div>
+    </div>
+  </div>
+    <% } %>
+  <% } else { %>
   <!-- Payment instruction note -->
   <div class="bg-blue-50 border border-blue-200 rounded-xl p-5 mb-6">
     <div class="flex items-start gap-3">
@@ -94,6 +131,7 @@
       </div>
     </div>
   </div>
+  <% } %>
 
   <!-- Action CTA based on status -->
   <% if (registration.status === 'approved') { %>

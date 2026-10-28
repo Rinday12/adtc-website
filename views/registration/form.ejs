@@ -95,6 +95,54 @@
       <p class="text-xs text-gray-500 mt-1">Kategori menentukan harga pendaftaran yang berlaku.</p>
     </div>
 
+    <!-- Payment option — kategori gratis yang MEMAKAI paket/sertifikat berbayar
+         (is_free_tier && cert_available). Kategori gratis MURNI
+         (cert_available = 0) tidak menampilkan pilihan apa pun: selalu Rp 0.
+         Bila kategori tak dikenal di tabel categories (DB lama),
+         cert_available tidak ada di object → perlakukan sebagai pakai-paket
+         agar perilaku lama tidak berubah. -->
+    <% if (training.is_free_tier && training.cert_available !== false && certFee > 0) { %>
+    <div id="paymentOptionBlock">
+      <label class="block text-sm font-medium text-gray-700 mb-1" for="payGratis">
+        Jenis Pembayaran <span class="text-red-500">*</span>
+      </label>
+      <div class="grid grid-cols-2 gap-3" id="paymentOptionGrid">
+        <label class="pay-opt flex items-start gap-2 border border-gray-300 bg-white rounded-md px-3 py-2.5 cursor-pointer transition-colors">
+          <input
+            type="radio"
+            id="payGratis"
+            name="payment_option"
+            value="gratis"
+            <%= (typeof formData !== 'undefined' && formData.payment_option === 'gratis') ? 'checked' : (!formData || !formData.payment_option) ? 'checked' : '' %>
+            class="mt-0.5 text-brand-600 focus:ring-brand-500"
+          />
+          <span>
+            <span class="block text-sm font-semibold text-gray-800">Gratis</span>
+            <span class="block text-xs text-gray-500">Rp 0 — tanpa sertifikat</span>
+          </span>
+        </label>
+        <label class="pay-opt flex items-start gap-2 border border-gray-300 bg-white rounded-md px-3 py-2.5 cursor-pointer transition-colors">
+          <input
+            type="radio"
+            id="paySertifikat"
+            name="payment_option"
+            value="sertifikat"
+            <%= (typeof formData !== 'undefined' && formData.payment_option === 'sertifikat') ? 'checked' : '' %>
+            class="mt-0.5 text-brand-600 focus:ring-brand-500"
+          />
+          <span>
+            <span class="block text-sm font-semibold text-gray-800">Dengan Sertifikat</span>
+            <span class="block text-xs text-gray-500"><%= fmt.format(certFee) %></span>
+          </span>
+        </label>
+      </div>
+      <p class="text-xs text-gray-500 mt-1">
+        Pendaftaran gratis. Pilih <strong>Gratis</strong> untuk Rp 0, atau <strong>Dengan Sertifikat</strong> untuk
+        <%= fmt.format(certFee) %> (dibayar setelah diverifikasi admin).
+      </p>
+    </div>
+    <% } %>
+
     <!-- UAD-specific Fields (hidden by default, shown via JS) -->
     <div id="uadFields" class="hidden space-y-4 border-t border-gray-200 pt-4">
       <p class="text-sm font-medium text-gray-700">Data Identitas UAD</p>

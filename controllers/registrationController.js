@@ -17,6 +17,37 @@ function calculateFinalPrice(category, training) {
 }
 
 /**
+ * Hitung total tagihan peserta berdasarkan kategori + pilihan pembayaran.
+ *
+ * - Kategori BERPAYAR → harga dari kategori (lihat calculateFinalPrice).
+ * - Kategori GRATIS:
+ *     - dengan paket (default; kolom categories.cert_available = 1):
+ *       peserta memilih "gratis" (=0) atau "dengan sertifikat" (= CERT_FEE)
+ *     - murni / full free (cert_available = 0): selalu 0, pilihan apa pun diabaikan
+ *
+ * Nilai CERT_FEE dibaca dari env, bukan dari form, sehingga angka tidak
+ * bisa dimanipulasi client. Flag cert_available juga dari DB — form hanya
+ * memilih antara apa yang DIIZINKAN server.
+ *
+ * Di-export agar bisa diuji oleh property test.
+ */
+function resolveFinalPrice(training, body, certFee) {
+  if (training && training.is_free_tier) {
+    // Kategori gratis murni (cert_available false/0) → selalu Rp 0.
+    if (training.cert_available === false || training.cert_available === 0) {
+      return 0
+    }
+    if (body && body.payment_option === 'sertifikat') {
+      const fee = Number(certFee)
+      // Nilai tak valid (NaN/kosong) atau negatif → anggap 0, jangan tagih negatif
+      return isNaN(fee) || fee < 0 ? 0 : fee
+    }
+    return 0
+  }
+  return calculateFinalPrice(body?.category, training)
+}
+
+/**
  * Tanggal efektif pelatihan: reschedule_date (postpone) bila terisi,
  * selain itu start_date. Return null jika keduanya kosong.
  */
@@ -80,7 +111,9 @@ const registrationController = {
       training,
       title: `Daftar - ${training.title}`,
       errors: [],
-      formData: {}
+      formData: {},
+      certFee: Number(process.env.CERT_FEE || 0),
+      fmt: new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 })
     })
   },
 
@@ -97,6 +130,12 @@ const registrationController = {
         return res.status(404).render('error', { message: 'Pelatihan tidak ditemukan', code: 404 })
       }
 
+      // Konteks form untuk render ulang saat error (tier gratis → pilih bayar)
+      const formCtx = {
+        certFee: Number(process.env.CERT_FEE || 0),
+        fmt: new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 })
+      }
+
       // Validasi server-side: pelatihan sudah selesai (tanggal efektif lewat)
       // ditolak — tidak bisa mengandalkan form yang di-redirect saja.
       if (isTrainingClosed(training)) {
@@ -104,7 +143,8 @@ const registrationController = {
           training,
           title: `Daftar - ${training.title}`,
           errors: ['Pelatihan ini sudah selesai. Pendaftaran ditutup.'],
-          formData: req.body
+          formData: req.body,
+          ...formCtx
         })
       }
 
@@ -114,7 +154,8 @@ const registrationController = {
           training,
           title: `Daftar - ${training.title}`,
           errors,
-          formData: req.body
+          formData: req.body,
+          ...formCtx
         })
       }
 
@@ -125,11 +166,16 @@ const registrationController = {
           training,
           title: `Daftar - ${training.title}`,
           errors: ['Kuota pelatihan ini sudah penuh. Pilih pelatihan lain.'],
-          formData: req.body
+          formData: req.body,
+          ...formCtx
         })
       }
 
-      const final_price = calculateFinalPrice(req.body.category, training)
+      // Total tagihan: dari harga kategori (berbayar), atau pilihan
+      // "gratis / dengan sertifikat" (tier gratis). CERT_FEE dari env,
+      // bukan dari form, agar nominal tidak bisa dimanipulasi client.
+      const certFee = Number(process.env.CERT_FEE || 0)
+      const final_price = resolveFinalPrice(training, req.body, certFee)
       const identity_card_proof = req.files?.identity_card_proof?.[0]?.path || null
 
       console.log('[Register] Pre-insert data:', {
@@ -218,6 +264,7 @@ const registrationController = {
         registration,
         whatsappUrl,
         fmt,
+        certFee: Number(process.env.CERT_FEE || 0),
         title: 'Pendaftaran Berhasil'
       })
     } catch (err) {
@@ -228,4 +275,5 @@ const registrationController = {
 
 module.exports = registrationController
 module.exports.calculateFinalPrice = calculateFinalPrice
+module.exports.resolveFinalPrice = resolveFinalPrice
 module.exports.validateRegistrationInput = validateRegistrationInput

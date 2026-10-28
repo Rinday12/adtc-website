@@ -157,11 +157,21 @@ const Training = {
     const [rows] = await db.execute(
       `SELECT t.*,
               (SELECT COUNT(*) FROM registrations r
-               WHERE r.training_id = t.id AND r.status != 'rejected') AS registered_count
+               WHERE r.training_id = t.id AND r.status != 'rejected') AS registered_count,
+              (SELECT is_free_tier FROM categories c
+                WHERE c.name = t.category LIMIT 1) AS is_free_tier,
+              (SELECT cert_available FROM categories c
+                WHERE c.name = t.category LIMIT 1) AS cert_available
        FROM trainings t
        WHERE t.slug = ? LIMIT 1`,
       [slug]
     )
+    if (rows[0]) {
+      rows[0].is_free_tier = rows[0].is_free_tier === 1
+      // NULL (kategori tak dikenal / DB lama) → anggap paket tersedia,
+      // agar perilaku kategori gratis lama tidak berubah.
+      rows[0].cert_available = rows[0].cert_available !== 0
+    }
     return rows[0] || null
   },
 
@@ -184,7 +194,30 @@ const Training = {
   },
 
   /**
-   * Ambil semua training aktif, dikelompokkan per kategori.
+   * Ambil semua training untuk satu kategori (nama persis), status aktif.
+   * Dipakai halaman /trainings/:anchor yang terpisah per kategori.
+   * @param {string} categoryName
+   * @returns {Promise<Array>} baris training; kosong bila tak ada
+   */
+  async findAllByCategory(categoryName) {
+    const [rows] = await db.execute(
+      `SELECT t.*,
+              (SELECT COUNT(*) FROM registrations r
+               WHERE r.training_id = t.id AND r.status != 'rejected') AS registered_count
+       FROM trainings t
+       WHERE t.category = ? AND t.status != 'postpone'
+       ORDER BY t.category_order ASC, t.start_date ASC`,
+      [categoryName]
+    )
+    return rows
+  },
+
+  /**
+   * Ambil semua training, dikelompokkan per kategori.
+   * Hanya kategori yang statusnya 'aktif' di tabel `categories` yang
+   * masuk ke hasil — sehingga kategori nonaktif otomatis disembunyikan
+   * dari katalog publik.
+   *
    * @returns {Promise<Array<{category, anchor, trainings[]}>>}
    */
   async findAllGrouped() {
@@ -193,6 +226,7 @@ const Training = {
               (SELECT COUNT(*) FROM registrations r
                WHERE r.training_id = t.id AND r.status != 'rejected') AS registered_count
        FROM trainings t
+       WHERE t.category IN (SELECT name FROM categories WHERE status = 'aktif')
        ORDER BY t.category_order ASC, t.start_date ASC`
     )
     const map = new Map()
@@ -210,24 +244,58 @@ const Training = {
   },
 
   /**
-   * Ambil daftar kategori unik beserta jumlah training aktif.
-   * @returns {Promise<Array<{category, anchor, count}>>}
+  /**
+   * Ambil daftar kategori aktif dari tabel `categories` beserta jumlah
+   * training non-postpone per kategori.
+   *
+   * Kategori tetap tampil walau count-nya 0 (keputusan: kategori kosong
+   * tetap ada di navbar & tab katalog). Anchor & is_free_tier diambil dari
+   * tabel, bukan di-generate dari teks.
+   *
+   * Bentuk hasil konsisten dengan query lama ({category, anchor, count})
+   * plus field baru is_free_tier, sehingga view (navbar, admin filter,
+   * katalog) tetap memakai `item.category` tanpa perlu diubah.
+   * @returns {Promise<Array<{category, anchor, count, is_free_tier}>>}
    */
   async findCategories() {
     const [rows] = await db.execute(
-      `SELECT category,
-              MIN(category_order) AS category_order,
-              COUNT(*) AS \`count\`
-       FROM trainings
-       WHERE status != 'postpone'
-       GROUP BY category
-       ORDER BY MIN(category_order) ASC`
+      `SELECT c.name      AS category,
+              c.anchor,
+              c.is_free_tier,
+              c.cert_available,
+              c.accent,
+              c.icon,
+              (SELECT COUNT(*) FROM trainings t
+                WHERE t.category = c.name AND t.status != 'postpone') AS cnt
+       FROM categories c
+       WHERE c.status = 'aktif'
+       ORDER BY c.sort_order ASC, c.name ASC`
     )
     return rows.map(r => ({
-      category: r.category,
-      anchor:   r.category.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
-      count:    r.count
+      category:     r.category,
+      anchor:       r.anchor,
+      count:        r.cnt,
+      is_free_tier: r.is_free_tier === 1,
+      // NULL (DB lama / kolom belum migrasi) → anggap paket tersedia,
+      // sama dengan findBySlug — perilaku kategori gratis lama tak berubah.
+      cert_available: r.cert_available !== 0,
+      accent:       r.accent || 'blue',
+      icon:         r.icon || ''
     }))
+  },
+
+  /**
+   * Pindahkan semua training yang memakai `fromCategory` ke `toCategory`.
+   * Dipakai saat admin menghapus kategori: training tak boleh dibiarkan
+   * menunjuk kategori yang sudah tidak ada.
+   * @returns {Promise<number>} jumlah baris yang diubah
+   */
+  async updateManyByCategory(fromCategory, toCategory) {
+    const [result] = await db.execute(
+      'UPDATE trainings SET category = ? WHERE category = ?',
+      [toCategory, fromCategory]
+    )
+    return result.affectedRows
   },
 
   /**
