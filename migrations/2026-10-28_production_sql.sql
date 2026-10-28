@@ -1,3 +1,4 @@
+SET NAMES utf8mb4;
 -- ============================================================================
 -- PRODUCTION MIGRATION SCRIPT
 -- Database: adtcuadi_adtc_app
