@@ -1,3 +1,17 @@
+### Fix #45b — Migration Production: Nonaktifkan Kategori Non-Resmi + Pindahkan Training ke "Pelatihan"
+Tanggal: 2026-10-28
+File: migrations/2026-10-28_deactivate_non_official_categories_prod.sql, migrations/2026-10-28_move_legacy_trainings_to_pelatihan_prod.sql
+Masalah: Dropdown navbar production menampilkan 8 kategori (BNSP, Awareness, Awareness Lingkungan, Awareness Umum, dll) sedangkan local server hanya 4 kategori resmi. Selain itu, training yang masuk ke 4 kategori lama tidak muncul di halaman /trainings/kategori/pelatihan.
+Akar: (1) `findCategories()` mengembalikan semua baris `categories` dengan `status='aktif'` tanpa whitelist; kategori lama di production masih `aktif`. (2) Migrasi nonaktifkan kategori hanya menyembunyikan dari navbar — tidak memindahkan `trainings.category` dari nama lama ke "Pelatihan", jadi count pelatihan tetap 0.
+Fix:
+- `2026-10-28_deactivate_non_official_categories_prod.sql` (sudah ada): `UPDATE categories SET status='nonaktif' WHERE anchor NOT IN ('pelatihan','konsultan','in-house-training','pelatihan-gratis')`.
+- `2026-10-28_move_legacy_trainings_to_pelatihan_prod.sql` (baru): `UPDATE trainings SET category='Pelatihan' WHERE category IN ('BNSP','Awareness','Awareness Lingkungan','Awareness Umum')`.
+- Dua migrasi idempoten; urutan: LANGKAH 2b (nonaktifkan kategori) dulu, LANGKAH 2c (pindahkan training) sesudahnya.
+Verifikasi: PENDING verifikasi (perlu cek `SELECT DISTINCT category FROM trainings WHERE category NOT IN ('Pelatihan','Konsultan','In-house training','Pelatihan gratis')` di production untuk memastikan tidak ada nama kategori lama lain selain 4 yang di-list — jika ada, tambahkan ke UPDATE sebelum eksekusi).
+Status: BELUM DEPLOY.
+Pelajaran: Saat menyinkronkan kategori antar environment, dua hal harus dikerjakan: (1) nonaktifkan baris kategori di `categories`, (2) pindahkan `trainings.category` — hanya nonaktifkan kategori tanpa memindahkan training membuat count di kategori resmi tetap 0 dan training "hilang" dari halaman kategori resmi. Selalu cek `SELECT DISTINCT category` di production sebelum menulis daftar kategori lama di migrasi.
+Log Keyword: move legacy trainings to pelatihan, categories nonaktif anchor, BNSP Awareness training kategori
+
 ### Fix #45 — Dropdown Navbar Tampilkan Kategori Test Dev "Full Gratis"
 Tanggal: 2026-10-28
 File: DB dev adtc_db (categories, trainings)

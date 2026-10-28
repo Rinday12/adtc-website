@@ -56,6 +56,16 @@
 -- Setelah langkah ini: BNSP, Awareness, dll → status='nonaktif';
 -- navbar hanya menampilkan: 📚 Pelatihan · 💼 Konsultan · 🏭 In-house · 🎁 Gratis
 
+-- LANGKAH 2c: Pindahkan training kategori lama → "Pelatihan"
+-- (bisa dijalankan SETELAH LANGKAH 2b; keduanya idempoten)
+--
+--   mysql -u adtcuadi_adtc_app -p adtcuadi_adtc_app \
+--     < migrations/2026-10-28_move_legacy_trainings_to_pelatihan_prod.sql
+--
+-- Setelah langkah ini: semua training BNSP/Awareness/Awareness Lingkungan/
+-- Awareness Umum tercatat di `trainings.category='Pelatihan'`;
+-- halaman /trainings/kategori/pelatihan kini menampilkan semua training.
+
 -- LANGKAH 3: Backup database SEBELUM migrasi (safety)
 --
 --   mysqldump -u adtcuadi_adtc_app -p adtcuadi_adtc_app \
