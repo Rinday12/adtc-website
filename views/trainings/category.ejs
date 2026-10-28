@@ -1,0 +1,315 @@
+<%- include('../layout/header') %>
+
+<%
+  const design = catDesign(category.accent)
+  const fmt = new Intl.NumberFormat('id-ID', {
+    style: 'currency', currency: 'IDR', minimumFractionDigits: 0
+  })
+
+  // Copy penjelas per kategori — membedakan nuansa tiap halaman
+  const intros = {
+    'pelatihan':         'Program pelatihan terstruktur yang membekali Anda dengan keterampilan praktis dan sertifikat resmi.',
+    'konsultan':         'Layanan konsultasi profesional untuk membantu organisasi Anda mengidentifikasi kebutuhan dan solusi pengembangan kompetensi.',
+    'in-house-training': 'Pelatihan yang kami bawa langsung ke kantor Anda — kurikulum disesuaikan kebutuhan tim, jadwal fleksibel.'
+  }
+  let introText = intros[category.anchor]
+  if (!introText && category.is_free_tier) {
+    introText = category.cert_available === false
+      ? 'Program sepenuhnya gratis — pendaftaran, pelaksanaan, dan sertifikat tanpa biaya apa pun.'
+      : 'Program gratis untuk memperluas akses pengetahuan. Pendaftaran tanpa biaya — cukup bayar sertifikat.'
+  }
+  if (!introText) introText = `${category.category} unggulan ADTC — pilih program sesuai kebutuhan Anda.`
+%>
+
+<!-- ── Hero banner kategori ───────────────────────────────── -->
+<div class="relative overflow-hidden text-white"
+     style="background: linear-gradient(135deg, #1e4a8e 0%, #2f5fa8 40%, #4f7cbe 100%);">
+
+  <!-- Dekorasi: grid titik halus di background -->
+  <div class="absolute inset-0 opacity-[0.06] pointer-events-none"
+       style="background-image: radial-gradient(circle, white 1px, transparent 1px); background-size: 28px 28px;"></div>
+
+  <!-- Dekorasi: blob blur kanan -->
+  <div class="absolute -top-20 -right-20 w-80 h-80 rounded-full bg-white/10 blur-3xl animate-pulse-slow pointer-events-none"></div>
+  <div class="absolute -bottom-10 -left-10 w-56 h-56 rounded-full bg-brand-500/10 blur-2xl pointer-events-none"></div>
+
+  <div class="max-w-6xl mx-auto px-4 pt-14 md:pt-20 pb-12 md:pb-16 relative z-10">
+
+    <!-- Breadcrumb — fade in pertama -->
+    <nav class="mb-7 flex items-center gap-2 text-sm text-white/60 animate-fade-up" aria-label="Breadcrumb">
+      <a href="/" class="hover:text-white transition-colors">Beranda</a>
+      <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+      <a href="/trainings" class="hover:text-white transition-colors">Katalog Pelatihan</a>
+      <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+      <span class="text-white font-medium"><%= category.category %></span>
+    </nav>
+
+    <div class="flex flex-col items-center gap-8 md:flex-row md:items-start md:gap-10">
+      <!-- Icon kategori dengan ring animasi -->
+      <% if (category.icon) { %>
+        <div class="relative shrink-0 animate-fade-up delay-1" aria-hidden="true">
+          <div class="w-24 h-24 md:w-28 md:h-28 rounded-3xl bg-white/10 backdrop-blur-sm border border-white/15
+                      flex items-center justify-center shadow-2xl">
+            <span class="text-5xl md:text-6xl leading-none animate-float"><%= category.icon %></span>
+          </div>
+          <!-- Ring dekoratif berputar -->
+          <div class="absolute -inset-2 rounded-[1.6rem] border border-white/10 animate-spin-slow pointer-events-none"></div>
+        </div>
+      <% } %>
+
+      <div class="text-center md:text-left">
+        <!-- Judul — fade in kedua -->
+        <h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight animate-fade-up delay-2">
+          <%= category.category %>
+        </h1>
+
+        <!-- Subtitle — fade in ketiga -->
+        <p class="mt-4 text-white/80 text-base md:text-lg max-w-2xl leading-relaxed animate-fade-up delay-3 mx-auto md:mx-0">
+          <%= introText %>
+        </p>
+
+        <!-- Badge statistik — fade in keempat -->
+        <div class="mt-7 flex flex-wrap items-center justify-center md:justify-start gap-4 animate-fade-up delay-4">
+          <span class="inline-flex items-center gap-2.5 bg-white/10 backdrop-blur-sm border border-white/20
+                      rounded-full px-5 py-2 text-sm font-semibold shadow-lg">
+            <span class="relative flex h-2.5 w-2.5">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-400"></span>
+            </span>
+            <%= total %> program tersedia
+          </span>
+          <% if (category.is_free_tier) { %>
+            <span class="inline-flex items-center gap-2 bg-white text-green-700 rounded-full px-5 py-2 text-sm font-bold shadow-lg animate-float">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 0v7m-6 4l4-4 4 4"/></svg>
+              <%= category.cert_available === false ? 'Gratis penuh — Rp 0 total' : 'Gratis — hanya bayar sertifikat' %>
+            </span>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Wave divider -->
+  <div class="text-gray-50 leading-none relative z-10">
+    <svg class="block w-full h-8 md:h-10" viewBox="0 0 1440 48" preserveAspectRatio="none" fill="currentColor" aria-hidden="true">
+      <path d="M0,48 C240,8 480,0 720,16 C960,32 1200,40 1440,24 L1440,48 L0,48 Z"/>
+    </svg>
+  </div>
+</div>
+
+<!-- ── Konten kategori ────────────────────────────────────── -->
+<div class="max-w-6xl mx-auto px-4 py-6 md:py-10">
+
+  <% const _svcs = services || [] %>
+
+  <% if (_svcs.length > 0) { %>
+    <!-- Layanan / Konsultasi -->
+    <section class="mt-12 mb-14" aria-label="Layanan tersedia">
+      <div class="flex items-center gap-3 mb-6">
+        <h2 class="text-2xl font-bold text-gray-900">Layanan &amp; Konsultasi</h2>
+        <span class="text-base text-gray-400">(<%= _svcs.length %>)</span>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <% _svcs.forEach(function(svc) { %>
+          <div class="group bg-white rounded-2xl border border-navy-100 p-8 shadow-sm
+                      hover:shadow-xl hover:-translate-y-1 hover:border-navy-200 transition-all duration-300 flex flex-col items-center text-center">
+            <% if (svc.icon) { %>
+              <div class="text-4xl leading-none mb-4" aria-hidden="true"><%= svc.icon %></div>
+            <% } %>
+            <span class="inline-block bg-navy-50 text-navy-700 border border-navy-100 text-xs font-bold tracking-widest uppercase px-4 py-1.5 rounded-full mb-4">
+              ADTC
+            </span>
+            <h3 class="text-2xl font-bold text-navy-700 leading-tight mb-3"><%= svc.name %></h3>
+            <p class="text-base text-navy-400 leading-relaxed mb-6 max-w-xs"><%= svc.description %></p>
+            <div class="mt-auto">
+              <% if (waNumber) { %>
+                <a href="https://wa.me/<%= waNumber %>" target="_blank" rel="noopener noreferrer"
+                   class="inline-flex items-center gap-2 px-6 py-3 rounded-full border-2 border-brand-500 text-brand-500
+                          font-bold text-sm tracking-wide hover:bg-brand-500 hover:text-white transition-colors">
+                  <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.477-.883-.788-1.48-1.761-1.658-2.059-.178-.297-.019-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.397-.025-.569l-.521-1.381c-.145-.32-.442-.32-.651-.332-.209-.008-.448-.011-.685-.011-.238 0-.635.089-.968.446-.333.357-1.283 1.245-1.283 3.022 0 1.777 1.296 3.489 1.445 3.711.148.222.215.298.348.507.133.209.569.635.668.735.099.099.355.423.421.5.067.075.16.21.179.332.019.122.019.15.019.202 0 .051-.059.179-.158.278l-.47.471c-.1.099-.259.148-.393.148-.134 0-2.302-.971-3.438-2.969-.961-1.761-1.036-3.149-1.036-3.282 0-.134.019-.458.05-.458.031-.066.047-.132.047-.167-.047-.164-.274-.224-.473-.14-.198.084-.618.269-.735.316-.116.048-.243.07-.376.07-.238-.008-.697-.079-1.114-.548-.269-.324-.066-.5.092-.615.178-.13.465-.289.623-.389.158-.099.232-.154.232-.224-.019-.067-.019-.328.04-.527.059-.198.328-.548.462-.714.134-.166.289-.359.359-.429.07-.071.171-.145.24-.195.071-.048.179-.132.214-.151.035-.019.122-.066.188-.066.066 0 .142.04.189.131.047.09.215.4.349.599.133.2.215.165.315.149.1-.017.234-.061.334-.107.099-.048.214-.114.316-.214.102-.1.214-.27.303-.436.089-.166.233-.479.233-.479l.485 1.455c.04.108.15.188.261.188h.529c.111 0 .222-.084.284-.188.062-.104.247-.465.275-.505.028-.04.171-.314.026-.314z" opacity="0"/><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.477-.883-.788-1.48-1.761-1.658-2.059-.178-.297-.019-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.397-.025-.569l-.521-1.381c-.145-.32-.442-.32-.651-.332-.209-.008-.448-.011-.685-.011-.238 0-.635.089-.968.446-.333.357-1.283 1.245-1.283 3.022 0 1.777 1.296 3.489 1.445 3.711.148.222.215.298.348.507.133.209.569.635.668.735.099.099.355.423.421.5.067.075.16.21.179.332.019.122.019.15.019.202 0 .051-.059.179-.158.278l-.47.471c-.1.099-.259.148-.393.148-.134 0-2.302-.971-3.438-2.969-.961-1.761-1.036-3.149-1.036-3.282 0-.134.019-.458.05-.458.031-.066.047-.132.047-.167-.047-.164-.274-.224-.473-.14-.198.084-.618.269-.735.316-.116.048-.243.07-.376.07-.238-.008-.697-.079-1.114-.548-.269-.324-.066-.5.092-.615.178-.13.465-.289.623-.389.158-.099.232-.154.232-.224-.019-.067-.019-.328.04-.527.059-.198.328-.548.462-.714.134-.166.289-.359.359-.429.07-.071.171-.145.24-.195.071-.048.179-.132.214-.151.035-.019.122-.066.188-.066.066 0 .142.04.189.131.047.09.215.4.349.599.133.2.215.165.315.149.1-.017.234-.061.334-.107.099-.048.214-.114.316-.214.102-.1.214-.27.303-.436.089-.166.233-.479.233-.479l.485 1.455c.04.108.15.188.261.188h.529c.111 0 .222-.084.284-.188.062-.104.247-.465.275-.505.028-.04.171-.314.026-.314z"/></svg>
+                  Hubungi Kami
+                  <span class="text-xs font-normal opacity-80"><%= waNumber.replace(/^(\d{2})(\d{3})(\d+)$/,'$1-$2-$3') %></span>
+                </a>
+              <% } else { %>
+                <a href="/trainings/kategori/konsultan"
+                   class="inline-flex items-center gap-2 px-6 py-3 rounded-full border-2 border-brand-500 text-brand-500
+                          font-bold text-sm tracking-wide hover:bg-brand-500 hover:text-white transition-colors">
+                  Hubungi Kami
+                </a>
+              <% } %>
+            </div>
+          </div>
+        <% }) %>
+      </div>
+    </section>
+  <% } %>
+
+  <% if (trainings.length > 0) { %>
+
+    <!-- Cards grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-10">
+      <% trainings.forEach(function(training) { %>
+        <%
+          const formattedDate = training.start_date
+            ? new Date(training.start_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
+            : 'Segera diumumkan'
+          const registeredCount = training.registered_count || 0
+          const isFull = registeredCount >= training.quota
+          const isPostpone = training.status === 'postpone'
+          // Selesai = mulai (asli atau reschedule) sudah lewat, terlepas dari status.
+          const effectiveDate = training.reschedule_date || training.start_date
+          const isCompleted = !isFull && effectiveDate && new Date(effectiveDate) < new Date()
+          const statusLabel = isPostpone ? 'Postpone' : (isFull ? 'Penuh' : (isCompleted ? 'Selesai' : 'Buka'))
+          const statusClass = isPostpone ? 'bg-yellow-100 text-yellow-800 border-yellow-300' : (isFull ? 'bg-red-100 text-red-800 border-red-200' : (isCompleted ? 'bg-blue-100 text-blue-800 border-blue-200' : 'bg-green-100 text-green-800 border-green-200'))
+          const statusDot = isPostpone ? 'bg-yellow-500' : (isFull ? 'bg-red-500' : (isCompleted ? 'bg-blue-500' : 'bg-green-500'))
+          const rescheduleDate = training.reschedule_date
+            ? new Date(training.reschedule_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
+            : null
+          const originalDate = training.start_date
+            ? new Date(training.start_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
+            : null
+          const shortDesc = training.description
+            ? (training.description.length > 120 ? training.description.substring(0, 120).trimEnd() + '...' : training.description)
+            : ''
+          const isFreeTraining = category.is_free_tier && Number(training.price_general) === 0
+          const isOnlineCard = training.exec_mode === 'online'
+          const isBlocked = isFull || isCompleted
+        %>
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col
+                    hover:shadow-xl hover:-translate-y-1 hover:border-brand-200
+                    transition-all duration-300">
+
+          <% if (training.cover_image) { %>
+          <div class="relative h-40 rounded-t-2xl overflow-visible">
+            <img src="/<%= training.cover_image %>" alt="<%= training.title %>" class="w-full h-full object-cover overflow-hidden">
+            <div class="absolute top-3 right-3">
+              <span class="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full border <%= statusClass %>">
+                <span class="w-2 h-2 rounded-full <%= statusDot %>"></span>
+                <%= statusLabel %>
+              </span>
+            </div>
+            <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent px-4 py-3">
+              <h3 class="text-base font-bold text-white leading-snug"><%= training.title %></h3>
+              <span class="inline-block mt-1 text-xs text-white/80 font-medium uppercase tracking-wide"><%= category.category %></span>
+            </div>
+          </div>
+          <% } else { %>
+          <div class="bg-navy-700 px-5 py-4 rounded-t-2xl">
+            <div class="flex items-start justify-between gap-2">
+              <h3 class="text-base font-bold text-white leading-snug flex-1"><%= training.title %></h3>
+              <span class="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full border <%= statusClass %>">
+                <span class="w-2 h-2 rounded-full <%= statusDot %>"></span>
+                <%= statusLabel %>
+              </span>
+            </div>
+            <span class="inline-block mt-2 text-xs text-white/60 font-medium uppercase tracking-wide"><%= category.category %></span>
+          </div>
+          <% } %>
+
+          <!-- Card body -->
+          <div class="px-5 py-4 flex flex-col flex-1 gap-3">
+            <% if (isFreeTraining) { %>
+              <span class="inline-block self-start text-[10px] font-bold tracking-widest uppercase
+                            text-green-700 bg-green-50 border border-green-200 px-2 py-0.5 rounded">
+                Gratis
+              </span>
+            <% } %>
+            <% if (shortDesc) { %>
+              <p class="text-sm text-gray-600 leading-relaxed"><%= shortDesc %></p>
+            <% } %>
+
+            <div class="space-y-1.5 text-sm">
+              <% if (isPostpone && rescheduleDate) { %>
+                <div class="flex flex-col gap-0.5">
+                  <div class="flex items-center gap-2 text-gray-400 line-through">
+                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    <span class="text-xs">Asli: <%= originalDate || '-' %></span>
+                  </div>
+                  <div class="flex items-center gap-2 text-yellow-700">
+                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <span class="font-medium text-xs">Jadwal Baru:</span>
+                    <span class="font-semibold text-xs"><%= rescheduleDate %></span>
+                  </div>
+                </div>
+              <% } else { %>
+                <div class="flex items-center gap-2 text-gray-500">
+                  <svg class="w-4 h-4 shrink-0 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                  </svg>
+                  <span><%= formattedDate %></span>
+                </div>
+              <% } %>
+              <div class="flex items-center gap-2 text-gray-500">
+                <span class="text-base leading-none" aria-hidden="true"><%= isOnlineCard ? '💻' : '🏢' %></span>
+                <span><%= isOnlineCard ? 'Online' : 'Offline' %></span>
+              </div>
+              <div class="flex items-center gap-2">
+                <svg class="w-4 h-4 shrink-0 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
+                </svg>
+                <% if (isFreeTraining) { %>
+                  <span class="font-bold text-navy-700"><%= category.cert_available === false ? 'Gratis — Rp 0 total' : 'Gratis — hanya biaya sertifikat' %></span>
+                <% } else { %>
+                  <span class="text-gray-500">Mulai dari</span>
+                  <span class="font-bold text-navy-700"><%= fmt.format(training.price_general) %></span>
+                <% } %>
+              </div>
+            </div>
+
+            <div class="flex-1"></div>
+
+            <!-- CTAs -->
+            <div class="flex flex-col gap-2 pt-1">
+              <% if (isBlocked) { %>
+                <button disabled class="w-full flex items-center justify-center gap-2
+                        bg-gray-100 text-gray-600 font-semibold text-sm
+                        px-4 py-2.5 rounded-xl cursor-not-allowed border border-gray-200">
+                  <span class="w-2 h-2 rounded-full <%= isCompleted ? 'bg-blue-500' : 'bg-red-500' %>"></span>
+                  <%= isCompleted ? 'Sudah Selesai' : 'Kuota Penuh' %>
+                </button>
+              <% } else { %>
+                <a href="/trainings/<%= training.slug %>/register"
+                   class="w-full flex items-center justify-center gap-1.5
+                          bg-brand-500 hover:bg-brand-600 text-white font-bold text-sm
+                          px-4 py-2.5 rounded-xl transition-colors shadow-sm">
+                  Daftar Sekarang
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+                  </svg>
+                </a>
+              <% } %>
+              <a href="/trainings/<%= training.slug %>"
+                 class="w-full flex items-center justify-center
+                        border border-gray-200 text-gray-600 hover:border-navy-400 hover:text-navy-700
+                        font-medium text-sm px-4 py-2 rounded-xl transition-colors whitespace-nowrap">
+                Lihat Detail
+              </a>
+            </div>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+
+  <% } else { %>
+    <div class="flex flex-col items-center justify-center py-24 text-center">
+      <div class="text-6xl mb-4"><%= category.icon || '📋' %></div>
+      <h2 class="text-xl font-semibold text-gray-700 mb-1">Belum ada program di kategori ini</h2>
+      <p class="text-gray-400 text-sm max-w-xs">Silakan kunjungi kembali halaman ini nanti.</p>
+      <a href="/trainings"
+         class="mt-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-brand-500 hover:bg-brand-600 text-white font-semibold text-sm transition-colors">
+        ← Kembali ke semua pelatihan
+      </a>
+    </div>
+  <% } %>
+</div>
+
+<%- include('../layout/footer') %>

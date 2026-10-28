@@ -19,6 +19,11 @@ router.get('/berita/:slug', contentController.getNewsDetail)
 // Katalog pelatihan
 router.get('/trainings', publicController.getCatalog)
 
+// Sub-katalog kategori: /trainings/kategori/:anchor
+// (dipisah dengan segmen 'kategori' agar tidak berbenturan dengan
+//  /trainings/:slug untuk detail & pendaftaran)
+router.get('/trainings/kategori/:anchor', publicController.getCategoryPage)
+
 // Detail pelatihan
 router.get('/trainings/:slug', publicController.getTrainingDetail)
 

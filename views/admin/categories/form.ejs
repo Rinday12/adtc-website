@@ -1,0 +1,254 @@
+<%- include('../../layout/header', { title, adminUser, currentPath }) %>
+<%- include('../layout/sidebar', { adminUser, currentPath }) %>
+
+<!-- Tombol buka sidebar di layar mobile -->
+<button
+  type="button"
+  onclick="toggleSidebar()"
+  class="lg:hidden fixed top-4 left-4 z-50 w-10 h-10 bg-navy-800 text-white rounded-lg shadow-lg flex items-center justify-center"
+  aria-label="Buka menu"
+>
+  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+  </svg>
+</button>
+
+<!-- Main content — di-offset agar tidak tertutup sidebar di desktop -->
+<div class="lg:pl-64">
+<div class="max-w-2xl mx-auto px-4 py-6 lg:px-6">
+
+  <!-- Page Header -->
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-800">
+        <%= isEdit ? 'Edit Kategori' : 'Tambah Kategori' %>
+      </h1>
+      <p class="text-gray-500 text-sm mt-1">
+        <%= isEdit ? 'Perbarui data kategori yang sudah ada' : 'Tambah kategori baru untuk navbar & katalog' %>
+      </p>
+    </div>
+    <a
+      href="/admin/categories"
+      class="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-800 transition-colors border border-gray-300 hover:border-gray-400 rounded-lg px-4 py-2"
+    >
+      &larr; Kembali
+    </a>
+  </div>
+
+  <!-- Validation Errors -->
+  <% if (errors && errors.length > 0) { %>
+    <div class="bg-red-50 border border-red-200 rounded-xl px-5 py-4 mb-6" role="alert">
+      <p class="text-sm font-semibold text-red-700">Harap perbaiki kesalahan berikut:</p>
+      <ul class="list-disc list-inside space-y-1 mt-1">
+        <% errors.forEach(function(err) { %>
+          <li class="text-sm text-red-600"><%= err %></li>
+        <% }) %>
+      </ul>
+    </div>
+  <% } %>
+
+  <!-- Form -->
+  <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+    <form
+      method="POST"
+      action="<%= isEdit ? '/admin/categories/' + category.id + '/update' : '/admin/categories' %>"
+    >
+      <div class="px-6 py-6 space-y-5">
+
+        <!-- Nama -->
+        <div>
+          <label for="name" class="block text-sm font-medium text-gray-700 mb-1.5">
+            Nama Kategori <span class="text-red-500" aria-hidden="true">*</span>
+          </label>
+          <input
+            type="text"
+            id="name"
+            name="name"
+            required
+            value="<%= isEdit && category ? category.name : '' %>"
+            placeholder="Contoh: Konsultan"
+            class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors"
+          />
+          <p class="mt-1.5 text-xs text-gray-500">Anchor &amp; tampilan navbar dibuat otomatis dari nama ini.</p>
+        </div>
+
+        <!-- Urutan -->
+        <div>
+          <label for="sort_order" class="block text-sm font-medium text-gray-700 mb-1.5">
+            Urutan Tampilan
+          </label>
+          <input
+            type="number"
+            id="sort_order"
+            name="sort_order"
+            value="<%= isEdit && category ? category.sort_order : '0' %>"
+            class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors"
+          />
+          <p class="mt-1.5 text-xs text-gray-500">Angka lebih kecil tampil lebih dulu di navbar &amp; katalog.</p>
+        </div>
+
+        <!-- Tipe biaya kategori: radio 3 pilihan (berbayar / full free / gratis+paket).
+             Field is_free_tier & free_pure diteruskan lewat hidden agar controller
+             tidak berubah. -->
+        <%
+          var currentTier = (category && category.is_free_tier)
+            ? (category.cert_available === 0 ? 'free_pure' : 'free_pkg')
+            : 'paid'
+        %>
+        <fieldset>
+          <legend class="text-sm font-medium text-gray-700 mb-2">Tipe biaya kategori</legend>
+          <div class="space-y-2">
+            <label class="flex items-start gap-3 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 cursor-pointer hover:border-gray-300">
+              <input type="radio" name="price_tier" value="paid" data-is_free="off" data-free_pure="off"
+                <%= currentTier === 'paid' ? 'checked' : '' %>
+                class="mt-0.5 w-4 h-4 accent-brand-500">
+              <span class="text-sm text-gray-700">
+                <span class="font-medium">Berbayar</span>
+                <p class="text-xs text-gray-500 mt-0.5">Peserta membayar harga sesuai tier (umum / mahasiswa / karyawan UAD).</p>
+              </span>
+            </label>
+
+            <label class="flex items-start gap-3 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 cursor-pointer hover:border-gray-300">
+              <input type="radio" name="price_tier" value="free_pure" data-is_free="on" data-free_pure="on"
+                <%= currentTier === 'free_pure' ? 'checked' : '' %>
+                class="mt-0.5 w-4 h-4 accent-brand-500">
+              <span class="text-sm text-gray-700">
+                <span class="font-medium">Full free (gratis murni)</span>
+                <p class="text-xs text-gray-500 mt-0.5">Ikut <strong>Rp 0 total</strong> — TIDAK ada opsi paket komplit / sertifikat.</p>
+              </span>
+            </label>
+
+            <label class="flex items-start gap-3 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 cursor-pointer hover:border-gray-300">
+              <input type="radio" name="price_tier" value="free_pkg" data-is_free="on" data-free_pure="off"
+                <%= currentTier === 'free_pkg' ? 'checked' : '' %>
+                class="mt-0.5 w-4 h-4 accent-brand-500">
+              <span class="text-sm text-gray-700">
+                <span class="font-medium">Gratis ikut + paket komplit (<%= certFeeFmt || 'Rp 75.000' %>)</span>
+                <p class="text-xs text-gray-500 mt-0.5">Ikut Rp 0; bila mau sertifikat / materi, peserta membayar <%= certFeeFmt || 'Rp 75.000' %> (diverifikasi admin).</p>
+              </span>
+            </label>
+          </div>
+        </fieldset>
+
+        <!-- Field tersembunyi yang dibaca controller -->
+        <input type="hidden" name="is_free_tier" id="is_free_tier_hidden" value="off">
+        <input type="hidden" name="free_pure"   id="free_pure_hidden"   value="off">
+
+        <script>
+          // Sinkronkan radio "price_tier" → hidden is_free_tier / free_pure
+          (function(){
+            var radios = document.querySelectorAll('input[name="price_tier"]')
+            var hide = document.getElementById('is_free_tier_hidden')
+            var freePure = document.getElementById('free_pure_hidden')
+            if (!hide || !freePure) return
+            function sync(){
+              for (var i = 0; i < radios.length; i++){
+                if (radios[i].checked){
+                  hide.value     = radios[i].dataset.is_free
+                  freePure.value = radios[i].dataset.free_pure
+                  break
+                }
+              }
+            }
+            radios.forEach(function(r){ r.addEventListener('change', sync) })
+            sync() // nilai awal dari radio yang ter-check saat render
+          })()
+        </script>
+
+        <!-- Status (hanya saat edit) -->
+        <% if (isEdit && category) { %>
+          <div>
+            <label for="status" class="block text-sm font-medium text-gray-700 mb-1.5">Status</label>
+            <select
+              id="status"
+              name="status"
+              class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm text-gray-900 bg-white focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors"
+            >
+              <option value="aktif"    <%= category.status === 'aktif'    ? 'selected' : '' %>>Aktif</option>
+              <option value="nonaktif" <%= category.status === 'nonaktif' ? 'selected' : '' %>>Nonaktif</option>
+            </select>
+            <p class="mt-1.5 text-xs text-gray-500">
+              Hanya kategori <span class="font-medium">Aktif</span> yang tampil di navbar &amp; katalog publik.
+            </p>
+          </div>
+        <% } %>
+
+        <!-- Desain visual kategori -->
+        <div class="border-t border-gray-200 pt-5 space-y-4">
+          <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Desain Visual</p>
+
+          <!-- Aksen warna hero banner -->
+          <div>
+            <label for="accent" class="block text-sm font-medium text-gray-700 mb-1.5">Warna Aksen (hero banner)</label>
+            <div class="flex flex-wrap gap-2">
+              <%
+                const accents = [
+                  { value: 'blue',   label: 'Blue',   swatch: 'bg-blue-500' },
+                  { value: 'navy',   label: 'Navy',   swatch: 'bg-[#1a3a5c]' },
+                  { value: 'teal',   label: 'Teal',   swatch: 'bg-teal-500' },
+                  { value: 'green',  label: 'Green',  swatch: 'bg-green-500' },
+                  { value: 'purple', label: 'Purple', swatch: 'bg-purple-500' },
+                  { value: 'red',    label: 'Red',    swatch: 'bg-red-500' }
+                ]
+                const currentAccent = isEdit && category ? (category.accent || 'blue') : 'blue'
+              %>
+                <% accents.forEach(function(a) { %>
+                  <label class="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="accent"
+                      value="<%= a.value %>"
+                      <%= currentAccent === a.value ? 'checked' : '' %>
+                      class="w-4 h-4 accent-brand-500"
+                    />
+                    <span class="w-5 h-5 rounded-full <%= a.swatch %> border-2 border-white shadow-sm ring-1 ring-gray-200"></span>
+                    <span class="text-sm text-gray-600"><%= a.label %></span>
+                  </label>
+                <% }) %>
+            </div>
+            <p class="mt-1.5 text-xs text-gray-500">Warna ini dipakai di hero banner halaman kategori &amp; dropdown navbar.</p>
+          </div>
+
+          <!-- Ikon (emoji) -->
+          <div>
+            <label for="icon" class="block text-sm font-medium text-gray-700 mb-1.5">Ikon (emoji)</label>
+            <input
+              type="text"
+              id="icon"
+              name="icon"
+              value="<%= isEdit && category ? (category.icon || '') : '' %>"
+              placeholder="mis. 📚 / 💼 / 🏭 / 🎁"
+              class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors"
+            />
+            <p class="mt-1.5 text-xs text-gray-500">Emoji yang tampil di navbar dropdown &amp; hero banner halaman kategori.</p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Form Actions -->
+      <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex items-center gap-3">
+        <button
+          type="submit"
+          class="inline-flex items-center gap-2 bg-navy-700 hover:bg-navy-800 active:bg-brand-700 text-white font-semibold px-5 py-2.5 rounded-lg shadow-sm transition-colors text-sm"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+          <%= isEdit ? 'Simpan Perubahan' : 'Tambah Kategori' %>
+        </button>
+        <a
+          href="/admin/categories"
+          class="text-sm text-gray-600 hover:text-gray-800 hover:underline transition-colors"
+        >
+          Batal
+        </a>
+      </div>
+
+    </form>
+  </div>
+
+</div>
+</div>
+
+<%- include('../layout/admin-footer') %>

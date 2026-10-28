@@ -6,6 +6,8 @@ const adminController        = require('../controllers/adminController')
 const adminNewsController    = require('../controllers/adminNewsController')
 const adminBenefitController = require('../controllers/adminBenefitController')
 const adminTrainingController = require('../controllers/adminTrainingController')
+const adminCategoryController = require('../controllers/adminCategoryController')
+const adminServiceController = require('../controllers/adminServiceController')
 const { isAuthenticated }    = require('../middleware/auth')
 const upload                 = require('../middleware/upload')
 
@@ -93,5 +95,27 @@ router.get('/trainings/import',   isAuthenticated, (req, res) => {
   res.redirect('/admin/trainings')
 })
 router.post('/trainings/import',  isAuthenticated, upload.single('training_excel'), adminTrainingController.postBulkImport)
+
+// ─── Categories Routes ───────────────────────────────────────────────────────
+// CRUD untuk manajemen kategori pelatihan (tabel `categories`).
+// CATATAN: /categories/create harus SEBELUM /categories/:id/edit.
+
+router.get('/categories',            isAuthenticated, adminCategoryController.getList)
+router.get('/categories/create',     isAuthenticated, adminCategoryController.getCreate)
+router.post('/categories',           isAuthenticated, adminCategoryController.postCreate)
+router.get('/categories/:id/edit',   isAuthenticated, adminCategoryController.getEdit)
+router.post('/categories/:id/update', isAuthenticated, adminCategoryController.postUpdate)
+router.post('/categories/:id/delete', isAuthenticated, adminCategoryController.postDelete)
+
+// ─── Services Routes ─────────────────────────────────────────────────────────
+// CRUD untuk manajemen layanan konsultan (tabel `services`).
+// CATATAN: /services/create harus SEBELUM /services/:id/edit.
+
+router.get('/services',             isAuthenticated, adminServiceController.getList)
+router.get('/services/create',      isAuthenticated, adminServiceController.getCreate)
+router.post('/services',            isAuthenticated, adminServiceController.postCreate)
+router.get('/services/:id/edit',    isAuthenticated, adminServiceController.getEdit)
+router.post('/services/:id/update', isAuthenticated, adminServiceController.postUpdate)
+router.post('/services/:id/delete', isAuthenticated, adminServiceController.postDelete)
 
 module.exports = router

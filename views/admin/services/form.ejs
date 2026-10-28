@@ -1,0 +1,198 @@
+<%- include('../../layout/header', { title, adminUser, currentPath }) %>
+<%- include('../layout/sidebar', { adminUser, currentPath }) %>
+
+<!-- Tombol buka sidebar di layar mobile -->
+<button
+  type="button"
+  onclick="toggleSidebar()"
+  class="lg:hidden fixed top-4 left-4 z-50 w-10 h-10 bg-navy-800 text-white rounded-lg shadow-lg flex items-center justify-center"
+  aria-label="Buka menu"
+>
+  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+  </svg>
+</button>
+
+<!-- Main content — di-offset agar tidak tertutup sidebar di desktop -->
+<div class="lg:pl-64">
+<div class="max-w-2xl mx-auto px-4 py-6 lg:px-6">
+
+  <!-- Page Header -->
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-800">
+        <%= isEdit ? 'Edit Layanan' : 'Tambah Layanan' %>
+      </h1>
+      <p class="text-gray-500 text-sm mt-1">
+        <%= isEdit ? 'Perbarui data layanan yang sudah ada' : 'Tambah layanan baru ke daftar layanan ADTC' %>
+      </p>
+    </div>
+    <a
+      href="/admin/services"
+      class="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-800 transition-colors border border-gray-300 hover:border-gray-400 rounded-lg px-4 py-2"
+    >
+      &larr; Kembali
+    </a>
+  </div>
+
+  <!-- Validation Errors -->
+  <% if (errors && errors.length > 0) { %>
+    <div class="bg-red-50 border border-red-200 rounded-xl px-5 py-4 mb-6" role="alert">
+      <div class="flex items-center gap-2 mb-2">
+        <svg class="w-4 h-4 text-red-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <p class="text-sm font-semibold text-red-700">Harap perbaiki kesalahan berikut:</p>
+      </div>
+      <ul class="list-disc list-inside space-y-1">
+        <% errors.forEach(function(err) { %>
+          <li class="text-sm text-red-600"><%= err %></li>
+        <% }) %>
+      </ul>
+    </div>
+  <% } %>
+
+  <!-- Form -->
+  <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+    <form method="POST" action="<%= isEdit ? '/admin/services/' + service.id + '/update' : '/admin/services' %>">
+
+      <div class="px-6 py-6 space-y-5">
+
+        <!-- Nama -->
+        <div>
+          <label for="name" class="block text-sm font-medium text-gray-700 mb-1.5">
+            Nama Layanan <span class="text-red-500" aria-hidden="true">*</span>
+          </label>
+          <input
+            type="text"
+            id="name"
+            name="name"
+            required
+            maxlength="150"
+            value="<%= isEdit && service ? service.name : '' %>"
+            placeholder="Contoh: Analisis Dampak Lingkungan"
+            class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors"
+          />
+        </div>
+
+        <!-- Deskripsi -->
+        <div>
+          <label for="description" class="block text-sm font-medium text-gray-700 mb-1.5">
+            Deskripsi <span class="text-red-500" aria-hidden="true">*</span>
+          </label>
+          <textarea
+            id="description"
+            name="description"
+            required
+            rows="4"
+            placeholder="Jelaskan layanan ini secara singkat…"
+            class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors resize-y"
+          ><%= isEdit && service ? service.description : '' %></textarea>
+        </div>
+
+        <!-- Kategori -->
+        <div>
+          <label for="category_anchor" class="block text-sm font-medium text-gray-700 mb-1.5">
+            Kategori
+          </label>
+          <select
+            id="category_anchor"
+            name="category_anchor"
+            class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm text-gray-900 bg-white focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors"
+          >
+            <% (categories || []).forEach(function(cat) {
+                const sel = (isEdit && service) ? service.category_anchor === cat.anchor : (cat.anchor === 'konsultan')
+            %>
+              <option value="<%= cat.anchor %>" <%= sel ? 'selected' : '' %>>
+                <%= cat.icon ? cat.icon + ' ' : '' %><%= cat.name %>
+              </option>
+            <% }) %>
+          </select>
+          <p class="mt-1.5 text-xs text-gray-500">
+            Layanan akan ditampilkan di halaman kategori yang dipilih.
+          </p>
+        </div>
+
+        <!-- Ikon (emoji) -->
+        <div>
+          <label for="icon" class="block text-sm font-medium text-gray-700 mb-1.5">
+            Ikon <span class="text-gray-400 font-normal">(emoji opsional)</span>
+          </label>
+          <input
+            type="text"
+            id="icon"
+            name="icon"
+            maxlength="10"
+            value="<%= isEdit && service ? service.icon : '' %>"
+            placeholder="🌱"
+            class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors"
+          />
+        </div>
+
+        <!-- Urutan -->
+        <div>
+          <label for="sort_order" class="block text-sm font-medium text-gray-700 mb-1.5">
+            Urutan Tampilan
+          </label>
+          <input
+            type="number"
+            id="sort_order"
+            name="sort_order"
+            min="0"
+            value="<%= isEdit && service ? service.sort_order : 0 %>"
+            class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors"
+          />
+          <p class="mt-1.5 text-xs text-gray-500">
+            Angka lebih kecil = tampil lebih dulu.
+          </p>
+        </div>
+
+        <!-- Status (hanya saat edit) -->
+        <% if (isEdit && service) { %>
+          <div>
+            <label for="status" class="block text-sm font-medium text-gray-700 mb-1.5">
+              Status
+            </label>
+            <select
+              id="status"
+              name="status"
+              class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm text-gray-900 bg-white focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors"
+            >
+              <option value="aktif"    <%= service.status === 'aktif'    ? 'selected' : '' %>>Aktif</option>
+              <option value="nonaktif" <%= service.status === 'nonaktif' ? 'selected' : '' %>>Nonaktif</option>
+            </select>
+            <p class="mt-1.5 text-xs text-gray-500">
+              Hanya layanan dengan status <span class="font-medium">Aktif</span> yang ditampilkan di halaman kategori publik.
+            </p>
+          </div>
+        <% } %>
+
+      </div>
+
+      <!-- Form Actions -->
+      <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex items-center gap-3">
+        <button
+          type="submit"
+          class="inline-flex items-center gap-2 bg-navy-700 hover:bg-navy-700 active:bg-brand-700 text-white font-semibold px-5 py-2.5 rounded-lg shadow-sm transition-colors text-sm"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+          <%= isEdit ? 'Simpan Perubahan' : 'Tambah Layanan' %>
+        </button>
+        <a
+          href="/admin/services"
+          class="text-sm text-gray-600 hover:text-gray-800 hover:underline transition-colors"
+        >
+          Batal
+        </a>
+      </div>
+
+    </form>
+  </div>
+
+</div>
+</div>
+
+<%- include('../layout/admin-footer') %>
