@@ -30,17 +30,16 @@ function unhex(ch) {
 }
 
 const ICON_MAP = [
+  // Kategori resmi ADTC
   { anchor: 'pelatihan',              icon: '📚', accent: 'blue'   },
   { anchor: 'konsultan',             icon: '💼', accent: 'navy'   },
   { anchor: 'in-house-training',     icon: '🏭', accent: 'teal'   },
   { anchor: 'pelatihan-gratis',      icon: '🎁', accent: 'green'  },
+  // Kategori lain (ada di DB production, dibuat migrasi)
   { anchor: 'bnsp',                  icon: '🏅', accent: 'blue'   },
+  { anchor: 'awareness',             icon: '📣', accent: 'green'  },
   { anchor: 'awareness-lingkungan',  icon: '🌱', accent: 'teal'   },
-  { anchor: 'awareness-umum',        icon: '📣', accent: 'blue'   },
-  { anchor: 'data-analyst',          icon: '🌐', accent: 'navy'   },
-  { anchor: 'data-scientist',        icon: '🤖', accent: 'purple' },
-  { anchor: 'web-developer',         icon: '💻', accent: 'purple' },
-  { anchor: 'social-media-marketing',icon: '📱', accent: 'green'  },
+  { anchor: 'awareness-umum',        icon: '📣', accent: 'purple' },
 ]
 const FALLBACK = { icon: '📋', accent: 'blue' }
 
