@@ -1,3 +1,15 @@
+### Fix #45 — Dropdown Navbar Tampilkan Kategori Test Dev "Full Gratis"
+Tanggal: 2026-10-28
+File: DB dev adtc_db (categories, trainings)
+Masalah: Dropdown "Katalog Pelatihan" di navbar menampilkan 5 kategori — 4 resmi (Pelatihan, Konsultan, In-house training, Pelatihan gratis) plus "Full Gratis" (id 25), kategori test dev dari Fix #41 yang sengaja dibuat di DB dev.
+Akar: Kategori "Full Gratis" (id 25, `cert_available=0`) dibuat untuk uji varian full-gratis di DB dev, tapi tidak pernah dinonaktifkan; `findCategories()` mengembalikan semua baris `status='aktif'` tanpa filter khusus, sehingga kategori test ikut tampil di navbar publik.
+Fix:
+- `categories` id 25 ("Full Gratis") di-set `status='nonaktif'` — dropdown navbar kini hanya menampilkan 4 kategori resmi.
+- Training id 41 ("dfbfbt", test dev) dipindah `category='Full Gratis'` → `Pelatihan gratis` agar tidak ada training yang menunjuk kategori nonaktif.
+Verifikasi: DB dev — `SELECT name FROM categories WHERE status='aktif' ORDER BY sort_order` = 4 baris (pelatihan, konsultan, in-house-training, pelatihan-gratis); training id 41 kini `category='Pelatihan gratis'`. Status: DEV HANYA — tidak perlu deploy (perubahan DB dev, bukan kode).
+Pelajaran: Kategori test dev (`Full Gratis` id 25, dibuat Fix #41) WAJIB di-nonaktifkan sebelum handoff deploy; `findCategories()` memfilter `status='aktif'` tanpa whitelist kategori resmi, jadi baris test yang masih aktif bocor ke navbar publik.
+Log Keyword: Full Gratis id 25 nonaktif, categories status, navbar 4 kategori, dfbfbt training id 41
+
 ### Fix #44 — Ikon Emoji Kategori Tampil '?' / Mojibake di Frontend
 Tanggal: 2026-10-28
 File: config/db.js

@@ -47,6 +47,15 @@
 --   pelatihan-gratis → 🎁, bnsp → 🏅, awareness → 📣,
 --   awareness-lingkungan → 🌱, awareness-umum → 📣
 
+-- LANGKAH 2b: Nonaktifkan kategori non-resmi (agar navbar production identik
+-- dengan local server — hanya 4 kategori resmi tampil)
+--
+--   mysql -u adtcuadi_adtc_app -p adtcuadi_adtc_app \
+--     < migrations/2026-10-28_deactivate_non_official_categories_prod.sql
+--
+-- Setelah langkah ini: BNSP, Awareness, dll → status='nonaktif';
+-- navbar hanya menampilkan: 📚 Pelatihan · 💼 Konsultan · 🏭 In-house · 🎁 Gratis
+
 -- LANGKAH 3: Backup database SEBELUM migrasi (safety)
 --
 --   mysqldump -u adtcuadi_adtc_app -p adtcuadi_adtc_app \
