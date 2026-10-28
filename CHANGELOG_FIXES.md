@@ -1,3 +1,40 @@
+### Fix #44 — Ikon Emoji Kategori Tampil '?' / Mojibake di Frontend
+Tanggal: 2026-10-28
+File: config/db.js
+Masalah: Ikon emoji kategori di dropdown navbar & hero banner kategori produksi tampil sebagai `?` (latin1) atau `ðŸŽ"` (UTF-8 yang di-interpretasi sebagai Latin-1). Data di DB sudah benar (hex `F0 9F ...`), tapi string-nya rusak saat melewati pipeline Node → browser.
+Akar: Connection pool `mysql2` di `config/db.js` tidak diset `charset: 'utf8mb4'`. Default charset koneksi (biasanya `latin1` atau sesuai `character_set_server` MariaDB) membuat byte 4-byte emoji di-decode ke string JS yang salah (each byte jadi 1 karakter Latin-1 terpisah), sehingga EJS mengirim string korup ke browser.
+Fix: Tambah `charset: 'utf8mb4'` ke konfigurasi pool di `config/db.js`. Ini membuat `SET NAMES utf8mb4` dieksekusi otomatis saat koneksi dibuka, sehingga byte emoji di-decode benar ke string JS (emoji = 2 code unit UTF-16), dan EJS mengirim UTF-8 yang benar.
+Verifikasi:
+- `HEX(icon)` di DB = `F0 9F ...` (emoji sudah tersimpan benar sebelum fix ini — Fix sebelumnya sukses menulis)
+- Setelah deploy + `pm2 restart`, ikon kategori di dropdown navbar tampil 📚💼🏭🎁 (bukan ?)
+- Halaman `/trainings/kategori/<anchor>`: emoji di hero & kartu tampil benar
+Status: PENDING verifikasi (deploy prod).
+Pelajaran: Saat kolom DB berisi multibyte/emoji, SELALU set `charset: 'utf8mb4'` di koneksi Node — default mysql2/MySQL sering `latin1`, yang corrupt semua data 4-byte. Cek hex di DB dulu untuk membedakan "data rusak di DB" vs "data rusak di transfer".
+Log Keyword: charset utf8mb4, emoji kategori, config/db.js, mojibake ðŸ, latin1 connection
+Tanggal: 2026-10-28
+File: views/trainings/category.ejs
+Masalah: Kartu program di `/trainings/kategori/<anchor>` tampil berbeda dari kartu di `/trainings` (katalog), dan tombol "Lihat Detail"-nya rusak — setiap klik melempar `ReferenceError` sehingga navigasinya tak pernah terjadi.
+Akar: Tombol "Lihat Detail" di `category.ejs` memakai `onclick="return handleDetailClick(...)"`, `oncontextmenu`, dan `ondragstart` — tetapi ketiga fungsi itu tidak didefinisikan di mana pun di codebase; klik-kanan dan drag juga ikut terblokir.
+Fix:
+- Markup kartu disamakan dengan kartu `catalog.ejs`: tinggi header, posisi badge status (kanan atas), badan kartu, baris info (tanggal/mode/harga), hover state, dan style CTA.
+- "Lihat Detail" diganti plain anchor `<a href="/trainings/{slug}">` — persis pola katalog; handler JS tak ada.
+- "Daftar Sekarang" tetap anchor ke `/trainings/{slug}/register`; kartu penuh/selesai tetap tombol disabled ber-dot status.
+Verifikasi: E2E dev `http://localhost:3000/trainings/kategori/pelatihan`: 0 kemunculan `handleDetailClick`/`handleContextMenu`/`handleDragStart` di HTML, 18 plain anchor `/trainings/...`, badge status ter-render (Buka 2 / Penuh 4 / Selesai 30). 127 test passing. Halaman `/trainings` tak terpengaruh (markup-nya acuan).
+Status: BELUM DEPLOY.
+Pelajaran: Saat memindahkan markup antar view, handler JS bawaan (`onclick`/`oncontextmenu`/`ondragstart`) gampang terbawa ke view baru tanpa fungsinya ikut — grep `handle*Click|handle*Drag` di views setelah copy-paste markup.
+Log Keyword: category.ejs Lihat Detail, handleDetailClick hilang, kartu kategori sama katalog
+Tanggal: 2026-10-28
+File: views/trainings/category.ejs, models/Training.js
+Masalah: Halaman `/trainings/kategori/full-gratis` menampilkan "Gratis — hanya bayar sertifikat" (badge hero + kartu training + intro) padahal kategori Full Gratis (id 25, `cert_available=0`) TIDAK punya sertifikat — teks menyesatkan.
+Akar: `findCategories()` tidak mengirim `cert_available` ke view, jadi view tak bisa membedakan gratis murni vs gratis+paket; teks ditulis tetap untuk semua `is_free_tier`.
+Fix:
+- `Training.findCategories()` kini ikut `cert_available` (NULL → `true`, pola sama `findBySlug`).
+- `category.ejs` 3 titik: badge hero → "Gratis penuh — Rp 0 total"; harga kartu → "Gratis — Rp 0 total"; intro → "Program sepenuhnya gratis — pendaftaran, pelaksanaan, dan sertifikat tanpa biaya apa pun" (pakai fallback teks lama untuk kategori anchor tak dikenal).
+Verifikasi: E2E dev — halaman full-gratis: 0 kemunculan "hanya bayar/biaya sertifikat", 2 label "Rp 0 total" + intro baru; halaman pelatihan-gratis tak berubah (1 "hanya bayar" + 2 "hanya biaya" sama seperti sebelum). 127 test passing.
+Status: BELUM DEPLOY.
+Pelajaran: Setelah menambah varian tier baru, grep teks tetap tier-gratis di SEMUA view publik (`gratis`/`sertifikat`) — teks hero/intro sering lebih terlupakan daripada form.
+Log Keyword: full-gratis kategori, hanya bayar sertifikat, cert_available findCategories
+
 ### Fix #43 — Kartu & Tombol di Halaman Kategori Disamakan dengan Katalog
 Tanggal: 2026-10-28
 File: views/trainings/category.ejs

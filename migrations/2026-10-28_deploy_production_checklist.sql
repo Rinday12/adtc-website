@@ -1,0 +1,110 @@
+-- ============================================================================
+-- CHECKLIST MIGRASI PRODUKSI — 2026-10-28
+-- Database: adtcuadi_adtc_app
+--
+-- File ini MERINGKAS urutan migrasi yang masih harus dijalankan di
+-- production. Jalankan dari file SQL resmi (bukan file ini) — file ini
+-- hanya panduan, tidak berisi statement yang dieksekusi.
+-- ============================================================================
+
+-- ============================================================================
+-- SUDAH ADA DI PRODUCTION (SKIP — tidak perlu dijalankan)
+-- ============================================================================
+-- [SKIP] migrations/2026-10-09_add_access_token_to_registrations.sql
+--        (registrations.access_token sudah ada)
+--
+-- [SKIP] migrations/2026-10-14_add_exec_mode_fasilitas_to_trainings.sql
+--        (trainings.exec_mode & fasilitas sudah ada)
+
+-- ============================================================================
+-- PERLU DILAKUKAN DI PRODUCTION — JALANKAN BERURUTAN
+-- ============================================================================
+
+-- LANGKAH 1: Jalankan script produksi gabungan (sudah idempoten, aman
+-- dijalankan ulang — hanya seed services yang perlu dicek duplikat)
+--
+--   mysql -u adtcuadi_adtc_app -p adtcuadi_adtc_app \
+--     < migrations/2026-10-28_production_sql.sql
+--
+-- Isi script:
+--   1a. Tabel categories (migrasi 2026-10-15) — tabel + 4 kategori resmi
+--   1b. Kolom accent & icon di categories (migrasi 2026-10-19)
+--   1c. Kolom cert_available di categories (migrasi 2026-10-28)
+--   1d. Tabel services + 4 seed layanan konsultan (migrasi 2026-10-22)
+
+-- LANGKAH 2: Perbaiki ikon kategori (jangan lupakan charset)
+--
+--   mysql --default-character-set=utf8mb4 -u adtcuadi_adtc_app -p adtcuadi_adtc_app \
+--     < migrations/2026-10-28_fix_category_icons_charset.sql
+--
+-- ATAU (direkomendasikan, via Node — bypass charset latin1 server):
+--
+--   git pull origin main
+--   node scripts/fix-category-icons.js
+--
+-- Ikon kategori setelah langkah 2:
+--   pelatihan → 📚, konsultan → 💼, in-house-training → 🏭,
+--   pelatihan-gratis → 🎁, bnsp → 🏅, awareness → 📣,
+--   awareness-lingkungan → 🌱, awareness-umum → 📣
+
+-- LANGKAH 3: Backup database SEBELUM migrasi (safety)
+--
+--   mysqldump -u adtcuadi_adtc_app -p adtcuadi_adtc_app \
+--     > backup_sebelum_mig_$(date +%Y%m%d_%H%M).sql
+
+-- LANGKAH 4: Set variable environment di .env.production
+--
+--   CERT_FEE=75000
+--
+-- (bila belum ada — nominal sertifikat untuk kategori gratis+paket komplit)
+
+-- LANGKAH 5: Deploy kode & restart
+--
+--   git pull origin main
+--   pm2 restart adtc-app
+
+-- ============================================================================
+-- VERIFIKASI SETELAH DEPLOY
+-- ============================================================================
+-- 1. Jalankan di terminal (cek kolom & baris baru ada):
+--
+--    mysql -u adtcuadi_adtc_app -p adtcuadi_adtc_app -e "
+--      SHOW TABLES LIKE 'categories';
+--      SHOW TABLES LIKE 'services';
+--      DESCRIBE categories;
+--      SELECT COUNT(*) AS jml_categories FROM categories;
+--      SELECT COUNT(*) AS jml_services   FROM services;
+--    "
+--
+--    Hasil yang diharapkan:
+--      - categories & services muncul di SHOW TABLES
+--      - DESCRIBE categories memuat kolom: accent, icon, cert_available
+--      - jml_categories ≥ 8
+--      - jml_services = 4
+--
+-- 2. Cek ikon emoji di browser (refresh dengan Ctrl+Shift+R):
+--    - Dropdown navbar /trainings: ikon 📚💼🏭🎁 harus tampil (bukan ????)
+--
+-- 3. Cek alur form gratis:
+--    - Training kategori "Pelatihan gratis" (cert_available=1):
+--      form /register tampil radio "Gratis" vs "Dengan Sertifikat Rp 75.000"
+--    - Training kategori "Full Gratis" (cert_available=0, bila ada):
+--      form /register TIDAK menampilkan radio — selalu Rp 0
+--
+-- 4. Log PM2 bersih dari error kolom:
+--    pm2 logs adtc-app --lines 50
+--    (cari: "Unknown column 'cert_available'" → artinya migrasi belum jalan)
+--
+-- ============================================================================
+-- CATATAN KEBIJAKAN
+-- ============================================================================
+-- • Jangan deploy kode sebelum LANGKAH 1 selesai — query kode Fix #37/#41
+--   butuh kolom cert_available; tanpa itu, halaman kategori/registration 500.
+-- • Seed services (langkah 1d) tidak idempoten otomatis — bila tabel
+--   services sudah ada isi 4 baris, LANGKAH 1 tetap aman karena CREATE
+--   IF NOT EXISTS; tapi INSERT seed harus dicek duplikat dulu:
+--     SELECT COUNT(*) FROM services;  → bila sudah 4, SKIP bagian seed
+-- • Ikon emoji: SELALU pakai --default-character-set=utf8mb4 (atau script
+--   Node scripts/fix-category-icons.js) — tanpa itu, literal emoji di file
+--   SQL tercorrupt menjadi literal '?' saat diimport lewat client lama.
+-- ============================================================================

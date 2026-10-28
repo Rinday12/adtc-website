@@ -41,6 +41,9 @@ const pool = mysql.createPool({
   user:               process.env.DB_USER,
   password:           process.env.DB_PASSWORD,
   database:           process.env.DB_NAME,
+  // charset utf8mb4 WAJIB — emoji (4-byte UTF-8) tercorrupt jadi '?'
+  // bila koneksi memakai charset bawaan latin1. (Fix #44)
+  charset:            'utf8mb4',
   waitForConnections: true,
   connectionLimit:    10,
   queueLimit:         0
