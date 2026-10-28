@@ -66,7 +66,31 @@ async function main() {
     }
   }
 
-  // 2. Kategori tersisa (icon = '?' / '???' / kosong) → fallback
+  // 2. Perbaiki ikon layanan konsultan (services.icon) — masalah charset
+//    sama dengan kategori: seed di production tercorrupt jadi '?' karena
+//    koneksi latin1. Ditulis via UNHEX() untuk bypass negosiasi charset.
+const SERVICE_ICONS = [
+  { name: 'Analisis Dampak Lingkungan',               icon: '🌱' },
+  { name: 'Pemberdayaan Masyarakat',                  icon: '🤝' },
+  { name: 'Konsultan Survei, Olah Data & Surveior',   icon: '📊' },
+  { name: 'Manajemen Kualitas',                       icon: '✅' },
+]
+try {
+  for (const svc of SERVICE_ICONS) {
+    const [result] = await db.query(
+      `UPDATE services SET icon = ${unhex(svc.icon)} WHERE name = ?`,
+      [svc.name],
+    )
+    if (result.affectedRows > 0) {
+      console.log(`  ✅ [services] ${svc.name}: ${svc.icon}`)
+    }
+  }
+} catch (e) {
+  // Tabel services belum ada di beberapa environment — abaikan, lanjut.
+  console.log(`  ⚠️  [services] update dilewati: ${e.message}`)
+}
+
+// 3. Kategori tersisa (icon = '?' / '???' / kosong) → fallback
   const [remaining] = await db.query(
     "SELECT id, anchor, name FROM categories WHERE icon IN ('?', '???', '????', '')",
   )
