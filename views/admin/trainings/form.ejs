@@ -43,7 +43,184 @@
 
       <div>
         <label for="category" class="block text-sm font-medium text-gray-700 mb-1">Kategori <span class="text-red-500">*</span></label>
-        <input type="text" id="category" name="category" value="<%= isEdit ? (training?.category || '') : '' %>" class="w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500" placeholder="Contoh: BNSP">
+        <%
+          const catList    = (typeof categories !== 'undefined' && categories) ? categories : []
+          const currentCat = isEdit ? (training?.category || '') : ''
+          const catExists  = catList.some(function(c){ return c.name === currentCat })
+        %>
+
+        <% if (catList.length > 0) { %>
+          <!-- Dropdown kategori terdaftar + opsi "Buat kategori baru" -->
+          <select id="category" name="category"
+                  class="w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500">
+            <% catList.forEach(function(c) { %>
+              <%
+                // Label tier: kategori gratis murni (cert_available=0) dan
+                // gratis-dengan-paket dibedakan agar admin tahu konsekuensinya.
+                var freeLabel = !c.is_free_tier ? ''
+                  : (c.cert_available === 0) ? '  (full free — tanpa paket)' : '  (gratis + paket komplit berbayar)'
+              %>
+              <option value="<%= c.name %>" data-free="<%= c.is_free_tier ? 1 : 0 %>" data-certavail="<%= c.cert_available === 0 ? 0 : 1 %>" <%= currentCat === c.name ? 'selected' : '' %>>
+                <%= c.name %><%= freeLabel %>
+              </option>
+            <% }) %>
+            <option value="__new__" <%= (currentCat && !catExists) ? 'selected' : '' %>&#43; Buat kategori baru…</option>
+          </select>
+
+          <!-- Input teks, hanya aktif bila memilih "Buat kategori baru" -->
+          <div id="custom-category-wrap" class="mt-2 <%= (currentCat && !catExists) ? '' : 'hidden' %>">
+            <input
+              type="text"
+              id="category-custom"
+              name="category"
+              value="<%= currentCat && !catExists ? currentCat : '' %>"
+              class="w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500"
+              placeholder="Ketik nama kategori baru"
+            >
+            <label class="flex items-center gap-2 mt-2 cursor-pointer">
+              <input
+                type="checkbox"
+                id="new_cat_is_free"
+                name="new_cat_is_free"
+                class="rounded border-gray-300 text-brand-600 focus:ring-brand-500"
+              >
+              <span class="text-sm text-gray-700">
+                Tandai kategori ini <strong>gratis</strong>
+                <span class="block text-xs text-gray-400">
+                  Peserta membayar Rp 0; hanya membayar <%= certFeeFmt || 'Rp 0' %> bila memilih sertifikat.
+                </span>
+              </span>
+            </label>
+            <p class="text-xs text-gray-400 mt-1">
+              Kategori dibuat otomatis saat disimpan, atau kelola lewat
+              <a href="/admin/categories/create" class="text-brand-500 underline">Halaman Kategori</a>.
+            </p>
+          </div>
+
+          <script>
+            (function(){
+              var sel    = document.getElementById('category')
+              var wrap   = document.getElementById('custom-category-wrap')
+              var custom = document.getElementById('category-custom')
+              var freeCb = document.getElementById('new_cat_is_free')
+              var banner = document.getElementById('freeTierBanner')
+              if (!sel || !wrap || !custom) return
+
+              var pureBanner = document.getElementById('freePureBanner')
+              var priceGrid  = document.getElementById('priceGrid')
+
+              // Kategori gratis → 3 kolom harga dinonaktifkan (server menyimpan
+              // 0). Hanya input numerik di tiap sel data-price-field yang
+              // disentuh; tanda wajib (*) disembunyikan agar tak membingungkan.
+              function setPricesDisabled(disabled){
+                if (!priceGrid) return
+                priceGrid.querySelectorAll('div[data-price-field]').forEach(function(cell){
+                  var input = cell.querySelector('input')
+                  var mark  = cell.querySelector('.req-mark')
+                  if (input){
+                    input.disabled = disabled
+                    input.classList.toggle('bg-gray-50', disabled)
+                    input.classList.toggle('text-gray-400', disabled)
+                  }
+                  if (mark) mark.style.visibility = disabled ? 'hidden' : 'visible'
+                })
+              }
+
+              // Banner ada dua (paket vs full-free). Untuk kategori terdaftar,
+              // flag-nya sudah di-option (data-free / data-certavail). Untuk
+              // "__new__", admin memutuskan sendiri: checkbox new_cat_is_free.
+              // Checkbox baru (belum ada "full free" di form training) selalu
+              // menghasilkan varian "paket" — full-free hanya via /admin/categories.
+              function updateBanner(){
+                var opt = sel.options[sel.selectedIndex]
+                var showPaket, showPure
+                if (sel.value === '__new__') {
+                  var isNewFree = freeCb && freeCb.checked
+                  showPaket = isNewFree
+                  showPure  = false
+                } else {
+                  showPaket = opt && opt.dataset.free === '1' && opt.dataset.certavail !== '0'
+                  showPure  = opt && opt.dataset.free === '1' && opt.dataset.certavail === '0'
+                }
+                if (banner) banner.classList.toggle('hidden', !showPaket)
+                if (pureBanner) pureBanner.classList.toggle('hidden', !showPure)
+                setPricesDisabled(showPaket || showPure)
+              }
+
+              function sync(){
+                var isNew = (sel.value === '__new__')
+                wrap.classList.toggle('hidden', !isNew)
+                // Hanya SATU field bernama "category" yang boleh ter-submit
+                // pada satu saat:
+                if (isNew) { sel.removeAttribute('name'); if (custom.name !== 'category') custom.setAttribute('name','category') }
+                else       { sel.setAttribute('name','category'); if (custom.name === 'category') custom.removeAttribute('name') }
+                updateBanner()
+              }
+              sel.addEventListener('change', function(){
+                sync()
+                if (sel.value !== '__new__') custom.value = ''
+              })
+              if (freeCb) freeCb.addEventListener('change', updateBanner)
+              sync()
+            })()
+          </script>
+        <% } else { %>
+          <!-- Belum ada kategori: input teks langsung (auto-create saat simpan) -->
+          <input
+            type="text"
+            id="category"
+            name="category"
+            value="<%= currentCat %>"
+            class="w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500"
+            placeholder="Contoh: Konsultan / In-house training"
+          >
+          <label class="flex items-center gap-2 mt-2 cursor-pointer">
+            <input
+              type="checkbox"
+              id="new_cat_is_free"
+              name="new_cat_is_free"
+              class="rounded border-gray-300 text-brand-600 focus:ring-brand-500"
+            >
+            <span class="text-sm text-gray-700">
+              Tandai kategori ini <strong>gratis</strong>
+              <span class="block text-xs text-gray-400">
+                Peserta membayar Rp 0; hanya membayar <%= certFeeFmt || 'Rp 0' %> bila memilih sertifikat.
+              </span>
+            </span>
+          </label>
+          <p class="text-xs text-gray-400 mt-1">
+            Belum ada kategori terdaftar. Nama yang diketik akan dibuat otomatis.
+            Aturlagi lewat <a href="/admin/categories/create" class="text-brand-500 underline">Halaman Kategori</a>.
+          </p>
+          <script>
+            // Cabang input teks: checkbox menyalakan banner varian "paket"
+            // (kategori baru dari form training selalu tipe gratis-dengan-paket)
+            // + menonaktifkan 3 kolom harga saat gratis.
+            (function(){
+              var cb = document.getElementById('new_cat_is_free')
+              var banner = document.getElementById('freeTierBanner')
+              var pure = document.getElementById('freePureBanner')
+              var grid = document.getElementById('priceGrid')
+              if (!cb) return
+              cb.addEventListener('change', function(){
+                if (banner) banner.classList.toggle('hidden', !cb.checked)
+                if (pure) pure.classList.add('hidden')
+                if (grid){
+                  grid.querySelectorAll('div[data-price-field]').forEach(function(cell){
+                    var input = cell.querySelector('input')
+                    var mark  = cell.querySelector('.req-mark')
+                    if (input){
+                      input.disabled = cb.checked
+                      input.classList.toggle('bg-gray-50', cb.checked)
+                      input.classList.toggle('text-gray-400', cb.checked)
+                    }
+                    if (mark) mark.style.visibility = cb.checked ? 'hidden' : 'visible'
+                  })
+                }
+              })
+            })()
+          </script>
+        <% } %>
       </div>
 
       <div>
@@ -72,18 +249,47 @@
 
     <div class="px-6 py-4 border-t border-gray-100">
       <h2 class="text-base font-semibold text-gray-800 mb-4">Harga & Kuota</h2>
-      <div class="grid grid-cols-2 gap-4">
-        <div>
-          <label for="price_general" class="block text-sm font-medium text-gray-700 mb-1">Harga Umum (Rp) <span class="text-red-500">*</span></label>
-          <input type="number" id="price_general" name="price_general" value="<%= isEdit ? (training?.price_general || '') : '' %>" min="0" class="w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500">
+
+      <%
+        // Banner "kategori gratis" — dihitung saat server render untuk kategori
+        // terdaftar yang terpilih; untuk opsi "__new__"/input teks, JS
+        // menampilkannya dinamis saat checkbox gratis dicentang.
+        // Dua varian: pakai-paket (cert_available=1) vs full free (cert_available=0).
+        var selCatNow = catList.filter(function(c){ return c.name === currentCat })[0]
+        var bannerPaketNow = selCatNow && selCatNow.is_free_tier && selCatNow.cert_available !== 0
+        var bannerPureNow  = selCatNow && selCatNow.is_free_tier && selCatNow.cert_available === 0
+      %>
+      <div id="freeTierBanner" class="mb-4 bg-green-50 border border-green-200 rounded-lg px-4 py-3 text-sm text-green-800 <%= bannerPaketNow ? '' : 'hidden' %>">
+        <p class="font-semibold">Kategori bertipe gratis (ikut Rp 0, ada paket komplit berbayar)</p>
+        <p class="mt-1 text-green-700">
+          Peserta tidak dipungut biaya untuk ikut (<strong>Rp 0</strong>), namun boleh
+          membeli paket komplit (sertifikat, materi, dll.) sebesar
+          <strong><%= certFeeFmt || 'Rp 0' %></strong> yang diverifikasi admin.
+          Kolom harga di bawah <strong>dinonaktifkan otomatis</strong> — sistem
+          menyimpannya sebagai 0; yang terpakai adalah tier kategorinya.
+        </p>
+      </div>
+      <div id="freePureBanner" class="mb-4 bg-green-50 border border-green-200 rounded-lg px-4 py-3 text-sm text-green-800 <%= bannerPureNow ? '' : 'hidden' %>">
+        <p class="font-semibold">Kategori FULL FREE (gratis murni)</p>
+        <p class="mt-1 text-green-700">
+          Peserta selalu membayar <strong>Rp 0 total</strong> — form pendaftaran
+          TIDAK menampilkan opsi paket/sertifikat berbayar. Kolom harga di
+          bawah <strong>dinonaktifkan otomatis</strong> dan disimpan sebagai 0.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4" id="priceGrid">
+        <div data-price-field>
+          <label for="price_general" class="block text-sm font-medium text-gray-700 mb-1">Harga Umum (Rp) <span class="text-red-500 req-mark">*</span></label>
+          <input type="number" id="price_general" name="price_general" value="<%= isEdit ? (training?.price_general || '') : '' %>" min="0" <%= (bannerPaketNow || bannerPureNow) ? 'disabled' : '' %> class="w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500 <%= (bannerPaketNow || bannerPureNow) ? 'bg-gray-50 text-gray-400' : '' %>">
         </div>
-        <div>
-          <label for="price_student_uad" class="block text-sm font-medium text-gray-700 mb-1">Harga Mahasiswa UAD (Rp) <span class="text-red-500">*</span></label>
-          <input type="number" id="price_student_uad" name="price_student_uad" value="<%= isEdit ? (training?.price_student_uad || '') : '' %>" min="0" class="w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500">
+        <div data-price-field>
+          <label for="price_student_uad" class="block text-sm font-medium text-gray-700 mb-1">Harga Mahasiswa UAD (Rp) <span class="text-red-500 req-mark">*</span></label>
+          <input type="number" id="price_student_uad" name="price_student_uad" value="<%= isEdit ? (training?.price_student_uad || '') : '' %>" min="0" <%= (bannerPaketNow || bannerPureNow) ? 'disabled' : '' %> class="w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500 <%= (bannerPaketNow || bannerPureNow) ? 'bg-gray-50 text-gray-400' : '' %>">
         </div>
-        <div>
-          <label for="price_employee_uad" class="block text-sm font-medium text-gray-700 mb-1">Harga Karyawan UAD (Rp) <span class="text-red-500">*</span></label>
-          <input type="number" id="price_employee_uad" name="price_employee_uad" value="<%= isEdit ? (training?.price_employee_uad || '') : '' %>" min="0" class="w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500">
+        <div data-price-field>
+          <label for="price_employee_uad" class="block text-sm font-medium text-gray-700 mb-1">Harga Karyawan UAD (Rp) <span class="text-red-500 req-mark">*</span></label>
+          <input type="number" id="price_employee_uad" name="price_employee_uad" value="<%= isEdit ? (training?.price_employee_uad || '') : '' %>" min="0" <%= (bannerPaketNow || bannerPureNow) ? 'disabled' : '' %> class="w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500 <%= (bannerPaketNow || bannerPureNow) ? 'bg-gray-50 text-gray-400' : '' %>">
         </div>
         <div>
           <label for="quota" class="block text-sm font-medium text-gray-700 mb-1">Kuota Peserta <span class="text-red-500">*</span></label>

@@ -5,13 +5,27 @@
 
   <!-- Header Section -->
   <div class="text-center mb-10">
-    <div class="inline-flex items-center justify-center w-20 h-20 bg-navy-700 rounded-full mb-4">
-      <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-          d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946A3.42 3.42 0 019 12z"/>
-      </svg>
+    <div class="relative inline-flex items-center justify-center w-24 h-24 mb-5">
+      <!-- Lingkaran luar dekoratif -->
+      <div class="absolute inset-0 rounded-full bg-gradient-to-br from-navy-400 to-navy-700 shadow-lg"></div>
+      <!-- Lingkaran dalam -->
+      <div class="relative w-20 h-20 rounded-full bg-white flex items-center justify-center">
+        <!-- Ikon sertifikat / scroll -->
+        <svg class="w-10 h-10 text-navy-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+          <!-- Scroll dokumen -->
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M9 12h6m-6 4h6m-6 4h4m-4-4V4a2 2 0 012-2h6a2 2 0 012 2v12a2 2 0 002 2H9"/>
+          <!-- Stempel / seal kecil -->
+          <circle cx="19" cy="18" r="3" fill="#f97316" stroke="none" opacity="0.9"/>
+          <path d="M19 16.5v3m-1.5-1.5h3" stroke="white" stroke-width="1" stroke-linecap="round" opacity="0.9"/>
+        </svg>
+      </div>
+      <!-- Badge kecil "E-SERTIFIKAT" -->
+      <span class="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-brand-500 text-white text-[10px] font-bold tracking-widest uppercase px-3 py-0.5 rounded-full shadow-md whitespace-nowrap">
+        E-Sertifikat
+      </span>
     </div>
-    <h1 class="text-3xl font-bold text-gray-800 mb-2">Pusat Download Sertifikat</h1>
+    <h1 class="text-3xl font-bold text-navy-700 mb-2">Pusat Download Sertifikat</h1>
     <p class="text-gray-500 max-w-md mx-auto">Masukkan kode referensi untuk mengunduh sertifikat pelatihan Anda</p>
   </div>
 

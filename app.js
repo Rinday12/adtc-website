@@ -12,6 +12,12 @@ const publicRoutes = require('./routes/publicRoutes')
 const adminRoutes = require('./routes/adminRoutes')
 const News         = require('./models/News')
 const { metaTags } = require('./utils/seo')
+const catDesign   = require('./utils/catDesign')
+const fs          = require('fs')
+
+// Versi CSS = mtime output.css. Di-compute per-request agar browser selalu
+// fetch CSS terbaru setelah rebuild, tanpa perlu restart server.
+const cssPath = path.join(__dirname, 'public/css/output.css')
 
 const app = express()
 const PORT = process.env.PORT || 3000
@@ -23,7 +29,21 @@ app.set('views', path.join(__dirname, 'views'))
 // Middleware Global
 app.use(express.urlencoded({ extended: true }))
 app.use(express.json())
-app.use(express.static(path.join(__dirname, 'public')))
+// HTML jangan di-cache browser — agar perubahan view selalu terlihat saat refresh biasa
+app.use((req, res, next) => {
+  if (req.accepts('html')) res.setHeader('Cache-Control', 'no-cache, must-revalidate')
+  next()
+})
+app.use(express.static(path.join(__dirname, 'public'), {
+  etag: true,
+  lastModified: true,
+  // CSS/JS: jangan cache lama — supaya rebuild CSS selalu sampai ke browser.
+  setHeaders: (res, filePath) => {
+    if (/\.(css|js)$/.test(filePath)) {
+      res.setHeader('Cache-Control', 'no-cache, must-revalidate')
+    }
+  }
+}))
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
 
 // Session — sliding: setiap request admin aktif memperpanjang cookie,
@@ -52,6 +72,16 @@ app.use((req, res, next) => {
   ].filter(a => a.number && a.number.trim() !== '')
   // Backward compat (dipakai footer kolom kontak)
   res.locals.waNumber = (process.env.WHATSAPP_ADMIN_1_NUMBER || process.env.WHATSAPP_ADMIN_2_NUMBER || '')
+  // Helper desain per kategori (dipakai category.ejs & catalog.ejs)
+  res.locals.catDesign = catDesign
+  // Cache-bust CSS: hash isi file output.css (per-request, ringan) —
+  // guarantees browser fetches new CSS whenever file content changes.
+  let _cv = 1
+  try {
+    const _buf = fs.readFileSync(cssPath)
+    _cv = _buf.length + '-' + Math.floor(fs.statSync(cssPath).mtimeMs)
+  } catch (_) {}
+  res.locals.cssVersion = _cv
   next()
 })
 

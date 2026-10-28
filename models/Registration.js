@@ -98,7 +98,11 @@ const Registration = {
               t.slug             AS training_slug,
               t.start_date,
               t.description      AS training_description,
-              t.whatsapp_group_link
+              t.whatsapp_group_link,
+              (SELECT is_free_tier FROM categories c
+                WHERE c.name = t.category LIMIT 1) AS is_free_tier,
+              (SELECT cert_available FROM categories c
+                WHERE c.name = t.category LIMIT 1) AS cert_available
        FROM registrations r
        JOIN trainings t ON r.training_id = t.id
        WHERE r.access_token = ?
@@ -106,8 +110,11 @@ const Registration = {
       [token]
     )
     const row = rows[0] || null
-    if (row && row.final_price !== undefined) {
-      row.final_price = Number(row.final_price)
+    if (row) {
+      if (row.final_price !== undefined) row.final_price = Number(row.final_price)
+      row.is_free_tier = row.is_free_tier === 1
+      // NULL → anggap paket tersedia (perilaku lama tidak berubah).
+      row.cert_available = row.cert_available !== 0
     }
     return row
   },
@@ -137,7 +144,9 @@ const Registration = {
 
   async findAll(filters = {}) {
     let query = `
-      SELECT r.*, t.title AS training_title
+      SELECT r.*, t.title AS training_title,
+             (SELECT is_free_tier FROM categories c
+               WHERE c.name = t.category LIMIT 1) AS is_free_tier
       FROM registrations r
       JOIN trainings t ON r.training_id = t.id
     `
@@ -168,6 +177,7 @@ const Registration = {
     query += ' ORDER BY r.created_at DESC'
 
     const [rows] = await db.execute(query, params)
+    rows.forEach(r => { if (r.is_free_tier !== undefined) r.is_free_tier = r.is_free_tier === 1 })
     return rows
   },
 

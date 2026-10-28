@@ -8,36 +8,52 @@
     <p class="mt-1 text-gray-500">Pilih program pelatihan sesuai kebutuhan Anda.</p>
   </div>
 
-  <% if (groups && groups.length > 0) { %>
+  <%
+    const cats  = (typeof categories !== 'undefined' && categories && categories.length > 0)
+      ? categories
+      : (groups || []).map(g => ({ category: g.category, anchor: g.anchor, count: g.trainings.length }))
+    const total = (typeof totalActive !== 'undefined') ? totalActive
+      : groups.reduce(function(sum,g){ return sum + g.trainings.length }, 0)
+  %>
 
-    <!-- ── Tab Kategori (sticky) ──────────────────────────── -->
-    <div id="category-tabs"
-         class="sticky top-0 z-30 bg-white/95 backdrop-blur-sm border-b border-gray-200
-                mb-10 -mx-4 px-4 shadow-sm">
-      <div class="flex items-center gap-1 overflow-x-auto py-3 scrollbar-hide">
-        <!-- Tab "Semua" -->
-        <a href="#semua"
-           data-tab="semua"
-           class="tab-btn shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold
-                  border transition-colors whitespace-nowrap
-                  text-navy-700 border-navy-700 bg-navy-50">
+  <% if (cats.length > 0) { %>
+
+    <!-- ── Filter chips horizontal ───────────────────────────── -->
+    <div class="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-gray-200
+                mb-10 -mx-4 px-4 shadow-sm py-3">
+      <div class="flex items-center gap-2 flex-wrap">
+        <!-- Chip: Semua -->
+        <button data-anchor="semua"
+                class="cat-chip inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold
+                       border transition-all duration-200 whitespace-nowrap
+                       bg-brand-500 text-white border-brand-500 shadow-sm hover:shadow-md">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h7"/>
+          </svg>
           Semua
-          <span class="text-xs bg-navy-700 text-white rounded-full px-1.5 py-0.5">
-            <%= groups.reduce(function(sum,g){ return sum + g.trainings.length }, 0) %>
-          </span>
-        </a>
+          <span class="bg-white/20 text-white text-xs rounded-full px-2 py-0.5 font-bold"><%= total %></span>
+        </button>
 
-        <% groups.forEach(function(group) { %>
-          <a href="#<%= group.anchor %>"
-             data-tab="<%= group.anchor %>"
-             class="tab-btn shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium
-                    border transition-colors whitespace-nowrap
-                    text-gray-600 border-gray-300 hover:border-navy-400 hover:text-navy-700">
-            <%= group.category %>
-            <span class="text-xs bg-gray-100 text-gray-500 rounded-full px-1.5 py-0.5">
-              <%= group.trainings.length %>
-            </span>
-          </a>
+        <% cats.forEach(function(cat) {
+             const grp = (typeof groupMap !== 'undefined' && groupMap.has(cat.category))
+               ? groupMap.get(cat.category)
+               : null
+             const n = grp ? grp.trainings.length : 0
+             var accentDot = {
+               blue:   'bg-blue-500',   navy:   'bg-navy-500',
+               teal:   'bg-teal-600',   green:  'bg-green-500',
+               purple: 'bg-purple-500', red:    'bg-red-500'
+             }
+        %>
+        <button data-anchor="<%= cat.anchor %>"
+                class="cat-chip inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold
+                       border transition-all duration-200 whitespace-nowrap
+                       bg-white text-gray-700 border-gray-200 hover:border-navy-300 hover:bg-navy-50 hover:text-navy-700
+                       hover:shadow-sm">
+          <span class="w-2 h-2 rounded-full <%= accentDot[cat.accent] || 'bg-brand-500' %> shrink-0"></span>
+          <%= cat.icon ? cat.icon + ' ' : '' %><%= cat.category %>
+          <span class="text-xs bg-gray-100 text-gray-500 rounded-full px-2 py-0.5 font-medium"><%= n %></span>
+        </button>
         <% }) %>
       </div>
     </div>
@@ -46,24 +62,36 @@
     <div id="semua"></div>
 
     <!-- ── Section per Kategori ───────────────────────────── -->
-    <% groups.forEach(function(group) { %>
-      <section id="<%= group.anchor %>" class="category-section mb-16 scroll-mt-20">
+    <% cats.forEach(function(cat) {
+         const grp = (typeof groupMap !== 'undefined' && groupMap.has(cat.category))
+           ? groupMap.get(cat.category)
+           : null
+         const items = grp ? grp.trainings : []
+    %>
+      <section id="<%= cat.anchor %>" class="category-section mb-16 scroll-mt-20">
 
         <!-- Section heading -->
         <div class="flex items-center gap-4 mb-6">
           <div class="flex items-center gap-3">
-            <span class="inline-block w-1 h-8 rounded-full bg-brand-500"></span>
-            <h2 class="text-2xl font-extrabold text-navy-700"><%= group.category %></h2>
+            <span class="inline-block w-1 h-8 rounded-full bg-<%= (cat.accent || 'blue') === 'navy' ? '[#1a3a5c]' : cat.accent || 'blue' %>"></span>
+            <h2 class="text-2xl font-extrabold text-navy-700">
+              <%= cat.icon ? cat.icon + ' ' : '' %><%= cat.category %>
+            </h2>
           </div>
           <span class="text-xs font-semibold bg-navy-50 text-navy-700 border border-navy-200
                        rounded-full px-3 py-1">
-            <%= group.trainings.length %> program
+            <%= items.length %> program
           </span>
+          <a href="/trainings/kategori/<%= cat.anchor %>"
+             class="ml-auto text-xs font-medium text-brand-500 hover:text-brand-600 underline decoration-dotted transition-colors">
+            Lihat semua →
+          </a>
         </div>
 
+        <% if (items.length > 0) { %>
         <!-- Cards grid -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          <% group.trainings.forEach(function(training) { %>
+          <% items.forEach(function(training) { %>
             <%
               const fmt = new Intl.NumberFormat('id-ID', {
                 style: 'currency', currency: 'IDR', minimumFractionDigits: 0
@@ -105,7 +133,7 @@
                 </div>
                 <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent px-4 py-3">
                   <h3 class="text-base font-bold text-white leading-snug"><%= training.title %></h3>
-                  <span class="inline-block mt-1 text-xs text-white/80 font-medium uppercase tracking-wide"><%= group.category %></span>
+                  <span class="inline-block mt-1 text-xs text-white/80 font-medium uppercase tracking-wide"><%= cat.category %></span>
                 </div>
               </div>
               <% } else { %>
@@ -117,7 +145,7 @@
                     <%= statusLabel %>
                   </span>
                 </div>
-                <span class="inline-block mt-2 text-xs text-white/60 font-medium uppercase tracking-wide"><%= group.category %></span>
+                <span class="inline-block mt-2 text-xs text-white/60 font-medium uppercase tracking-wide"><%= cat.category %></span>
               </div>
               <% } %>
 
@@ -181,7 +209,7 @@
                     const isBlocked = isFull || isCompleted
                   %>
                   <% if (isBlocked) { %>
-                    <button disabled class="inline-flex justify-center items-center gap-2 w-full
+                    <button disabled class="w-full flex items-center justify-center gap-2
                             bg-gray-100 text-gray-600 font-semibold text-sm
                             px-4 py-2.5 rounded-xl cursor-not-allowed border border-gray-200">
                       <span class="w-2 h-2 rounded-full <%= isCompleted ? 'bg-blue-500' : 'bg-red-500' %>"></span>
@@ -189,7 +217,7 @@
                     </button>
                   <% } else { %>
                     <a href="/trainings/<%= training.slug %>/register"
-                       class="inline-flex justify-center items-center gap-1.5 w-full
+                       class="w-full flex items-center justify-center gap-1.5
                               bg-brand-500 hover:bg-brand-600 text-white font-bold text-sm
                               px-4 py-2.5 rounded-xl transition-colors shadow-sm">
                       Daftar Sekarang
@@ -199,9 +227,9 @@
                     </a>
                   <% } %>
                   <a href="/trainings/<%= training.slug %>"
-                     class="inline-flex justify-center items-center gap-1 w-full
+                     class="w-full flex items-center justify-center
                             border border-gray-200 text-gray-600 hover:border-navy-400 hover:text-navy-700
-                            font-medium text-sm px-4 py-2 rounded-xl transition-colors">
+                            font-medium text-sm px-4 py-2 rounded-xl transition-colors whitespace-nowrap">
                     Lihat Detail
                   </a>
                 </div>
@@ -209,6 +237,12 @@
             </div>
           <% }) %>
         </div>
+        <% } else { %>
+        <!-- Kategori kosong -->
+        <div class="rounded-xl border border-dashed border-gray-200 bg-gray-50 px-6 py-10 text-center">
+          <p class="text-sm text-gray-500">Belum ada program di kategori ini.</p>
+        </div>
+        <% } %>
 
       </section>
     <% }) %>
@@ -223,80 +257,98 @@
 
 </div>
 
-<!-- ── JS: Tab filter + smooth scroll + scroll spy ──────── -->
+// ── JS: Filter chips + smooth scroll + scroll spy ───────────────
 <script>
 (function () {
-  const tabs    = document.querySelectorAll('.tab-btn')
   const sections = document.querySelectorAll('.category-section')
+  if (!sections.length) return
 
-  if (!tabs.length || !sections.length) return
+  // ── Filter chips ─────────────────────────────────────────────
+  const chips = Array.from(document.querySelectorAll('.cat-chip'))
 
-  const activeClass    = ['text-navy-700','border-navy-700','bg-navy-50']
-  const inactiveClass  = ['text-gray-600','border-gray-300']
+  function setChipStyle(chip, active) {
+    // Reset ke style inaktif dulu, lalu terapkan state yang benar
+    var classes = chip.className.split(' ').filter(function(c) {
+      return !['bg-white','bg-brand-500','text-white','text-gray-700',
+               'border-gray-200','border-brand-500','shadow-sm','hover:shadow-md']
+               .includes(c)
+    })
+    if (active) {
+      classes.push('bg-brand-500', 'text-white', 'border-brand-500', 'shadow-sm')
+    } else {
+      classes.push('bg-white', 'text-gray-700', 'border-gray-200')
+    }
+    chip.className = classes.join(' ')
+    var badge = chip.querySelector('span:last-child')
+    if (badge && chip.dataset.anchor !== 'semua') {
+      badge.className = active
+        ? 'text-xs bg-white/20 text-white rounded-full px-2 py-0.5 font-bold'
+        : 'text-xs bg-gray-100 text-gray-500 rounded-full px-2 py-0.5 font-medium'
+    }
+  }
 
-  function setActiveTab(anchor) {
-    tabs.forEach(t => {
-      const isActive = t.dataset.tab === anchor || (anchor === 'semua' && t.dataset.tab === 'semua')
-      if (isActive) {
-        t.classList.remove(...inactiveClass)
-        t.classList.add(...activeClass)
-      } else {
-        t.classList.remove(...activeClass)
-        t.classList.add(...inactiveClass)
-      }
+  function highlightChip(anchor) {
+    chips.forEach(function (chip) {
+      setChipStyle(chip, chip.dataset.anchor === anchor)
     })
   }
 
-  // Click → scroll to section
-  tabs.forEach(tab => {
-    tab.addEventListener('click', function (e) {
-      e.preventDefault()
-      const anchor  = this.dataset.tab
-      const target  = anchor === 'semua'
-        ? document.getElementById('semua')
-        : document.getElementById(anchor)
-      if (target) {
-        const offset = 72 // tinggi sticky tab
-        const top = target.getBoundingClientRect().top + window.scrollY - offset
-        window.scrollTo({ top, behavior: 'smooth' })
-      }
-      setActiveTab(anchor)
+  function scrollToAnchor(anchor) {
+    var target = anchor === 'semua'
+      ? document.getElementById('semua')
+      : document.getElementById(anchor)
+    if (target) {
+      var offset = 80
+      var top = target.getBoundingClientRect().top + window.scrollY - offset
+      window.scrollTo({ top: top, behavior: 'smooth' })
+    }
+    history.replaceState(null, '', anchor === 'semua' ? window.location.pathname : '#' + anchor)
+  }
+
+  chips.forEach(function (chip) {
+    chip.addEventListener('click', function () {
+      highlightChip(chip.dataset.anchor)
+      scrollToAnchor(chip.dataset.anchor)
     })
   })
 
-  // Scroll spy — update tab aktif saat scroll
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
+  // Hash on load
+  if (window.location.hash) {
+    var anchor = window.location.hash.replace('#', '')
+    if (chips.some(function (c) { return c.dataset.anchor === anchor })) {
+      highlightChip(anchor)
+      setTimeout(function () { scrollToAnchor(anchor) }, 100)
+    } else {
+      highlightChip('semua')
+    }
+  } else {
+    highlightChip('semua')
+  }
+
+  // ── Scroll spy ───────────────────────────────────────────────
+  var observer = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
       if (entry.isIntersecting) {
-        const anchor = entry.target.id
-        setActiveTab(anchor)
+        var anchor = entry.target.id
+        if (anchor !== 'semua') highlightChip(anchor)
       }
     })
   }, { rootMargin: '-30% 0px -60% 0px', threshold: 0 })
 
-  sections.forEach(s => observer.observe(s))
+  sections.forEach(function (s) { observer.observe(s) })
 
-  // Hash pada URL saat pertama load
-  if (window.location.hash) {
-    const anchor = window.location.hash.replace('#', '')
-    const target = document.getElementById(anchor)
-    if (target) {
-      setTimeout(() => {
-        const offset = 72
-        const top = target.getBoundingClientRect().top + window.scrollY - offset
-        window.scrollTo({ top, behavior: 'smooth' })
-        setActiveTab(anchor)
-      }, 100)
-    }
-  }
-
-  // ─── Animate cards on page load with staggered delay ──────────────────────
-  const cards = document.querySelectorAll('.reveal-card')
-  cards.forEach((card, i) => {
-    setTimeout(() => {
-      card.style.opacity = '1'
-      card.style.transform = 'translateY(0)'
-    }, 50 + i * 80)
+  // ── Animate cards on page load ───────────────────────────────
+  var cards = document.querySelectorAll('.reveal-card')
+  cards.forEach(function (card, i) {
+    card.style.opacity = '0'
+    card.style.transform = 'translateY(12px)'
+    card.style.transition = 'opacity 0.4s ease ' + (i * 60) + 'ms, transform 0.4s ease ' + (i * 60) + 'ms'
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        card.style.opacity = '1'
+        card.style.transform = 'translateY(0)'
+      })
+    })
   })
 })()
 </script>

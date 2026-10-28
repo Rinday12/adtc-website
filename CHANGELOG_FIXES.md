@@ -1,3 +1,126 @@
+### Fix #43 — Kartu & Tombol di Halaman Kategori Disamakan dengan Katalog
+Tanggal: 2026-10-28
+File: views/trainings/category.ejs
+Masalah: Kartu program di `/trainings/kategori/<anchor>` tampil berbeda dari kartu di `/trainings` (katalog), dan tombol "Lihat Detail"-nya rusak — setiap klik melempar `ReferenceError` sehingga navigasinya tak pernah terjadi.
+Akar: Tombol "Lihat Detail" di `category.ejs` memakai `onclick="return handleDetailClick(...)"`, `oncontextmenu`, dan `ondragstart` — tetapi ketiga fungsi itu tidak didefinisikan di mana pun di codebase; klik-kanan dan drag juga ikut terblokir.
+Fix:
+- Markup kartu disamakan dengan kartu `catalog.ejs`: tinggi header, posisi badge status (kanan atas), badan kartu, baris info (tanggal/mode/harga), hover state, dan style CTA.
+- "Lihat Detail" diganti plain anchor `<a href="/trainings/{slug}">` — persis pola katalog; handler JS tak ada.
+- "Daftar Sekarang" tetap anchor ke `/trainings/{slug}/register`; kartu penuh/selesai tetap tombol disabled ber-dot status.
+Verifikasi: E2E dev `http://localhost:3000/trainings/kategori/pelatihan`: 0 kemunculan `handleDetailClick`/`handleContextMenu`/`handleDragStart` di HTML, 18 plain anchor `/trainings/...`, badge status ter-render (Buka 2 / Penuh 4 / Selesai 30). 127 test passing. Halaman `/trainings` tak terpengaruh (markup-nya acuan).
+Status: BELUM DEPLOY.
+Pelajaran: Saat memindahkan markup antar view, handler JS bawaan (`onclick`/`oncontextmenu`/`ondragstart`) gampang terbawa ke view baru tanpa fungsinya ikut — grep `handle*Click|handle*Drag` di views setelah copy-paste markup.
+Log Keyword: category.ejs Lihat Detail, handleDetailClick hilang, kartu kategori sama katalog
+Tanggal: 2026-10-28
+File: views/trainings/category.ejs, models/Training.js
+Masalah: Halaman `/trainings/kategori/full-gratis` menampilkan "Gratis — hanya bayar sertifikat" (badge hero + kartu training + intro) padahal kategori Full Gratis (id 25, `cert_available=0`) TIDAK punya sertifikat — teks menyesatkan.
+Akar: `findCategories()` tidak mengirim `cert_available` ke view, jadi view tak bisa membedakan gratis murni vs gratis+paket; teks ditulis tetap untuk semua `is_free_tier`.
+Fix:
+- `Training.findCategories()` kini ikut `cert_available` (NULL → `true`, pola sama `findBySlug`).
+- `category.ejs` 3 titik: badge hero → "Gratis penuh — Rp 0 total"; harga kartu → "Gratis — Rp 0 total"; intro → "Program sepenuhnya gratis — pendaftaran, pelaksanaan, dan sertifikat tanpa biaya apa pun" (pakai fallback teks lama untuk kategori anchor tak dikenal).
+Verifikasi: E2E dev — halaman full-gratis: 0 kemunculan "hanya bayar/biaya sertifikat", 2 label "Rp 0 total" + intro baru; halaman pelatihan-gratis tak berubah (1 "hanya bayar" + 2 "hanya biaya" sama seperti sebelum). 127 test passing.
+Status: BELUM DEPLOY.
+Pelajaran: Setelah menambah varian tier baru, grep teks tetap tier-gratis di SEMUA view publik (`gratis`/`sertifikat`) — teks hero/intro sering lebih terlupakan daripada form.
+Log Keyword: full-gratis kategori, hanya bayar sertifikat, cert_available findCategories
+
+### Fix #41 — Detail Training: Bagian Biaya Dinonaktifkan untuk Kategori Full Gratis
+Tanggal: 2026-10-28
+File: views/trainings/detail.ejs
+Masalah: Di halaman detail training kategori full gratis, tabel "Biaya Pendaftaran" (Umum/Mahasiswa/Karyawan + catatan dokumen) masih tampil dengan Rp 0 — peserta bingung; form publik sudah benar sejak Fix #35, tapi halaman detail tidak menyesuaikan.
+Akar: `detail.ejs` me-render tabel biaya tanpa memeriksa `cert_available`; hanya banner amber gratis+paket yang dikondisikan.
+Fix: tambah konstanta `isFullFree = is_free_tier && cert_available === false` di section biaya — bila true, tabel biaya & catatan dokumen disembunyikan dan diganti banner hijau "sepenuhnya gratis, ikut Rp 0 total"; cabang lain (berbayar / gratis+paket) tak berubah.
+Verifikasi: E2E dev — training kategori Full Gratis (id 40 temp): 0 kemunculan "Kategori Peserta", 1 "sepenuhnya gratis"; btht (gratis+75k): tabel + banner amber tetap ada; training berbayar: tabel tetap tampil. Data uji dihapus. 127 test passing (tak menyentuh logic harga — murni view).
+Status: BELUM DEPLOY.
+Pelajaran: Perilaku tier yang sudah di-fix di satu halaman (form) perlu dicek di SEMUA halaman yang menampilkan harga (detail, katalog, success) — grep `price_`/`Rp` di semua view publik saat menambah varian tier.
+Log Keyword: detail.ejs isFullFree, biaya pendaftaran disembunyikan, full gratis
+
+### Fix #40 — Form Admin Kategori: 3 Pilihan "Tipe Biaya" Ganti Checkbox Bertumpuk
+Tanggal: 2026-10-28
+File: views/admin/categories/form.ejs, controllers/adminCategoryController.js, views/admin/categories/list.ejs
+Masalah: Menandai kategori gratis di form admin memakai dua checkbox bertumpuk ("kategori gratis" + "gratis murni") yang membingungkan — sulit dipilih/dibaca, dan nominal Rp 75.000 tidak ditampilkan sebagai acuan.
+Akar: UI tidak memetakan pilihan tier ke pilihan tunggal yang eksplisit; controller hanya membaca `is_free_tier`/`free_pure` mentah.
+Fix:
+- Form kategori kini radio 3 opsi "Tipe biaya kategori": **Berbayar** / **Full free (Rp 0 total)** / **Gratis + paket komplit (Rp CERT_FEE)**. Dua field tersembunyi (`is_free_tier`,`free_pure`) disinkronkan JS dari radio → controller & model TIDAK diubah (kompatibel nilai `'on'/'off'`).
+- Label opsi paket memuat nominal nyata dari `certFeeFmt` (helper `feeCtx()` baru disuplai ke 5 titik render form kategori).
+- Tabel daftar kategori: kolom "Gratis" kini menampilkan varian (Berbayar / Full free / Gratis + paket komplit) + catatan legenda diperbarui.
+Verifikasi: EJS terkompilasi 3 cabang tier + create + list. 127 test passing. E2E via UI admin: submit tiap kombinasi nilai `is_free_tier`/`free_pure` sesuai radio → DB benar: Berbayar(0,1) / FullFree(1,0) / Paket(1,1). Form menampilkan 3 radio + nominal Rp 75.000. Data uji dibersihkan; baris produksi "Pelatihan gratis" tak terpengaruh.
+Status: BELUM DEPLOY.
+Pelajaran: Untuk pilihan tier multi-state, radio dengan value eksplisit + sinkronisasi ke field tersembunyi jauh lebih aman & terbaca daripada menumpuk checkbox; controller lama tak perlu disentuh (nilai tetap `'on'/'off'`).
+Log Keyword: price_tier, tipe biaya kategori, free_pure, is_free_tier radio, certFeeFmt feeCtx
+
+### Fix #39 — Emoji Ikon Kategori Tersimpan Percent-Encoded (%F0%9F%8E%89)
+Tanggal: 2026-10-28
+File: models/Category.js, (data) baris kategori 'Full Free' id 17 di DB dev
+Masalah: Hero banner kategori "Full Free" menampilkan teks mentah `%F0%9F%8E%89` alih-alih emoji 🎉 — hasil dari submit form kategori yang nilai input-nya ter-isian URL-encoded (emoji multi-byte jadi `%XX` beruntun).
+Akar: `Category.create/update` menyimpan `data.icon` apa adanya tanpa decode; view langsung me-render-nya.
+Fix:
+- Tambah `Category.normalizeIcon(raw)`: URL-decode nilai yang cocok pola percent-encoding penuh, kembalikan string aslinya bila gagal decode (tidak mengubah input non-encoded seperti '📚' / ''). Dipakai di `create` & `update`.
+- Perbaiki data dev: `UPDATE categories SET icon='🎉' WHERE id=17`.
+Verifikasi: `normalizeIcon('%F0%9F%8E%89')→'🎉'`, `('%E2%9A%A1')→'⚡'`, `('📚')→'📚'`, `('')→''`, `('%41BC')→'%41BC'` (bukan encoding valid → tetap). 127 test passing. Halaman publik `/trainings/category/full-free` kini merender 🎉 (grep: 2 kemunculan, 0 sisa percent-encoded).
+Status: BELUM DEPLOY. Produksi: selain deploy kode, jalankan sekali saja `UPDATE categories SET icon=UNHEX(REPLACE(icon,'%',''))...` — praktisnya cukup periksa tiap ikon yang tersimpan percent-encoded (`SELECT id,icon FROM categories WHERE icon LIKE '%F0%'`) dan set ulang lewat form admin.
+Pelajaran: Emoji multibyte di input form bisa tiba percent-encoded bila pipeline (proxy/form multipart tertentu) meng-encode URI-nya — validasi & normalisasi di lapisan model, bukan percaya input apa adanya untuk kolom "tampilan".
+Log Keyword: normalizeIcon, percent-encoded emoji, %F0%9F%8E%89, categories icon, full free hero
+
+### Fix #38 — Harga Dinonaktifkan Otomatis untuk Kategori Gratis + Hapus Duplikat Kategori
+Tanggal: 2026-10-28
+File: controllers/adminTrainingController.js, views/admin/trainings/form.ejs
+Masalah: Admin tetap harus mengisi 3 field harga (umum/UAD/karyawan) meskipun kategori bertipe gratis — nominalnya tak terpakai (tagihan diatur tier + CERT_FEE), jadi membingungkan. Plus kategori "Gratis Paket Komplit" (dibuat sesi sebelumnya) menduplikasi "Pelatihan gratis".
+Akar: `validateTrainingInput()` selalu mewajibkan 3 field harga; form tidak menonaktifkan input numerik apa pun berdasarkan tier.
+Fix:
+- `validateTrainingInput` kini async: cek tier kategori via `Category.findByName` — bila gratis (atau kategori tak dikenal), 3 field harga menjadi OPSIONAL; caller menagih `freeTierPrices()` yang memaksa 0 saat gratis. Error validasi "harga wajib diisi" kini hanya muncul untuk kategori berbayar.
+- Form: 3 kolom harga diberi `data-price-field`; atribut `disabled` di-set server-render saat banner gratis tampil, plus JS `setPricesDisabled()` toggle dinamis saat admin ganti pilihan di dropdown; tanda wajib `*` disembunyikan (visibility:hidden, tidak dihapus DOM).
+- Hapus baris kategori "Gratis Paket Komplit" dari DB dev — "Pelatihan gratis" (id 11) sudah menyangkuhi tier gratis-dengan-paket.
+Verifikasi: 127 test passing. E2E via UI admin: create kategori "Full Free" tanpa kirim field harga → 302 sukses, tersimpan `0.00/0.00/0.00`; create kategori "Konsultan" tanpa harga → 200 re-render dengan 3 pesan error yang benar. Input ter-render `disabled` hanya untuk tier gratis (konsisten Konsultan vs Pelatihan gratis vs Full Free). DB dev bersih dari data uji.
+Status: BELUM DEPLOY (ikut paket Fix #35–#37; prasyarat `cert_available` tersedia di DB produksi).
+Pelajaran: Field yang dinonaktifkan (`disabled`) TIDAK ter-submit — desain ini sengaja memanfaatkan perilaku itu: server menerima submit tanpa harga untuk tier gratis dan mengisi 0 sendiri. Jangan menggabungkan perilaku disabled dengan validasi wajib (field wajib + disabled saling kontradiktif di HTML5).
+Log Keyword: freeTierPrices, validateTrainingInput async, data-price-field, disabled price inputs, kategori duplikat
+
+### Fix #37 — Pembeda Kategori Gratis Murni vs Gratis+dengan-Paket (cert_available)
+Tanggal: 2026-10-28
+File: migrations/2026-10-28_add_cert_available_to_categories.sql, models/Category.js, models/Training.js, models/Registration.js, controllers/registrationController.js, controllers/adminCategoryController.js, views/registration/form.ejs, views/admin/categories/form.ejs, views/admin/trainings/form.ejs, tests/property/resolveFinalPrice.test.js
+Masalah: `is_free_tier` hanya punya dua nilai (gratis/bukan), padahal ada dua varian gratis: (1) FULL FREE — peserta Rp 0 total tanpa opsi apa pun; (2) gratis-ikuti tapi boleh beli paket komplit (sertifikat, materi) Rp 75.000. Sebelumnya semua kategori gratis menampilkan opsi 75k.
+Akar: tidak ada flag di `categories` yang membedakan varian; form publik selalu menampilkan radio sertifikat untuk setiap `is_free_tier`.
+Fix:
+- Migrasi aditif: kolom `categories.cert_available TINYINT(1) DEFAULT 1` — default 1 menjaga perilaku semua kategori lama tak berubah.
+- Model: `Category.create/update` mendukung `cert_available` (update mem-bypass-nya bila tak disentuh); subselect `findBySlug`/`findByToken`/admin-expose kini memaparkan `cert_available`; NULL → dianggap `true` (DB lama aman).
+- `resolveFinalPrice()`: kategori `cert_available=0` → selalu 0, pilihan `payment_option` apa pun diabaikan (guard server-side, tak bisa dimanipulasi form).
+- Form publik: radio pembayaran hanya tampil bila `training.cert_available !== false`.
+- UI admin: form kategori dapat checkbox "Gratis murni (full free)" (`free_pure`) — tersembunyi & disabled bila bukan tier gratis; form training menampilkan label opsi & dua varian banner (paket vs full free).
+- Test properti ditambah 2 skenario cert_available (gratis murni selalu 0; gratis+cert_available=1 tetap hormati CERT_FEE).
+Verifikasi: 127 test passing. E2E via UI admin (sesi sementara): submit kategori "Full Free" (gratis+centang murni) → `is_free_tier=1, cert_available=0`; kategori "Gratis Paket Komplit" → `cert_available=1`; kategori lama "Pelatihan gratis" tidak terpengaruh. Training di kategori Full Free: form publik TANPA radio pembayaran, POST dipaksa `payment_option=sertifikat` → tersimpan `0.00`; kategori paket → `75000.00`. Bug awal ditemukan&diperbaiki: controller mengirim `cert_available` angka 0/1 sedangkan model mendeteksi `=== false` strict — dibuat bug (kategori tersimpan default 1); sudah diperbaiki & diverifikasi ulang.
+Status: BELUM DEPLOY — produksi perlu jalankan `migrations/2026-10-28_add_cert_available_to_categories.sql` sebelum deploy kode, agar query subselect tak gagal saat kolom belum ada.
+Pelajaran: Saat menambah kolom yang dibaca banyak subselect, deployment harus 2 langkah (migrasi dulu, lalu kode) — kode baru akan error di DB lama yang tak punya kolomnya.
+Log Keyword: cert_available, full free, gratis murni, free_pure, resolveFinalPrice, categories migration
+
+### Fix #36 — Form Admin Training Tanpa Kriteria Tier Gratis + Bug "Buat Kategori Baru" Tak Ter-submit
+Tanggal: 2026-10-27
+File: views/admin/trainings/form.ejs, controllers/adminTrainingController.js
+Masalah: Admin yang membuat/mengedit pelatihan di `/admin/trainings/create` tidak diberi tahu apa artinya memilih kategori bertipe gratis — banner/instruksi "isi 0" tidak ada; dan saat membuat kategori BARU langsung dari form, input `category-custom` tidak membawa `name="category"` sehingga nilai nama kategori tak pernah ter-submit (server selalu menolak "Kategori wajib diisi"). Auto-create pun selalu membuat kategori dengan `is_free_tier=0` tanpa pilihan.
+Akar: `ensureCategory()` di controller dipanggil tanpa parameter tier; view tidak punya atribut name pada cabang dropdown `__new__` (sintaks lama hanya men-set name di select, bukan input teks).
+Fix:
+- `ensureCategory(name, isFreeTier)` kini meneruskan centang `new_cat_is_free` — hanya berlaku saat kategori DIKREASIKAN; kategori pre-existing tidak pernah diubah.
+- View: checkbox "Tandai kategori ini gratis" (cabang dropdown `__new__` maupun input teks saat belum ada kategori) + `name="category"` pada input custom dengan JS `sync()` memastikan hanya SATU field `category` yang ter-submit pada satu saat.
+- Opsi kategori terdaftar diberi `data-free`, opsi kategori bertipe gratis diberi label "(gratis)", dan banner hijau di seksi Harga otomatis muncul (server-render untuk kategori terpilih, dinamis via checkbox untuk kategori baru) berisi instruksi: isi harga `0`, peserta bayar Rp 0 / `CERT_FEE` bila pilih sertifikat.
+Verifikasi: EJS terkompilasi di 3 cabang (create/edit/kategori-kosong). E2E via HTTP dengan sesi admin dev: submit create + centang gratis → kategori baru `is_free_tier=1`; submit tanpa centang → `0`. Form pendaftaran publik kategori baru gratis langsung menampilkan radio pembayaran (2 elemen), kategori baru berbayar tidak (0). 125 test tetap passing. Data uji (2 training, 2 kategori, 1 admin sementara) dibersihkan.
+Status: BELUM DEPLOY (ikut paket Fix #35).
+Pelajaran: Cabang form yang "menyembunyikan" field lama dan mengaktifkan field baru harus selalu memastikan field pengganti punya atribut `name` — field tanpa `name` tidak ter-submit dan server kehilangan data tanpa error eksplisit.
+Log Keyword: new_cat_is_free, ensureCategory, data-free, freeTierBanner, is_free_tier, category-custom, admin trainings create
+
+### Fix #35 — Pelatihan Gratis Bisa Tagih Biaya Sertifikat (CERT_FEE) Tanpa Bisa Dimanipulasi Client
+Tanggal: 2026-10-27
+File: controllers/registrationController.js, views/registration/form.ejs, views/registration/success.ejs, public/js/registration-form.js, .env.development, .env.production, tests/property/resolveFinalPrice.test.js
+Masalah: Pelatihan tier gratis (`is_free_tier`) selalu disimpan `final_price = 0` — peserta tidak punya opsi "dengan sertifikat" (Rp 75.000), dan halaman sukses menampilkan blok instruksi pembayaran ("transfer ke rekening") yang menyesatkan untuk tier gratis.
+Akar: `resolveFinalPrice()` belum ada; harga selalu diambil dari tabel kategori. Blok info sukses tidak membedakan tier gratis vs berbayar.
+Fix:
+- Tambah fungsi `resolveFinalPrice(training, body, certFee)` di `registrationController.js`: tier berbayar → harga kategori (pilihan `payment_option` diabaikan); tier gratis → `0` bila opsi "gratis"/kosong, `CERT_FEE` bila opsi "sertifikat". Nominal diambil dari `process.env.CERT_FEE` (= 75000 di .env.development & .env.production), BUKAN dari form → tidak bisa dimanipulasi client.
+- Form pendaftaran: tier gratis + `CERT_FEE > 0` menampilkan radio "Jenis Pembayaran" (Gratis Rp 0 / Dengan Sertifikat Rp 75.000) dengan sorotan kartu via `registration-form.js`; form berbayar tidak memunculkannya.
+- Halaman sukses: tier gratis → blok "Biaya Sertifikat" (bila `final_price > 0`) atau blok "Pendaftaran Gratis — tanpa biaya, tanpa sertifikat" (bila `0`); bukan lagi blok instruksi transfer. Tier berbayar tetap pakai blok instruksi pembayaran.
+- Property test baru `tests/property/resolveFinalPrice.test.js` (6 test: identitas harga berbayar, gratis→0, sertifikat→CERT_FEE, CERT_FEE invalid→0, null-safe, deterministik).
+Verifikasi: 15 suites / 125 test passing. E2E via HTTP ke server dev: submit gratis tanpa pilihan → `final_price 0.00`; submit `gratis` → `0.00`; submit `sertifikat` → `75000.00`; submit berbayar → `500000.00`. Halaman sukses tiap skenario merender blok yang benar. Data uji (training id 28–29 + 4 registration) telah dihapus dari DB dev.
+Status: BELUM DEPLOY (perlu set `CERT_FEE=75000` di env produksi sebelum/dengan deploy).
+Pelajaran: Nominal yang ditagihkan harus selalu berasal dari server-side config (env), jangan dari input form — meskipun form tampak valid, ini satu-satunya cara menutup celah manipulasi harga oleh client.
+Log Keyword: CERT_FEE, resolveFinalPrice, is_free_tier, payment_option, sertifikat, gratis, final_price, 75000
+
 ### Fix #34 — Admin Kick Saat Submit Upload Training (Sliding Session)
 Tanggal: 2026-10-13
 File: app.js, tests/unit/generateReferenceCode.test.js
