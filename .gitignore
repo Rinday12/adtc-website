@@ -12,3 +12,7 @@ coverage/
 itinerary_bandung_3h2m.xlsx
 
 # Environment files (sudah dipisah ke .env.development / .env.production)
+
+# local-only, jangan di-deploy
+deploy-fix.sh
+public/images/logo/*.bak
