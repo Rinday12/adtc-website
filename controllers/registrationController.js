@@ -129,6 +129,16 @@ function validateRegistrationInput(body, files, training) {
   if (!files?.social_proof?.[0])
     errors.push('Bukti follow akun adtc_uad wajib diupload.')
 
+  // Syarat promosi — wajib khusus kategori gratis (is_free_tier)
+  if (training?.is_free_tier) {
+    if (!files?.ig_story_proof?.[0])
+      errors.push('Bukti post flyer di IG story wajib diupload (kategori gratis).')
+    if (!files?.wa_share_proof?.[0])
+      errors.push('Bukti share ke 3 grup WhatsApp wajib diupload (kategori gratis).')
+    if (!body.post_comment_url || !body.post_comment_url.trim())
+      errors.push('Link komentar di postingan IG adtc_uad wajib diisi (kategori gratis).')
+  }
+
   return { valid: errors.length === 0, errors }
 }
 
@@ -225,6 +235,9 @@ const registrationController = {
       const final_price = resolveFinalPrice(training, req.body, certFee)
       const identity_card_proof = req.files?.identity_card_proof?.[0]?.path || null
       const social_proof = req.files?.social_proof?.[0]?.path || null
+      const ig_story_proof = req.files?.ig_story_proof?.[0]?.path || null
+      const wa_share_proof = req.files?.wa_share_proof?.[0]?.path || null
+      const post_comment_url = req.body.post_comment_url?.trim() || null
       const institution = req.body.institution?.trim() || null
       // Simpan pilihan pembayaran hanya untuk tier gratis yang memakai paket
       // (sertifikat / gratis murni); kategori berbayar mengabaikan field ini.
@@ -240,7 +253,10 @@ const registrationController = {
         payment_option,
         final_price,
         identity_card_proof,
-        social_proof
+        social_proof,
+        ig_story_proof,
+        wa_share_proof,
+        post_comment_url
       })
 
       // Validate training exists and has required fields
@@ -263,6 +279,9 @@ const registrationController = {
         identity_number:     req.body.identity_number?.trim() || null,
         identity_card_proof,
         social_proof,
+        ig_story_proof,
+        wa_share_proof,
+        post_comment_url,
         final_price: safeFinalPrice
       })
 

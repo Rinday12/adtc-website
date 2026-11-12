@@ -228,6 +228,62 @@
       <p class="text-xs text-gray-500 mt-1">Follow dulu akun <strong>adtc_uad</strong> di Instagram, lalu upload screenshot sebagai bukti. Format: JPG, JPEG, PNG, PDF. Ukuran maksimal 5MB.</p>
     </div>
 
+    <!-- Syarat Promosi Kategori Gratis — hanya tampil bila is_free_tier -->
+    <% if (training.is_free_tier) { %>
+    <div class="space-y-4 border-t border-gray-200 pt-4">
+      <p class="text-sm font-semibold text-navy-700">Syarat Promosi <span class="font-normal text-gray-500">(wajib — kategori gratis)</span></p>
+
+      <!-- Bukti post flyer di IG story -->
+      <div>
+        <label for="igStoryProof" class="block text-sm font-medium text-gray-700 mb-1">
+          Bukti Post Flyer di IG Story <span class="text-red-500">*</span>
+        </label>
+        <input
+          type="file"
+          id="igStoryProof"
+          name="ig_story_proof"
+          accept=".jpg,.jpeg,.png,.pdf"
+          required
+          class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent bg-white"
+        />
+        <p class="text-xs text-gray-500 mt-1">Screenshot IG Story Anda yang menampilkan flyer pelatihan ADTC. Format: JPG, JPEG, PNG, PDF. Maksimal 5MB.</p>
+      </div>
+
+      <!-- Bukti share ke 3 grup WhatsApp -->
+      <div>
+        <label for="waShareProof" class="block text-sm font-medium text-gray-700 mb-1">
+          Bukti Share ke 3 Grup WhatsApp <span class="text-red-500">*</span>
+        </label>
+        <input
+          type="file"
+          id="waShareProof"
+          name="wa_share_proof"
+          accept=".jpg,.jpeg,.png,.pdf"
+          required
+          class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent bg-white"
+        />
+        <p class="text-xs text-gray-500 mt-1">Screenshot chat dari minimal 3 grup WhatsApp tempat Anda membagikan flyer. Format: JPG, JPEG, PNG, PDF. Maksimal 5MB.</p>
+      </div>
+
+      <!-- Link komentar di postingan IG adtc_uad -->
+      <div>
+        <label for="postCommentUrl" class="block text-sm font-medium text-gray-700 mb-1">
+          Link Komentar di Postingan IG <a href="https://instagram.com/adtc_uad" target="_blank" rel="noopener noreferrer" class="text-brand-500 hover:underline">adtc_uad</a> <span class="text-red-500">*</span>
+        </label>
+        <input
+          type="url"
+          id="postCommentUrl"
+          name="post_comment_url"
+          value="<%= typeof formData !== 'undefined' && formData.post_comment_url ? formData.post_comment_url : '' %>"
+          required
+          placeholder="https://www.instagram.com/p/..."
+          class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+        />
+        <p class="text-xs text-gray-500 mt-1">Komentari salah satu postingan <strong>adtc_uad</strong> di Instagram, lalu tempelkan link komentar Anda.</p>
+      </div>
+    </div>
+    <% } %>
+
     <!-- Submit Button -->
     <div class="pt-2">
       <button

@@ -48,6 +48,9 @@ const Registration = {
       identity_number,
       identity_card_proof,
       social_proof,
+      ig_story_proof,
+      wa_share_proof,
+      post_comment_url,
       final_price
     } = data
 
@@ -101,6 +104,24 @@ const Registration = {
       optionalUpdates.push([
         'UPDATE registrations SET social_proof = ? WHERE id = ?',
         [social_proof, insertId]
+      ])
+    }
+    if (ig_story_proof) {
+      optionalUpdates.push([
+        'UPDATE registrations SET ig_story_proof = ? WHERE id = ?',
+        [ig_story_proof, insertId]
+      ])
+    }
+    if (wa_share_proof) {
+      optionalUpdates.push([
+        'UPDATE registrations SET wa_share_proof = ? WHERE id = ?',
+        [wa_share_proof, insertId]
+      ])
+    }
+    if (post_comment_url) {
+      optionalUpdates.push([
+        'UPDATE registrations SET post_comment_url = ? WHERE id = ?',
+        [post_comment_url, insertId]
       ])
     }
 

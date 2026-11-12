@@ -64,6 +64,18 @@
     ? '/' + registration.identity_card_proof.replace(/\\/g, '/')
     : null;
 
+  const socialProofUrl = registration.social_proof
+    ? '/' + registration.social_proof.replace(/\\/g, '/')
+    : null;
+
+  const igStoryProofUrl = registration.ig_story_proof
+    ? '/' + registration.ig_story_proof.replace(/\\/g, '/')
+    : null;
+
+  const waShareProofUrl = registration.wa_share_proof
+    ? '/' + registration.wa_share_proof.replace(/\\/g, '/')
+    : null;
+
   const paymentProofUrl = registration.payment_proof
     ? '/' + registration.payment_proof.replace(/\\/g, '/')
     : null;
@@ -202,6 +214,56 @@
       <% } %>
     </div>
   </div>
+
+  <!-- Bukti Promosi & Sosial — hanya tampil bila ada data -->
+  <% if (socialProofUrl || igStoryProofUrl || waShareProofUrl || registration.post_comment_url) { %>
+  <div class="bg-white rounded-xl border border-gray-200 shadow-sm mb-6 overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-100">
+      <h2 class="text-base font-semibold text-gray-800">Bukti Promosi & Sosial</h2>
+    </div>
+    <div class="px-6 py-5 space-y-5">
+
+      <% if (registration.social_proof) { %>
+      <div>
+        <p class="text-sm font-semibold text-gray-700 mb-2">Bukti Follow adtc_uad</p>
+        <a href="<%= socialProofUrl %>" target="_blank" rel="noopener noreferrer" class="inline-block">
+          <img src="<%= socialProofUrl %>" alt="Bukti follow adtc_uad" class="max-w-xs rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow" />
+        </a>
+      </div>
+      <% } %>
+
+      <% if (registration.ig_story_proof) { %>
+      <div>
+        <p class="text-sm font-semibold text-gray-700 mb-2">Bukti Post Flyer di IG Story</p>
+        <a href="<%= igStoryProofUrl %>" target="_blank" rel="noopener noreferrer" class="inline-block">
+          <img src="<%= igStoryProofUrl %>" alt="Bukti post flyer di IG story" class="max-w-xs rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow" />
+        </a>
+      </div>
+      <% } %>
+
+      <% if (registration.wa_share_proof) { %>
+      <div>
+        <p class="text-sm font-semibold text-gray-700 mb-2">Bukti Share ke 3 Grup WhatsApp</p>
+        <a href="<%= waShareProofUrl %>" target="_blank" rel="noopener noreferrer" class="inline-block">
+          <img src="<%= waShareProofUrl %>" alt="Bukti share ke grup WhatsApp" class="max-w-xs rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow" />
+        </a>
+      </div>
+      <% } %>
+
+      <% if (registration.post_comment_url) { %>
+      <div>
+        <p class="text-sm font-semibold text-gray-700 mb-2">Link Komentar di Postingan IG</p>
+        <a href="<%= registration.post_comment_url %>" target="_blank" rel="noopener noreferrer"
+           class="text-sm text-brand-500 hover:underline break-all">
+          <%= registration.post_comment_url %>
+          <span class="text-gray-400 font-normal">&#8599;</span>
+        </a>
+      </div>
+      <% } %>
+
+    </div>
+  </div>
+  <% } %>
 
   <!-- Rejection reason (if rejected) -->
   <% if (registration.status === 'rejected' && registration.rejection_reason) { %>

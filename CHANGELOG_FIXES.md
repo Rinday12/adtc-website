@@ -1,3 +1,21 @@
+### Fix #48 — Syarat Promosi untuk Kategori Gratis: Bukti IG Story, WA Share, & Link Komentar
+Tanggal: 2026-11-12
+File: migrations/2026-11-12_add_free_tier_promo_proofs_to_registrations.sql, middleware/upload.js, routes/publicRoutes.js, models/Registration.js, controllers/registrationController.js, views/registration/form.ejs, views/admin/registration-detail.ejs
+Masalah: Owner ADTC ingin peserta kategori gratis mengisi syarat promosi sebelum daftar: (1) bukti post flyer di IG story, (2) bukti share ke 3 grup WhatsApp, (3) link komentar di postingan IG adtc_uad.
+Akar: Tidak ada field dan validasi untuk 3 syarat ini di form pendaftaran maupun skema DB — `registrations` tidak punya kolom untuk menyimpannya.
+Fix:
+  - Migration: tambah 3 kolom NULL-able di `registrations` (ig_story_proof, wa_share_proof, post_comment_url).
+  - `middleware/upload.js`: tambah routing direktori `uploads/ig_story_proofs/` dan `uploads/wa_share_proofs/`.
+  - `routes/publicRoutes.js`: tambahkan `ig_story_proof` dan `wa_share_proof` di `upload.fields()`.
+  - `models/Registration.create()`: simpan 3 field baru sebagai optional updates (pola sama dengan social_proof).
+  - `validateRegistrationInput()`: bila `training.is_free_tier`, ketiganya wajib (file + URL); kategori berbayar tidak terpengaruh.
+  - `form.ejs`: section "Syarat Promosi" hanya tampil bila `training.is_free_tier`; 3 input (2 file + 1 URL, semua `required`).
+  - `registration-detail.ejs` admin: section baru "Bukti Promosi & Sosial" menampilkan social_proof, ig_story_proof, wa_share_proof (gambar) + post_comment_url (link).
+Verifikasi: Semua 127 test lulus (npx jest, 0 gagal).
+Pelajaran: Pola optional updates di Registration.create (swallow error bila kolom belum ada di skema lama) membuat deploy migration bisa berjalan di urutan mana pun tanpa membatalkan pendaftaran yang sudah live.
+Log Keyword: fix-48 free-tier-promo-requirements
+Deploy: Migration SQL manual di cPanel → phpMyAdmin; restart app setelah kode commit.
+
 ### Fix #47 — Tambah Kategori "Pelatihan gratis + berbayar" (gratis + paket sertifikat)
 Tanggal: 2026-11-12
 File: migrations/2026-11-12_add_gratis_berbayar_category.sql
