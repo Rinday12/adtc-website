@@ -50,6 +50,9 @@ CREATE TABLE IF NOT EXISTS registrations (
   category            ENUM('umum', 'mahasiswa_uad', 'karyawan_uad') NOT NULL,
   identity_number     VARCHAR(50),                           -- NIM (mahasiswa UAD) atau NIY (karyawan UAD)
   identity_card_proof VARCHAR(500),                          -- Path file KTM/ID Card yang diunggah
+  institution         VARCHAR(255),                          -- Asal instansi peserta (opsional)
+  social_proof        VARCHAR(500),                          -- Path file bukti follow Instagram adtc_uad (opsional)
+  payment_option      ENUM('gratis','sertifikat') NULL,       -- Pilihan pembayaran kategori gratis berbayar-paket (categories.cert_available = 1); NULL = kategori berbayar
   final_price         DECIMAL(10, 2)  NOT NULL,              -- Harga final dihitung server berdasarkan kategori
   payment_proof       VARCHAR(500),                          -- Path file bukti pembayaran (opsional)
   reference_code      VARCHAR(50)   NOT NULL UNIQUE,         -- Kode referensi unik (ADTC-YYYY-NNNN)

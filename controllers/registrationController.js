@@ -17,6 +17,19 @@ function calculateFinalPrice(category, training) {
 }
 
 /**
+ * Pilih opsi label "jenis pembayaran" untuk kategori gratis berbayar-paket
+ * (pemanfaatan env CERT_FEE, bukan form). Dipakai di getForm & submitForm
+ * agar view dapat menampilkan radio "gratis / dengan sertifikat".
+ */
+function freeTierWithCertOption(training) {
+  if (!training || !training.is_free_tier) return false
+  // cert_available: 1/true → pakai-paket (bisa pilih sertifikat),
+  // 0/false → kategori gratis murni. Kolom baru: DB lama (tanpa kolom)
+  // → undefined → anggap pakai-paket agar perilaku lama tidak berubah.
+  return training.cert_available !== false && training.cert_available !== 0
+}
+
+/**
  * Hitung total tagihan peserta berdasarkan kategori + pilihan pembayaran.
  *
  * - Kategori BERPAYAR → harga dari kategori (lihat calculateFinalPrice).
@@ -33,8 +46,8 @@ function calculateFinalPrice(category, training) {
  */
 function resolveFinalPrice(training, body, certFee) {
   if (training && training.is_free_tier) {
-    // Kategori gratis murni (cert_available false/0) → selalu Rp 0.
-    if (training.cert_available === false || training.cert_available === 0) {
+    if (!freeTierWithCertOption(training)) {
+      // Kategori gratis murni (cert_available false/0) → selalu Rp 0.
       return 0
     }
     if (body && body.payment_option === 'sertifikat') {
@@ -64,7 +77,31 @@ function isTrainingClosed(training) {
   return !!d && d < new Date()
 }
 
-function validateRegistrationInput(body, files) {
+/**
+ * Kategori peserta yang diizinkan per kategori training:
+ *   - Gratis / Gratis + berbayar (is_free_tier)      → umum + mahasiswa_uad
+ *   - "Pelatihan Sertifikasi" (berbayar)               → umum + mahasiswa_uad + karyawan_uad
+ *   - In-house training                                  → umum saja
+ *   - Kategori lain (mis. "Konsultan")                  → umum saja
+ * Dipakai untuk membatasi opsi select form & memvalidasi input server-side.
+ */
+function allowedCategories(training) {
+  if (!training) return ['umum', 'mahasiswa_uad', 'karyawan_uad']
+  if (training.is_free_tier) return ['umum', 'mahasiswa_uad']
+  if (training.category === 'Pelatihan Sertifikasi')
+    return ['umum', 'mahasiswa_uad', 'karyawan_uad']
+  return ['umum']
+}
+
+/**
+ * Kategori UAD (mahasiswa/karyawan) yang mewajibkan NIM/NIY + upload KTM/ID
+ * Card, terlepas dari kategori training.
+ */
+function isUadCategory(category) {
+  return category === 'mahasiswa_uad' || category === 'karyawan_uad'
+}
+
+function validateRegistrationInput(body, files, training) {
   const errors = []
   const { full_name, email, phone, category } = body
 
@@ -74,15 +111,23 @@ function validateRegistrationInput(body, files) {
     errors.push('Format email tidak valid.')
   if (!phone || phone.replace(/\D/g, '').length < 10)
     errors.push('Nomor telepon minimal 10 digit.')
-  if (!['umum', 'mahasiswa_uad', 'karyawan_uad'].includes(category))
-    errors.push('Kategori peserta tidak valid.')
 
-  if (category === 'mahasiswa_uad' || category === 'karyawan_uad') {
+  const allowed = allowedCategories(training)
+  if (!allowed.includes(category))
+    errors.push('Kategori peserta tidak valid untuk kategori pelatihan ini.')
+
+  if (isUadCategory(category)) {
     if (!body.identity_number || body.identity_number.trim().length < 5)
       errors.push('NIM/NIY wajib diisi untuk kategori UAD.')
     if (!files?.identity_card_proof?.[0])
       errors.push('File KTM/ID Card wajib diupload untuk kategori UAD.')
   }
+
+  // Field baru — wajib untuk semua kategori
+  if (!body.institution || !body.institution.trim())
+    errors.push('Asal instansi wajib diisi.')
+  if (!files?.social_proof?.[0])
+    errors.push('Bukti follow akun adtc_uad wajib diupload.')
 
   return { valid: errors.length === 0, errors }
 }
@@ -109,6 +154,7 @@ const registrationController = {
 
     res.render('registration/form', {
       training,
+      allowedCategories: allowedCategories(training),
       title: `Daftar - ${training.title}`,
       errors: [],
       formData: {},
@@ -132,6 +178,7 @@ const registrationController = {
 
       // Konteks form untuk render ulang saat error (tier gratis → pilih bayar)
       const formCtx = {
+        allowedCategories: allowedCategories(training),
         certFee: Number(process.env.CERT_FEE || 0),
         fmt: new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 })
       }
@@ -148,7 +195,7 @@ const registrationController = {
         })
       }
 
-      const { valid, errors } = validateRegistrationInput(req.body, req.files)
+      const { valid, errors } = validateRegistrationInput(req.body, req.files, training)
       if (!valid) {
         return res.render('registration/form', {
           training,
@@ -177,6 +224,11 @@ const registrationController = {
       const certFee = Number(process.env.CERT_FEE || 0)
       const final_price = resolveFinalPrice(training, req.body, certFee)
       const identity_card_proof = req.files?.identity_card_proof?.[0]?.path || null
+      const social_proof = req.files?.social_proof?.[0]?.path || null
+      const institution = req.body.institution?.trim() || null
+      // Simpan pilihan pembayaran hanya untuk tier gratis yang memakai paket
+      // (sertifikat / gratis murni); kategori berbayar mengabaikan field ini.
+      const payment_option = freeTierWithCertOption(training) ? (req.body.payment_option || 'gratis') : null
 
       console.log('[Register] Pre-insert data:', {
         training_id: training.id,
@@ -184,8 +236,11 @@ const registrationController = {
         email: req.body.email.trim().toLowerCase(),
         phone: req.body.phone.trim(),
         category: req.body.category,
+        institution,
+        payment_option,
         final_price,
-        identity_card_proof
+        identity_card_proof,
+        social_proof
       })
 
       // Validate training exists and has required fields
@@ -197,24 +252,17 @@ const registrationController = {
       // guard terakhir untuk edge case (harusnya tidak terjadi).
       const safeFinalPrice = (typeof final_price === 'number' && !isNaN(final_price)) ? final_price : 0
 
-      console.log('[Register] Attempting to insert with data:', {
-        training_id: training.id,
-        full_name: req.body.full_name.trim(),
-        email: req.body.email.trim().toLowerCase(),
-        phone: req.body.phone.trim(),
-        category: req.body.category,
-        final_price: safeFinalPrice,
-        identity_card_proof
-      })
-
       const { accessToken } = await Registration.create({
         training_id:         training.id,
         full_name:           req.body.full_name.trim(),
         email:               req.body.email.trim().toLowerCase(),
         phone:               req.body.phone.trim(),
         category:            req.body.category,
+        institution,
+        payment_option,
         identity_number:     req.body.identity_number?.trim() || null,
         identity_card_proof,
+        social_proof,
         final_price: safeFinalPrice
       })
 
@@ -276,4 +324,7 @@ const registrationController = {
 module.exports = registrationController
 module.exports.calculateFinalPrice = calculateFinalPrice
 module.exports.resolveFinalPrice = resolveFinalPrice
+module.exports.allowedCategories = allowedCategories
+module.exports.isUadCategory = isUadCategory
+module.exports.freeTierWithCertOption = freeTierWithCertOption
 module.exports.validateRegistrationInput = validateRegistrationInput

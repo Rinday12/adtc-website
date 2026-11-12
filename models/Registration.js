@@ -43,16 +43,20 @@ const Registration = {
       email,
       phone,
       category,
+      institution,
+      payment_option,
       identity_number,
       identity_card_proof,
+      social_proof,
       final_price
     } = data
 
     const referenceCode = generateReferenceCode()
     const accessToken   = generateAccessToken()
 
-    // INSERT tanpa identity_card_proof — kolom ini ditangani terpisah agar
-    // kompatibel dengan skema DB yang tidak punya kolom tersebut.
+    // INSERT tanpa identity_card_proof, social_proof, institution,
+    // payment_option — kolom-kolom opsional ini ditangani terpisah agar
+    // kompatibel dengan skema DB yang belum punya kolom tersebut (DB lama).
     const [result] = await db.execute(
       `INSERT INTO registrations
         (training_id, full_name, email, phone, category,
@@ -74,17 +78,40 @@ const Registration = {
 
     const insertId = result.insertId
 
-    // UPDATE terpisah untuk identity_card_proof — error di-swallow agar
-    // pendaftaran tetap sukses jika kolom tidak ada di skema DB.
+    const optionalUpdates = []
+    if (institution) {
+      optionalUpdates.push([
+        'UPDATE registrations SET institution = ? WHERE id = ?',
+        [institution, insertId]
+      ])
+    }
+    if (payment_option && ['gratis', 'sertifikat'].includes(payment_option)) {
+      optionalUpdates.push([
+        'UPDATE registrations SET payment_option = ? WHERE id = ?',
+        [payment_option, insertId]
+      ])
+    }
     if (identity_card_proof) {
+      optionalUpdates.push([
+        'UPDATE registrations SET identity_card_proof = ? WHERE id = ?',
+        [identity_card_proof, insertId]
+      ])
+    }
+    if (social_proof) {
+      optionalUpdates.push([
+        'UPDATE registrations SET social_proof = ? WHERE id = ?',
+        [social_proof, insertId]
+      ])
+    }
+
+    // UPDATE terpisah per kolom opsional — error di-swallow agar pendaftaran
+    // tetap sukses bila kolom belum ada di skema DB (migration belum dijalankan).
+    for (const [sql, params] of optionalUpdates) {
       try {
-        await db.execute(
-          'UPDATE registrations SET identity_card_proof = ? WHERE id = ?',
-          [identity_card_proof, insertId]
-        )
+        await db.execute(sql, params)
       } catch (err) {
-        console.error('[Registration.create] identity_card_proof update gagal:', err.message)
-        // Tidak membatalkan pendaftaran — data sudah tersimpan.
+        console.error('[Registration.create] optional column update gagal:', err.message)
+        // Tidak membatalkan pendaftaran — data inti sudah tersimpan.
       }
     }
 

@@ -30,10 +30,13 @@ router.get('/trainings/:slug', publicController.getTrainingDetail)
 // Form pendaftaran
 router.get('/trainings/:slug/register', registrationController.getForm)
 
-// Submit pendaftaran (dengan upload file opsional)
+// Submit pendaftaran (dengan upload file KTM/ID Card + bukti follow adtc_uad)
 router.post(
   '/trainings/:slug/register',
-  upload.fields([{ name: 'identity_card_proof', maxCount: 1 }]),
+  upload.fields([
+    { name: 'identity_card_proof', maxCount: 1 },
+    { name: 'social_proof', maxCount: 1 }
+  ]),
   registrationController.submitForm
 )
 

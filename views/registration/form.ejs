@@ -1,5 +1,19 @@
 <%- include('../layout/header', { title: 'Pendaftaran - ' + training.title }) %>
 
+<%
+  // Kategori peserta yang diizinkan untuk kategori training ini
+  // (ditentukan server di registrationController.allowedCategories)
+  const allowedCats = (typeof allowedCategories !== 'undefined' && allowedCategories.length)
+    ? allowedCategories
+    : ['umum', 'mahasiswa_uad', 'karyawan_uad']
+  const catLabels = {
+    'umum': 'Umum',
+    'mahasiswa_uad': 'Mahasiswa UAD',
+    'karyawan_uad': 'Karyawan UAD'
+  }
+  const showUadFields = allowedCats.includes('mahasiswa_uad') || allowedCats.includes('karyawan_uad')
+%>
+
 <div class="max-w-2xl mx-auto">
   <!-- Page Header -->
   <div class="mb-6">
@@ -76,7 +90,24 @@
       <p class="text-xs text-gray-500 mt-1">Minimal 10 digit.</p>
     </div>
 
-    <!-- Category -->
+    <!-- Asal Instansi (field baru, wajib untuk semua kategori) -->
+    <div>
+      <label for="institution" class="block text-sm font-medium text-gray-700 mb-1">
+        Asal Instansi <span class="text-red-500">*</span>
+      </label>
+      <input
+        type="text"
+        id="institution"
+        name="institution"
+        value="<%= typeof formData !== 'undefined' && formData.institution ? formData.institution : '' %>"
+        required
+        placeholder="Contoh: UAD, SMK N 1 Yogyakarta, PT Sinar Abadi, dsb."
+        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+      />
+      <p class="text-xs text-gray-500 mt-1">Instansi / asal Anda (sekolah, kampus, perusahaan, dll.).</p>
+    </div>
+
+    <!-- Category — opsi dibatasi per kategori training (dihitung server) -->
     <div>
       <label for="categorySelect" class="block text-sm font-medium text-gray-700 mb-1">
         Kategori Peserta <span class="text-red-500">*</span>
@@ -88,9 +119,9 @@
         class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent bg-white"
       >
         <option value="" disabled <%= (typeof formData === 'undefined' || !formData.category) ? 'selected' : '' %>>-- Pilih kategori --</option>
-        <option value="umum" <%= (typeof formData !== 'undefined' && formData.category === 'umum') ? 'selected' : '' %>>Umum</option>
-        <option value="mahasiswa_uad" <%= (typeof formData !== 'undefined' && formData.category === 'mahasiswa_uad') ? 'selected' : '' %>>Mahasiswa UAD</option>
-        <option value="karyawan_uad" <%= (typeof formData !== 'undefined' && formData.category === 'karyawan_uad') ? 'selected' : '' %>>Karyawan UAD</option>
+        <% allowedCats.forEach(function(c) { %>
+        <option value="<%= c %>" <%= (typeof formData !== 'undefined' && formData.category === c) ? 'selected' : '' %>><%= catLabels[c] %></option>
+        <% }) %>
       </select>
       <p class="text-xs text-gray-500 mt-1">Kategori menentukan harga pendaftaran yang berlaku.</p>
     </div>
@@ -143,6 +174,7 @@
     </div>
     <% } %>
 
+    <% if (showUadFields) { %>
     <!-- UAD-specific Fields (hidden by default, shown via JS) -->
     <div id="uadFields" class="hidden space-y-4 border-t border-gray-200 pt-4">
       <p class="text-sm font-medium text-gray-700">Data Identitas UAD</p>
@@ -177,6 +209,23 @@
         />
         <p class="text-xs text-gray-500 mt-1">Format yang diterima: JPG, JPEG, PNG, PDF. Ukuran maksimal 5MB.</p>
       </div>
+    </div>
+    <% } %>
+
+    <!-- Bukti follow adtc_uad (field baru, wajib untuk semua kategori) -->
+    <div>
+      <label for="socialProof" class="block text-sm font-medium text-gray-700 mb-1">
+        Bukti Follow <a href="https://instagram.com/adtc_uad" target="_blank" rel="noopener noreferrer" class="text-brand-500 hover:underline">adtc_uad</a> <span class="text-red-500">*</span>
+      </label>
+      <input
+        type="file"
+        id="socialProof"
+        name="social_proof"
+        accept=".jpg,.jpeg,.png,.pdf"
+        required
+        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent bg-white"
+      />
+      <p class="text-xs text-gray-500 mt-1">Follow dulu akun <strong>adtc_uad</strong> di Instagram, lalu upload screenshot sebagai bukti. Format: JPG, JPEG, PNG, PDF. Ukuran maksimal 5MB.</p>
     </div>
 
     <!-- Submit Button -->

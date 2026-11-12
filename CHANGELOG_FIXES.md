@@ -1,3 +1,20 @@
+### Fix #46 — Field "Asal Instansi" (wajib) & Bukti Follow adtc_uad (wajib) di Form Pendaftaran
+Tanggal: 2026-11-12
+File: views/registration/form.ejs, controllers/registrationController.js, models/Registration.js, migrations/2026-11-12_add_institution_social_proof_to_registrations.sql, config/schema.sql, middleware/upload.js
+Masalah: Form pendaftaran tidak memuat identitas asal instansi peserta, dan tidak ada bukti follow akun Instagram adtc_uad — keduanya diminta wajib oleh owner.
+Akar: (1) Kolom `institution` dan `social_proof` belum ada di tabel `registrations`; (2) validasi server di `validateRegistrationInput` tidak mengecek dua field ini; (3) `upload.js` belum punya routing direktori khusus untuk file bukti follow Instagram.
+Fix:
+- `migrations/2026-11-12_add_institution_social_proof_to_registrations.sql` (baru): `ALTER TABLE registrations ADD COLUMN institution VARCHAR(255) NULL; ADD COLUMN social_proof VARCHAR(500) NULL;`
+- `config/schema.sql`: kedua kolom ditambahkan ke `CREATE TABLE registrations`.
+- `middleware/upload.js`: `dirs` map ditambahkan entri `social_proof: 'uploads/social_proofs'`.
+- `views/registration/form.ejs`: dua field baru (`institution` input text wajib, `social_proof` file input wajib, placeholder "Contoh: UAD, SMK N 1 Yogyakarta, PT Sinar Abadi") ditambahkan di bawah field telepon & sebelum field kategori.
+- `controllers/registrationController.js` (`validateRegistrationInput`): dua validasi baru — `institution` wajib terisi (bukan string kosong), `files.social_proof[0]` wajib ada.
+- `models/Registration.js` (`create`): `institution` & `social_proof` disimpan via UPDATE optional (pola yang sama dengan `identity_card_proof`) — error di-swallow agar kompatibel dengan DB yang belum punya kolom (migration belum dijalankan).
+- `routes/publicRoutes.js`: `upload.fields` ditambah `social_proof` (maxCount 1).
+Verifikasi: `npm test` → 127/127 lulus (property test `validateRegistrationInput` & `calculateFinalPrice` tidak terganggu, field baru bersifat aditif).  Status: PENDING verifikasi end-to-end (perlu DB aktif; kolom baru di DB harus dijalankan migrasinya di production sebelum form live).
+Pelajaran: Kolom opsional baru di `registrations` selalu ditambahkan dengan pola "INSERT dulu tanpa kolom → UPDATE terpisah dengan try/catch swallow" agar tidak membatalkan pendaftaran di DB yang belum dijalankan migration — konsisten dengan `identity_card_proof`. Jangan menambah kolom baru langsung ke INSERT inti.
+Log Keyword: institution social_proof adtc_uad form pendaftaran
+
 ### Fix #45b — Migration Production: Nonaktifkan Kategori Non-Resmi + Pindahkan Training ke "Pelatihan"
 Tanggal: 2026-10-28
 File: migrations/2026-10-28_deactivate_non_official_categories_prod.sql, migrations/2026-10-28_move_legacy_trainings_to_pelatihan_prod.sql
