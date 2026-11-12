@@ -1,3 +1,16 @@
+### Fix #47 — Tambah Kategori "Pelatihan gratis + berbayar" (gratis + paket sertifikat)
+Tanggal: 2026-11-12
+File: migrations/2026-11-12_add_gratis_berbayar_category.sql
+Masalah: Owner butuh 4 kategori yang berbeda perilaku form pendaftarannya (umum+mahasiswa / umum+mahasiswa_uad+karyawan_uad / umum saja), tapi tabel `categories` di DB hanya punya 1 kategori gratis ("Pelatihan gratis") — tidak ada yang memisahkan "gratis murni" (Rp 0 total) dari "gratis + paket sertifikat berbayar" (Rp 0 atau Rp CERT_FEE).
+Akar: Mekanisme sudah ada di kode (`categories.cert_available` + `allowedCategories()` di registrationController) — `cert_available=0` → gratis murni, `cert_available=1` → bisa pilih paket sertifikat berbayar. Yang kurang hanya baris data DB untuk kategori "Pelatihan gratis + berbayar"; navbar publik & admin mengambil daftar kategori dari tabel `categories` (status='aktif'), jadi baris baru akan otomatis muncul di dropdown navbar tanpa ubah view.
+Fix: Migration baru `migrations/2026-11-12_add_gratis_berbayar_category.sql`:
+- `INSERT IGNORE INTO categories (name='Pelatihan gratis + berbayar', anchor='pelatihan-gratis-berbayar', sort_order=5, is_free_tier=1, cert_available=1, status='aktif')`.
+- `UPDATE categories SET cert_available=0 WHERE anchor='pelatihan-gratis'` — memastikan kategori lama = gratis murni, berbeda perilaku dari kategori baru.
+- Semua idempoten (INSERT IGNORE + UPDATE), aman dijalankan ulang.
+Verifikasi: `npm test` 127/127 lulus (perubahan bersifat data-only, tidak menyentuh kode). Status: PENDING — migration perlu dijalankan di DB (dev & production) sebelum navbar menampilkan kategori baru; verifikasi visual = dropdown "Katalog Pelatihan" di navbar menampilkan 5 item (bukan 4), dan form pendaftaran training berkategori ini menampilkan radio "Gratis / Dengan Sertifikat" + kategori peserta terbatas umum+mahasiswa_uad.
+Pelajaran: Tambah kategori navbar publik = cukup tambah baris di tabel `categories` (status='aktif') — navbar, halaman kategori, dan filter admin semuanya query dari tabel ini, tanpa ubah kode view. Pembeda perilaku gratis (murni vs +paket sertifikat) ditentukan `cert_available`, bukan nama/anchor kategori — nama kategori di DB bebas, cukup flag-nya benar.
+Log Keyword: Pelatihan gratis berbayar cert_available categories navbar dropdown
+
 ### Fix #46 — Field "Asal Instansi" (wajib) & Bukti Follow adtc_uad (wajib) di Form Pendaftaran
 Tanggal: 2026-11-12
 File: views/registration/form.ejs, controllers/registrationController.js, models/Registration.js, migrations/2026-11-12_add_institution_social_proof_to_registrations.sql, config/schema.sql, middleware/upload.js
