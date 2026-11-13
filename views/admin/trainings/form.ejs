@@ -297,7 +297,7 @@
         <% } else { %>
         <p class="font-semibold" id="freeTierBannerTitle">Kategori bertipe gratis — e-sertifikat tersedia</p>
         <p class="mt-1 text-green-700" id="freeTierBannerBody">
-          Peserta memilih: <strong>Rp 0</strong> (ikut + e-sertifikat) atau
+          Peserta memilih: <strong>Rp 0</strong> (ikut tanpa e-sertifikat) atau
           <strong><%= certFeeFmt || 'Rp 75.000' %></strong> (ikut + e-sertifikat + Soft File Materi,
           QnA, Group Discussion, Sertifikat Digital, Info Lowongan, Recording, Networking,
           Diskusi dengan Ahli — diverifikasi admin).
@@ -343,7 +343,7 @@
             } else {
               title.textContent = 'Kategori bertipe gratis — e-sertifikat tersedia'
               body.innerHTML =
-                'Peserta memilih: <strong>Rp 0</strong> (ikut + e-sertifikat) atau ' +
+                'Peserta memilih: <strong>Rp 0</strong> (ikut tanpa e-sertifikat) atau ' +
                 '<strong>' + feeTxt + '</strong> (ikut + e-sertifikat + Soft File Materi, QnA, ' +
                 'Group Discussion, Sertifikat Digital, Info Lowongan, Recording, Networking, ' +
                 'Diskusi dengan Ahli — diverifikasi admin). ' +
@@ -372,7 +372,7 @@
             <span>
               <span class="block text-sm font-medium text-gray-800">Dengan e-Sertifikat</span>
               <span class="block text-xs text-gray-500">
-                Rp 0 = ikut + e-sertifikat ·
+                Rp 0 = ikut tanpa e-sertifikat ·
                 <%= certFeeFmt || 'Rp 75.000' %> = ikut + e-sertifikat + Soft File Materi,
                 QnA, Group Discussion, Sertifikat Digital, Info Lowongan,
                 Recording, Networking, Diskusi dengan Ahli
@@ -388,9 +388,8 @@
             <span>
               <span class="block text-sm font-medium text-gray-800">Tanpa e-Sertifikat</span>
               <span class="block text-xs text-gray-500">
-                Peserta pilih Rp 0 atau
-                <%= certFeeFmt || 'Rp 75.000' %> — fasilitas sama dengan default,
-                e-sertifikat tidak dijamin
+                Peserta selalu Rp 0 — tanpa opsi e-sertifikat,
+                tidak ada yang bisa dibeli
               </span>
             </span>
           </label>
