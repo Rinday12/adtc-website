@@ -150,8 +150,10 @@
     <% } %>
 
     <!-- Payment option — kategori gratis: peserta bisa memilih Rp 0 (ikut + e-sertifikat)
-         atau Paket Lengkap (Rp certFee). Ditampilkan untuk semua is_free_tier. -->
-    <% if (training.is_free_tier && certFee > 0) { %>
+         atau Paket Lengkap (Rp certFee).
+         Ditampilkan hanya saat is_free_tier DAN cert_available !== false
+         (admin bisa set cert_override=0 → tanpa opsi sertifikat). -->
+    <% if (training.is_free_tier && certFee > 0 && training.cert_available !== false) { %>
     <div id="paymentOptionBlock">
       <label class="block text-sm font-medium text-gray-700 mb-1" for="payGratis">
         Jenis Pembayaran <span class="text-red-500">*</span>

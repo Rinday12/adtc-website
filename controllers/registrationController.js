@@ -40,6 +40,11 @@ function freeTierWithCertOption(training) {
  */
 function resolveFinalPrice(training, body, certFee) {
   if (training && training.is_free_tier) {
+    // cert_available === false → admin set cert_override=0 (tanpa opsi sertifikat)
+    // — peserta selalu Rp 0, abaikan body.payment_option.
+    if (training.cert_available === false) {
+      return 0
+    }
     if (body && body.payment_option === 'sertifikat') {
       const fee = Number(certFee)
       // Nilai tak valid (NaN/kosong) atau negatif → anggap 0, jangan tagih negatif
