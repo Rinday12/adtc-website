@@ -72,7 +72,7 @@ async function validateTrainingInput(body) {
   }
 
   validatePriceField(body, 'price_general',     'Harga umum', errors, !freeTier)
-  validatePriceField(body, 'price_student_uad', 'Harga mahasiswa UAD', errors, !freeTier)
+  validatePriceField(body, 'price_student_uad', 'Harga mahasiswa', errors, !freeTier)
   validatePriceField(body, 'price_employee_uad','Harga karyawan UAD', errors, !freeTier)
 
   if (!body.quota || isNaN(parseInt(body.quota, 10)) || parseInt(body.quota, 10) < 1)

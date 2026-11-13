@@ -6,10 +6,13 @@
   const allowedCats = (typeof allowedCategories !== 'undefined' && allowedCategories.length)
     ? allowedCategories
     : ['umum', 'mahasiswa_uad', 'karyawan_uad']
+  // Deduplicate: karyawan_uad hidden — employees who work at UAD use
+  // the same "Mahasiswa/Alumni/Bekerja di UAD" option (submit nilai mahasiswa_uad,
+  // isian NIM/NIY bebas sesuai identitas mereka).
+  const visibleCats = allowedCats.filter(function(c) { return c !== 'karyawan_uad' })
   const catLabels = {
     'umum': 'Umum',
-    'mahasiswa_uad': 'Mahasiswa UAD',
-    'karyawan_uad': 'Karyawan UAD'
+    'mahasiswa_uad': 'Mahasiswa/Alumni/Bekerja di UAD'
   }
   const showUadFields = allowedCats.includes('mahasiswa_uad') || allowedCats.includes('karyawan_uad')
 %>
@@ -104,7 +107,7 @@
         class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent bg-white"
       >
         <option value="" disabled <%= (typeof formData === 'undefined' || !formData.category) ? 'selected' : '' %>>-- Pilih kategori --</option>
-        <% allowedCats.forEach(function(c) { %>
+        <% visibleCats.forEach(function(c) { %>
         <option value="<%= c %>" <%= (typeof formData !== 'undefined' && formData.category === c) ? 'selected' : '' %>><%= catLabels[c] %></option>
         <% }) %>
       </select>
@@ -129,30 +132,26 @@
     </div>
 
     <% if (!training.is_free_tier) { %>
-    <!-- Bukti follow adtc_uad — kategori berbayar, wajib -->
+    <!-- Bukti follow adtc_uad — kategori berbayar/reguler, opsional -->
     <div>
       <label for="socialProof" class="block text-sm font-medium text-gray-700 mb-1">
-        Bukti Follow <a href="https://instagram.com/adtc_uad" target="_blank" rel="noopener noreferrer" class="text-brand-500 hover:underline">adtc_uad</a> <span class="text-red-500">*</span>
+        Bukti Follow <a href="https://instagram.com/adtc_uad" target="_blank" rel="noopener noreferrer" class="text-brand-500 hover:underline">adtc_uad</a>
+        <span class="text-gray-400 font-normal">(opsional)</span>
       </label>
       <input
         type="file"
         id="socialProof"
         name="social_proof"
         accept=".jpg,.jpeg,.png,.pdf"
-        required
         class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent bg-white"
       />
-      <p class="text-xs text-gray-500 mt-1">Follow dulu akun <strong>adtc_uad</strong> di Instagram, lalu upload screenshot sebagai bukti. Format: JPG, JPEG, PNG, PDF. Ukuran maksimal 5MB.</p>
+      <p class="text-xs text-gray-500 mt-1">Opsional — follow akun <strong>adtc_uad</strong> di Instagram, lalu upload screenshot sebagai bukti. Format: JPG, JPEG, PNG, PDF. Ukuran maksimal 5MB.</p>
     </div>
     <% } %>
 
-    <!-- Payment option — kategori gratis yang MEMAKAI paket/sertifikat berbayar
-         (is_free_tier && cert_available). Kategori gratis MURNI
-         (cert_available = 0) tidak menampilkan pilihan apa pun: selalu Rp 0.
-         Bila kategori tak dikenal di tabel categories (DB lama),
-         cert_available tidak ada di object → perlakukan sebagai pakai-paket
-         agar perilaku lama tidak berubah. -->
-    <% if (training.is_free_tier && training.cert_available !== false && certFee > 0) { %>
+    <!-- Payment option — kategori gratis: peserta bisa memilih Rp 0 (ikut + e-sertifikat)
+         atau Paket Lengkap (Rp certFee). Ditampilkan untuk semua is_free_tier. -->
+    <% if (training.is_free_tier && certFee > 0) { %>
     <div id="paymentOptionBlock">
       <label class="block text-sm font-medium text-gray-700 mb-1" for="payGratis">
         Jenis Pembayaran <span class="text-red-500">*</span>
@@ -169,7 +168,7 @@
           />
           <span>
             <span class="block text-sm font-semibold text-gray-800">Gratis</span>
-            <span class="block text-xs text-gray-500">Rp 0 — tanpa sertifikat</span>
+            <span class="block text-xs text-gray-500">Rp 0 — ikut + e-sertifikat</span>
           </span>
         </label>
         <label class="pay-opt flex items-start gap-2 border border-gray-300 bg-white rounded-md px-3 py-2.5 cursor-pointer transition-colors">
@@ -182,15 +181,15 @@
             class="mt-0.5 text-brand-600 focus:ring-brand-500"
           />
           <span>
-            <span class="block text-sm font-semibold text-gray-800">Dengan Sertifikat</span>
-            <span class="block text-xs text-gray-500"><%= fmt.format(certFee) %></span>
+            <span class="block text-sm font-semibold text-gray-800">Paket Lengkap</span>
+            <span class="block text-xs text-gray-500"><%= fmt.format(certFee) %> — Soft File, QnA, Group Discussion, Sertifikat, Info Lowongan, Recording, Networking, Diskusi Ahli</span>
           </span>
         </label>
       </div>
 
       <p class="text-xs text-gray-500 mt-1">
-        Pendaftaran gratis. Pilih <strong>Gratis</strong> untuk Rp 0, atau <strong>Dengan Sertifikat</strong> untuk
-        <%= fmt.format(certFee) %> (dibayar setelah diverifikasi admin).
+        Pendaftaran gratis. Pilih <strong>Gratis</strong> (Rp 0, sudah termasuk e-sertifikat)
+        atau <strong>Paket Lengkap</strong> (<%= fmt.format(certFee) %>) — dibayar setelah diverifikasi admin.
       </p>
 
       <!-- Perbandingan fasilitas: Gratis vs Dengan Sertifikat -->

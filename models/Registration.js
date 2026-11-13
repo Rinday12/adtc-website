@@ -234,14 +234,6 @@ const Registration = {
     return rows
   },
 
-  async countByTraining(trainingId) {
-    const [rows] = await db.execute(
-      `SELECT COUNT(*) AS count FROM registrations WHERE training_id = ? AND status != 'rejected'`,
-      [trainingId]
-    )
-    return parseInt(rows[0]?.count || 0, 10)
-  },
-
   async countByStatus() {
     const [rows] = await db.execute(
       `SELECT status, COUNT(*) AS count FROM registrations GROUP BY status`

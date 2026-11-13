@@ -80,7 +80,6 @@ router.post('/training',        isAuthenticated, upload.single('training_cover')
 router.get('/training/:id/edit',isAuthenticated, (req, res) => res.redirect(`/admin/trainings/${req.params.id}/edit`))
 router.post('/training/:id/update', isAuthenticated, upload.single('training_cover'), adminTrainingController.postUpdate)
 router.post('/training/:id/delete', isAuthenticated, adminTrainingController.postDelete)
-router.get('/training/import',  isAuthenticated, (req, res) => res.redirect('/admin/trainings'))
 router.post('/training/import', isAuthenticated, upload.single('training_excel'), adminTrainingController.postBulkImport)
 
 router.get('/trainings',          isAuthenticated, adminTrainingController.getList)

@@ -259,7 +259,6 @@ const Training = {
   },
 
   /**
-  /**
    * Ambil daftar kategori aktif dari tabel `categories` beserta jumlah
    * training non-postpone per kategori.
    *
@@ -435,5 +434,3 @@ const Training = {
 module.exports = Training
 module.exports.validateTrainingRow = validateTrainingRow
 module.exports.parseTrainingRow = parseTrainingRow
-
-module.exports = Training

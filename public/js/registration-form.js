@@ -44,6 +44,39 @@
   }
 
   /**
+   * Tampilkan/sembunyikan section bukti promo (freeTierProofs) berdasarkan
+   * pilihan jenis pembayaran:
+   *   - "gratis"      → tampilkan (promo wajib untuk dapat slot gratis)
+   *   - "sertifikat"  → sembunyikan & non-kan required (berbayar, tanpa syarat promo)
+   * Form tanpa pilihan pembayaran (gratis murni / berbayar) tidak punya elemen
+   * id="freeTierProofs" sehingga fungsi ini no-op.
+   */
+  function toggleFreeTierProofs() {
+    var block = document.getElementById('freeTierProofs');
+    if (!block) return;
+
+    var radios = document.querySelectorAll('input[name="payment_option"]');
+    var selected = null;
+    radios.forEach(function (r) { if (r.checked) selected = r.value; });
+    // Tanpa radio terpilih (form gratis murni tanpa opsi) → tampilkan saja.
+    var hide = selected === 'sertifikat';
+
+    if (hide) {
+      block.classList.add('hidden');
+      // Hapus required agar browser tidak menahan form tanpa file promo.
+      block.querySelectorAll('input').forEach(function (input) {
+        input.removeAttribute('required');
+      });
+    } else {
+      block.classList.remove('hidden');
+      // Kembalikan required (state awal dari server) untuk pilihan gratis.
+      block.querySelectorAll('input').forEach(function (input) {
+        input.setAttribute('required', 'required');
+      });
+    }
+  }
+
+  /**
    * Highlight the selected payment-option card (Gratis / Dengan Sertifikat).
    * Tailwind di proyek ini (3.3.5) belum punya varian `has-[:checked]`, jadi
    * sorotan dipilih di-toggle manual. Form non-gratis tak punya elemen ini.
@@ -78,7 +111,13 @@
 
     // Highlight payment-option card sesuai pilihan (inisial + setiap ganti)
     togglePaymentOption();
+    toggleFreeTierProofs();
     var payRadios = document.querySelectorAll('input[name="payment_option"]');
-    payRadios.forEach(function (r) { r.addEventListener('change', togglePaymentOption); });
+    payRadios.forEach(function (r) {
+      r.addEventListener('change', function () {
+        togglePaymentOption();
+        toggleFreeTierProofs();
+      });
+    });
   });
 })();

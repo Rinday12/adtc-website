@@ -21,16 +21,6 @@ const Service = {
   },
 
   /**
-   * Ambil hanya layanan aktif, urut sort_order — dipakai halaman kategori publik.
-   */
-  async findAllActive() {
-    const [rows] = await db.execute(
-      "SELECT * FROM services WHERE status = 'aktif' ORDER BY sort_order ASC, name ASC"
-    )
-    return rows
-  },
-
-  /**
    * Ambil layanan aktif untuk satu kategori (anchor kategori di tabel categories).
    * `categoryAnchor` opsional: jika diberikan, hanya layanan milik kategori itu.
    */

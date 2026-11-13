@@ -17,26 +17,20 @@ function calculateFinalPrice(category, training) {
 }
 
 /**
- * Pilih opsi label "jenis pembayaran" untuk kategori gratis berbayar-paket
- * (pemanfaatan env CERT_FEE, bukan form). Dipakai di getForm & submitForm
- * agar view dapat menampilkan radio "gratis / dengan sertifikat".
+ * Kembalikan true bila kategori gratis — semua kategori gratis menampilkan
+ * opsi "gratis / dengan sertifikat" sehingga peserta bisa memilih Rp 0
+ * atau CERT_FEE. Dipakai di getForm & submitForm.
  */
 function freeTierWithCertOption(training) {
   if (!training || !training.is_free_tier) return false
-  // cert_available: 1/true → pakai-paket (bisa pilih sertifikat),
-  // 0/false → kategori gratis murni. Kolom baru: DB lama (tanpa kolom)
-  // → undefined → anggap pakai-paket agar perilaku lama tidak berubah.
-  return training.cert_available !== false && training.cert_available !== 0
+  return true
 }
 
 /**
  * Hitung total tagihan peserta berdasarkan kategori + pilihan pembayaran.
  *
  * - Kategori BERPAYAR → harga dari kategori (lihat calculateFinalPrice).
- * - Kategori GRATIS:
- *     - dengan paket (default; kolom categories.cert_available = 1):
- *       peserta memilih "gratis" (=0) atau "dengan sertifikat" (= CERT_FEE)
- *     - murni / full free (cert_available = 0): selalu 0, pilihan apa pun diabaikan
+ * - Kategori GRATIS: peserta memilih "gratis" (=0) atau "paket lengkap" (= CERT_FEE)
  *
  * Nilai CERT_FEE dibaca dari env, bukan dari form, sehingga angka tidak
  * bisa dimanipulasi client. Flag cert_available juga dari DB — form hanya
@@ -46,10 +40,6 @@ function freeTierWithCertOption(training) {
  */
 function resolveFinalPrice(training, body, certFee) {
   if (training && training.is_free_tier) {
-    if (!freeTierWithCertOption(training)) {
-      // Kategori gratis murni (cert_available false/0) → selalu Rp 0.
-      return 0
-    }
     if (body && body.payment_option === 'sertifikat') {
       const fee = Number(certFee)
       // Nilai tak valid (NaN/kosong) atau negatif → anggap 0, jangan tagih negatif
@@ -88,7 +78,7 @@ function isTrainingClosed(training) {
 function allowedCategories(training) {
   if (!training) return ['umum', 'mahasiswa_uad', 'karyawan_uad']
   if (training.is_free_tier) return ['umum', 'mahasiswa_uad']
-  if (training.category === 'Pelatihan Sertifikasi')
+  if (training.category === 'Sertifikasi' || training.category === 'Pelatihan Sertifikasi' || training.category === 'Pelatihan')
     return ['umum', 'mahasiswa_uad', 'karyawan_uad']
   return ['umum']
 }
@@ -126,13 +116,6 @@ function validateRegistrationInput(body, files, training) {
   // Field baru — wajib untuk semua kategori
   if (!body.institution || !body.institution.trim())
     errors.push('Asal instansi wajib diisi.')
-
-  // social_proof: wajib untuk kategori berbayar, dan untuk kategori gratis
-  // yang memilih "Gratis" (promo). Tidak wajib bila memilih "Dengan
-  // Sertifikat" (form menyembunyikan section Persyaratan).
-  const freeTierPays = training?.is_free_tier && body.payment_option === 'sertifikat'
-  if (!freeTierPays && !files?.social_proof?.[0])
-    errors.push('Bukti follow akun adtc_uad wajib diupload.')
 
   // Persyaratan kategori gratis — wajib khusus is_free_tier,
   // KECUALI peserta memilih "Dengan Sertifikat" (berbayar) — promo

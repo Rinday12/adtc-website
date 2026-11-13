@@ -108,4 +108,4 @@ function metaTags(opts) {
 `
 }
 
-module.exports = { metaTags, jsonLd, BASE, KEYWORDS, DEFAULTS }
+module.exports = { metaTags }

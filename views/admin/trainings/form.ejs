@@ -58,7 +58,7 @@
                 // Label tier: kategori gratis murni (cert_available=0) dan
                 // gratis-dengan-paket dibedakan agar admin tahu konsekuensinya.
                 var freeLabel = !c.is_free_tier ? ''
-                  : (c.cert_available === 0) ? '  (full free — tanpa paket)' : '  (gratis + paket komplit berbayar)'
+                  : (c.cert_available === 0) ? '  (full free — Rp 0 default, opsi Paket Lengkap tersedia)' : '  (gratis + e-sertifikat berbayar)'
               %>
               <option value="<%= c.name %>" data-free="<%= c.is_free_tier ? 1 : 0 %>" data-certavail="<%= c.cert_available === 0 ? 0 : 1 %>" <%= currentCat === c.name ? 'selected' : '' %>>
                 <%= c.name %><%= freeLabel %>
@@ -147,7 +147,9 @@
                 }
                 if (banner) banner.classList.toggle('hidden', !showPaket)
                 if (pureBanner) pureBanner.classList.toggle('hidden', !showPure)
-                if (certWrap) certWrap.classList.toggle('hidden', !(showPaket || showPure))
+                // Section radio override hanya tampil saat kategori pakai paket
+                // (showPaket). Full free (showPure) tidak perlu override.
+                if (certWrap) certWrap.classList.toggle('hidden', !showPaket)
                 setPricesDisabled(showPaket || showPure)
               }
 
@@ -268,25 +270,6 @@
         var bannerPaketNow = selCatNow && selCatNow.is_free_tier && selCatNow.cert_available !== 0
         var bannerPureNow  = selCatNow && selCatNow.is_free_tier && selCatNow.cert_available === 0
       %>
-      <div id="freeTierBanner" class="mb-4 bg-green-50 border border-green-200 rounded-lg px-4 py-3 text-sm text-green-800 <%= bannerPaketNow ? '' : 'hidden' %>">
-        <p class="font-semibold">Kategori bertipe gratis (ikut Rp 0, ada paket komplit berbayar)</p>
-        <p class="mt-1 text-green-700">
-          Peserta tidak dipungut biaya untuk ikut (<strong>Rp 0</strong>), namun boleh
-          membeli paket komplit (sertifikat, materi, dll.) sebesar
-          <strong><%= certFeeFmt || 'Rp 0' %></strong> yang diverifikasi admin.
-          Kolom harga di bawah <strong>dinonaktifkan otomatis</strong> — sistem
-          menyimpannya sebagai 0; yang terpakai adalah tier kategorinya.
-        </p>
-      </div>
-      <div id="freePureBanner" class="mb-4 bg-green-50 border border-green-200 rounded-lg px-4 py-3 text-sm text-green-800 <%= bannerPureNow ? '' : 'hidden' %>">
-        <p class="font-semibold">Kategori FULL FREE (gratis murni)</p>
-        <p class="mt-1 text-green-700">
-          Peserta selalu membayar <strong>Rp 0 total</strong> — form pendaftaran
-          TIDAK menampilkan opsi paket/sertifikat berbayar. Kolom harga di
-          bawah <strong>dinonaktifkan otomatis</strong> dan disimpan sebagai 0.
-        </p>
-      </div>
-
       <%
         // cert_override: pilihan per-training untuk kategori gratis.
         //   default = NULL  → ikut default kategori
@@ -296,35 +279,90 @@
         // Saat edit: training.cert_override adalah 0/1/null (setelah findBySlug
         // sudah dihapus NULL-nya; null berarti default).
         var existingCertOverride = isEdit ? training?.cert_override : undefined
-        // Konversi ke nilai form: null/undefined → 'default', 0 → 'pure', 1 → 'paket'
-        var certOverrideForm = (existingCertOverride === 0) ? 'pure'
-                       : (existingCertOverride === 1) ? 'paket'
-                       : 'default'
+        // Konversi ke nilai form: null/undefined → 'paket' (default ikut kategori),
+        // 0 → 'pure', 1 → 'paket'
+        var certOverrideForm = (existingCertOverride === 0) ? 'pure' : 'paket'
+        // Banner yang dirender server: bila training sudah diset 'pure',
+        // teks banner harus sudah benar sejak load (tanpa perlu JS).
+        var bannerShowPure = bannerPaketNow && certOverrideForm === 'pure'
       %>
-      <div id="certOverrideWrap" class="mb-4 <%= (bannerPaketNow || bannerPureNow) ? '' : 'hidden' %>">
-        <label class="block text-sm font-medium text-gray-700 mb-2">Override e-Sertifikat (kategori gratis)</label>
+      <div id="freeTierBanner" class="mb-4 bg-green-50 border border-green-200 rounded-lg px-4 py-3 text-sm text-green-800 <%= bannerPaketNow ? '' : 'hidden' %>">
+        <% if (bannerShowPure) { %>
+        <p class="font-semibold" id="freeTierBannerTitle">Kategori bertipe gratis — pelatihan ini TANPA e-sertifikat</p>
+        <p class="mt-1 text-green-700" id="freeTierBannerBody">
+          Peserta selalu membayar <strong>Rp 0 total</strong> — form pendaftaran
+          TIDAK menampilkan opsi e-sertifikat. Kolom harga di bawah
+          <strong>dinonaktifkan otomatis</strong> dan disimpan sebagai 0.
+        </p>
+        <% } else { %>
+        <p class="font-semibold" id="freeTierBannerTitle">Kategori bertipe gratis — e-sertifikat tersedia</p>
+        <p class="mt-1 text-green-700" id="freeTierBannerBody">
+          Peserta memilih: <strong>Rp 0</strong> (ikut + e-sertifikat) atau
+          <strong><%= certFeeFmt || 'Rp 75.000' %></strong> (ikut + e-sertifikat + Soft File Materi,
+          QnA, Group Discussion, Sertifikat Digital, Info Lowongan, Recording, Networking,
+          Diskusi dengan Ahli — diverifikasi admin).
+          Kolom harga di bawah <strong>dinonaktifkan otomatis</strong> — sistem
+          menyimpannya sebagai 0; yang terpakai adalah tier kategorinya.
+        </p>
+        <% } %>
+      </div>
+      <div id="freePureBanner" class="mb-4 bg-green-50 border border-green-200 rounded-lg px-4 py-3 text-sm text-green-800 <%= bannerPureNow ? '' : 'hidden' %>">
+        <p class="font-semibold">Kategori FULL FREE (gratis murni)</p>
+        <p class="mt-1 text-green-700">
+          Peserta selalu membayar <strong>Rp 0 total</strong> — form pendaftaran
+          TIDAK menampilkan opsi e-sertifikat berbayar. Kolom harga di
+          bawah <strong>dinonaktifkan otomatis</strong> dan disimpan sebagai 0.
+        </p>
+      </div>
+
+      <!-- Section radio override: hanya tampil untuk kategori gratis yang MEMAKAI
+           paket (bannerPaketNow). Kategori full free (bannerPureNow) tidak perlu
+           override karena sudah pasti gratis tanpa sertifikat. -->
+      <div id="certOverrideWrap" class="mb-4 <%= bannerPaketNow ? '' : 'hidden' %>">
+        <label class="block text-sm font-medium text-gray-700 mb-2">Pilihan e-Sertifikat untuk Pelatihan Ini</label>
         <p class="text-xs text-gray-500 mb-2">
           Pilihan ini berlaku hanya untuk pelatihan ini, bukan seluruh kategori.
-          Default kategori tetap tidak diubah.
+          Default kategori tidak diubah.
         </p>
+        <script>
+        // Update teks banner hijau saat radio "Pilihan e-Sertifikat" berganti,
+        // sehingga admin melihat konsekuensi langsung di banner di atas.
+        document.addEventListener('DOMContentLoaded', function(){
+          var radios = document.querySelectorAll('input[name="cert_override"]')
+          var title  = document.getElementById('freeTierBannerTitle')
+          var body   = document.getElementById('freeTierBannerBody')
+          if (!title || !body || !radios.length) return
+          var feeTxt = '<%= certFeeFmt || 'Rp 0' %>'
+          function updateBanner(val){
+            if (val === 'pure') {
+              title.textContent = 'Kategori bertipe gratis — pelatihan ini TANPA e-sertifikat'
+              body.innerHTML =
+                'Peserta selalu membayar <strong>Rp 0 total</strong> — form pendaftaran ' +
+                'TIDAK menampilkan opsi e-sertifikat. Kolom harga di bawah ' +
+                '<strong>dinonaktifkan otomatis</strong> dan disimpan sebagai 0.'
+            } else {
+              title.textContent = 'Kategori bertipe gratis — e-sertifikat tersedia'
+              body.innerHTML =
+                'Peserta memilih: <strong>Rp 0</strong> (ikut + e-sertifikat) atau ' +
+                '<strong>' + feeTxt + '</strong> (ikut + e-sertifikat + Soft File Materi, QnA, ' +
+                'Group Discussion, Sertifikat Digital, Info Lowongan, Recording, Networking, ' +
+                'Diskusi dengan Ahli — diverifikasi admin). ' +
+                'Kolom harga di bawah <strong>dinonaktifkan otomatis</strong> — sistem ' +
+                'menyimpannya sebagai 0; yang terpakai adalah tier kategorinya.'
+            }
+          }
+          radios.forEach(function(r){
+            r.addEventListener('change', function(){
+              updateBanner(this.value)
+            })
+          })
+          // Sinkronkan dengan nilai yang tercentang saat halaman pertama load (saat edit)
+          for (var i = 0; i < radios.length; i++){
+            if (radios[i].checked) { updateBanner(radios[i].value); break }
+          }
+        })
+        </script>
         <div class="space-y-2">
-          <label class="flex items-start gap-2 cursor-pointer">
-            <input
-              type="radio" name="cert_override" value="default"
-              <%= certOverrideForm === 'default' ? 'checked' : '' %>
-              class="mt-0.5 text-brand-600 focus:ring-brand-500"
-            >
-            <span>
-              <span class="block text-sm font-medium text-gray-800">Ikut default kategori</span>
-              <span class="block text-xs text-gray-500">
-                <% if (bannerPureNow) { %>
-                  Full free — tanpa paket (sesuai setting kategori)
-                <% } else { %>
-                  Paket komplit berbayar tersedia (sesuai setting kategori)
-                <% } %>
-              </span>
-            </span>
-          </label>
           <label class="flex items-start gap-2 cursor-pointer">
             <input
               type="radio" name="cert_override" value="paket"
@@ -332,9 +370,12 @@
               class="mt-0.5 text-brand-600 focus:ring-brand-500"
             >
             <span>
-              <span class="block text-sm font-medium text-gray-800">Dengan paket komplit berbayar</span>
+              <span class="block text-sm font-medium text-gray-800">Dengan e-Sertifikat</span>
               <span class="block text-xs text-gray-500">
-                Peserta bisa pilih "Gratis (Rp 0)" atau "Dengan Sertifikat (<%= certFeeFmt || 'Rp 0' %>)"
+                Rp 0 = ikut + e-sertifikat ·
+                <%= certFeeFmt || 'Rp 75.000' %> = ikut + e-sertifikat + Soft File Materi,
+                QnA, Group Discussion, Sertifikat Digital, Info Lowongan,
+                Recording, Networking, Diskusi dengan Ahli
               </span>
             </span>
           </label>
@@ -345,9 +386,11 @@
               class="mt-0.5 text-brand-600 focus:ring-brand-500"
             >
             <span>
-              <span class="block text-sm font-medium text-gray-800">Full free — tanpa paket</span>
+              <span class="block text-sm font-medium text-gray-800">Tanpa e-Sertifikat</span>
               <span class="block text-xs text-gray-500">
-                Peserta selalu bayar Rp 0, tanpa opsi sertifikat
+                Peserta pilih Rp 0 atau
+                <%= certFeeFmt || 'Rp 75.000' %> — fasilitas sama dengan default,
+                e-sertifikat tidak dijamin
               </span>
             </span>
           </label>
@@ -360,7 +403,7 @@
           <input type="number" id="price_general" name="price_general" value="<%= isEdit ? (training?.price_general || '') : '' %>" min="0" <%= (bannerPaketNow || bannerPureNow) ? 'disabled' : '' %> class="w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500 <%= (bannerPaketNow || bannerPureNow) ? 'bg-gray-50 text-gray-400' : '' %>">
         </div>
         <div data-price-field>
-          <label for="price_student_uad" class="block text-sm font-medium text-gray-700 mb-1">Harga Mahasiswa UAD (Rp) <span class="text-red-500 req-mark">*</span></label>
+          <label for="price_student_uad" class="block text-sm font-medium text-gray-700 mb-1">Harga Mahasiswa (Rp) <span class="text-red-500 req-mark">*</span></label>
           <input type="number" id="price_student_uad" name="price_student_uad" value="<%= isEdit ? (training?.price_student_uad || '') : '' %>" min="0" <%= (bannerPaketNow || bannerPureNow) ? 'disabled' : '' %> class="w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500 <%= (bannerPaketNow || bannerPureNow) ? 'bg-gray-50 text-gray-400' : '' %>">
         </div>
         <div data-price-field>

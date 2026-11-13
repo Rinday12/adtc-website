@@ -183,12 +183,12 @@ const adminCategoryController = {
       }
 
       // Jangan biarkan kategori yang masih dipakai training terhapus tanpa akibat:
-      // training yang bersangkutan di-"move" ke kategori default 'Pelatihan'.
+      // training yang bersangkutan di-"move" ke kategori default 'Sertifikasi'.
       const allTrainings = await Training.findAll({})
       const inUse = allTrainings.filter(t => t.category === category.name)
       if (inUse.length > 0) {
-        const fallback = categories.find(c => c.name === 'Pelatihan' && String(c.id) !== String(req.params.id))
-        await Training.updateManyByCategory(category.name, fallback ? fallback.name : 'Pelatihan')
+        const fallback = categories.find(c => c.name === 'Sertifikasi' && String(c.id) !== String(req.params.id))
+        await Training.updateManyByCategory(category.name, fallback ? fallback.name : 'Sertifikasi')
       }
 
       await Category.delete(req.params.id)

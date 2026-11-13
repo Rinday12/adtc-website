@@ -387,17 +387,41 @@ const adminController = {
         return res.status(404).send('Belum ada peserta terverifikasi.')
       }
 
-      // Enrich dengan training_title (perlu query manual karena findAll tidak JOIN)
+      // Enrich dengan training_title, final_price, dan flag free tier.
+      // payment_option dicoba via kolom opsional — bila migration belum
+      // dijalankan di DB, query fallback tanpa kolom itu agar tidak 500.
       const db = require('../config/db')
-      const [rows] = await db.execute(
-        `SELECT r.id, r.full_name, r.email, r.phone, r.category, r.reference_code,
-                r.certificate_url, r.created_at,
-                t.title AS training_title
-         FROM registrations r
-         JOIN trainings t ON r.training_id = t.id
-         WHERE r.status = 'verified'
-         ORDER BY t.title, r.full_name`
-      )
+      let rows
+      try {
+        const [withOpt] = await db.execute(
+          `SELECT r.id, r.full_name, r.email, r.phone, r.category, r.reference_code,
+                  r.payment_option, r.final_price, r.certificate_url, r.created_at,
+                  t.title AS training_title,
+                  t.category AS training_category,
+                  (SELECT is_free_tier FROM categories c WHERE c.name = t.category LIMIT 1) AS is_free_tier,
+                  (SELECT cert_available FROM categories c WHERE c.name = t.category LIMIT 1) AS cert_available
+           FROM registrations r
+           JOIN trainings t ON r.training_id = t.id
+           WHERE r.status = 'verified'
+           ORDER BY t.title, r.full_name`
+        )
+        rows = withOpt
+      } catch (colErr) {
+        // Kolom payment_option belum ada di DB (migration belum dijalankan)
+        const [withoutOpt] = await db.execute(
+          `SELECT r.id, r.full_name, r.email, r.phone, r.category, r.reference_code,
+                  r.final_price, r.certificate_url, r.created_at,
+                  t.title AS training_title,
+                  t.category AS training_category,
+                  (SELECT is_free_tier FROM categories c WHERE c.name = t.category LIMIT 1) AS is_free_tier,
+                  (SELECT cert_available FROM categories c WHERE c.name = t.category LIMIT 1) AS cert_available
+           FROM registrations r
+           JOIN trainings t ON r.training_id = t.id
+           WHERE r.status = 'verified'
+           ORDER BY t.title, r.full_name`
+        )
+        rows = withoutOpt.map(r => ({ ...r, payment_option: null }))
+      }
 
       if (!rows || rows.length === 0) {
         return res.status(404).send('Belum ada peserta terverifikasi.')
@@ -424,34 +448,72 @@ const adminController = {
       wsSummary['!cols'] = [{ wch: 40 }, { wch: 15 }]
       xlsx.utils.book_append_sheet(wb, wsSummary, 'Ringkasan')
 
-      // One sheet per training category
+      // Helper: label payment option
+      function paymentOptionLabel(opt) {
+        if (!opt) return '-'
+        return opt === 'gratis' ? 'Gratis' : opt === 'sertifikat' ? 'Dengan Sertifikat' : opt
+      }
+
+      // Helper: format harga
+      function formatPrice(val) {
+        if (val === null || val === undefined || val === 0) return 'Rp 0'
+        return 'Rp ' + Number(val).toLocaleString('id-ID')
+      }
+
+      // One sheet per training
       Object.entries(grouped).forEach(([title, members]) => {
         const cleanTitle = title.replace(/[^a-zA-Z0-9áàâãéèêíìîóòôõúùûçñÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ]/g, '_').substring(0, 31)
-        const sheetData = [['No', 'Nama Lengkap', 'Email', 'Telepon', 'Kategori', 'Kode Referensi', 'Tanggal Daftar']]
+
+        // Tentukan apakah training ini gratis-tier dengan pilihan paket
+        const firstRow = members[0]
+        const isFreeTier = firstRow && (firstRow.is_free_tier === 1 || firstRow.is_free_tier === true)
+        const hasCertOption = isFreeTier && (firstRow.cert_available !== 0 && firstRow.cert_available !== false)
+
+        const headers = ['No', 'Nama Lengkap', 'Email', 'Telepon', 'Kategori Peserta', 'Kode Referensi', 'Tanggal Daftar']
+        if (hasCertOption) {
+          headers.push('Pilihan', 'Harga Dibayar')
+        }
+
+        const sheetData = [headers]
         members.forEach((m, i) => {
           const dateStr = m.created_at
             ? new Date(m.created_at).toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' })
             : '-'
-          sheetData.push([
+
+          const categoryLabel = m.category === 'umum' ? 'Umum' : 'Mahasiswa/Alumni/Bekerja di UAD'
+          const row = [
             i + 1,
             m.full_name,
             m.email,
             m.phone,
-            m.category === 'umum' ? 'Umum' : m.category === 'mahasiswa_uad' ? 'Mahasiswa UAD' : 'Karyawan UAD',
+            categoryLabel,
             m.reference_code,
             dateStr
-          ])
+          ]
+
+          // Info detail untuk kategori berbayar (gratis-tier dengan pilihan paket)
+          if (hasCertOption) {
+            row.push(paymentOptionLabel(m.payment_option))
+            row.push(formatPrice(m.final_price))
+          }
+
+          sheetData.push(row)
         })
+
         const ws = xlsx.utils.aoa_to_sheet(sheetData)
-        ws['!cols'] = [
+        const colWidths = [
           { wch: 5 },
           { wch: 30 },
           { wch: 35 },
           { wch: 15 },
-          { wch: 15 },
+          { wch: 18 },
           { wch: 18 },
           { wch: 12 }
         ]
+        if (hasCertOption) {
+          colWidths.push({ wch: 18 }, { wch: 15 })
+        }
+        ws['!cols'] = colWidths
         xlsx.utils.book_append_sheet(wb, ws, cleanTitle)
       })
 

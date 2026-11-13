@@ -59,7 +59,7 @@
           <%= fmt.format(registration.final_price) %>
           <% if (registration.is_free_tier && certFee > 0) { %>
             <span class="text-xs font-normal text-gray-400 block">
-              <%= registration.final_price > 0 ? 'termasuk biaya sertifikat' : 'gratis — tanpa sertifikat' %>
+              <%= registration.final_price > 0 ? 'termasuk biaya paket lengkap' : 'gratis — sudah termasuk e-sertifikat' %>
             </span>
           <% } %>
         </dd>
@@ -154,14 +154,15 @@
     </div>
   </div>
     <% } else { %>
-  <!-- Peserta memilih "Gratis" — tidak ada biaya & tanpa sertifikat -->
+  <!-- Peserta memilih "Gratis" — Rp 0, sudah termasuk e-sertifikat -->
   <div class="bg-gray-50 border border-gray-200 rounded-xl p-5 mb-6">
     <div class="flex items-start gap-3">
       <span class="text-gray-400 text-lg flex-shrink-0 mt-0.5" aria-hidden="true">&#128274;</span>
       <div>
         <p class="text-sm font-semibold text-gray-700">Pendaftaran Gratis</p>
         <p class="text-sm text-gray-600 mt-1">
-          Anda memilih <strong>tanpa biaya</strong> dan <strong>tanpa sertifikat</strong>.
+          Anda memilih <strong>tanpa biaya (Rp 0)</strong> — sudah termasuk e-sertifikat,
+          Soft File Materi, QnA Support, dan Group Discussion.
           Tidak ada pembayaran yang diperlukan — pelatihan tetap Anda ikuti penuh.
         </p>
         <div class="mt-4 bg-white rounded-lg p-4 border border-gray-200">

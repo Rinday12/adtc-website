@@ -32,6 +32,7 @@ const storage = multer.diskStorage({
       social_proof:       'uploads/social_proofs',
       ig_story_proof:     'uploads/ig_story_proofs',
       wa_share_proof:     'uploads/wa_share_proofs',
+      ig_comment_proof:   'uploads/ig_comment_proofs',
       news_image:         'uploads/news_images',
       training_cover:     'uploads/training_covers',
       training_excel:     'uploads/training_imports'

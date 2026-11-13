@@ -114,7 +114,7 @@
                 class="mt-0.5 w-4 h-4 accent-brand-500">
               <span class="text-sm text-gray-700">
                 <span class="font-medium">Full free (gratis murni)</span>
-                <p class="text-xs text-gray-500 mt-0.5">Ikut <strong>Rp 0 total</strong> — TIDAK ada opsi paket komplit / sertifikat.</p>
+                <p class="text-xs text-gray-500 mt-0.5">Ikut Rp 0 — peserta tetap dapat memilih Gratis (Rp 0) atau Paket Lengkap (<%= certFeeFmt || 'Rp 75.000' %>) di form pendaftaran.</p>
               </span>
             </label>
 
@@ -123,8 +123,8 @@
                 <%= currentTier === 'free_pkg' ? 'checked' : '' %>
                 class="mt-0.5 w-4 h-4 accent-brand-500">
               <span class="text-sm text-gray-700">
-                <span class="font-medium">Gratis ikut + paket komplit (<%= certFeeFmt || 'Rp 75.000' %>)</span>
-                <p class="text-xs text-gray-500 mt-0.5">Ikut Rp 0; bila mau sertifikat / materi, peserta membayar <%= certFeeFmt || 'Rp 75.000' %> (diverifikasi admin).</p>
+                <span class="font-medium">Gratis ikut + e-sertifikat (<%= certFeeFmt || 'Rp 75.000' %>)</span>
+                <p class="text-xs text-gray-500 mt-0.5">Ikut Rp 0; bila mau e-sertifikat, peserta membayar <%= certFeeFmt || 'Rp 75.000' %> (diverifikasi admin).</p>
               </span>
             </label>
           </div>
@@ -135,24 +135,60 @@
         <input type="hidden" name="free_pure"   id="free_pure_hidden"   value="off">
 
         <script>
-          // Sinkronkan radio "price_tier" → hidden is_free_tier / free_pure
-          (function(){
-            var radios = document.querySelectorAll('input[name="price_tier"]')
-            var hide = document.getElementById('is_free_tier_hidden')
+          document.addEventListener('DOMContentLoaded', function(){
+            // 1) Sinkronkan radio "price_tier" → hidden is_free_tier / free_pure
+            //    + toggle visibility sub-radio certOptionWrap
+            var radios   = document.querySelectorAll('input[name="price_tier"]')
+            var hide     = document.getElementById('is_free_tier_hidden')
             var freePure = document.getElementById('free_pure_hidden')
+            var certWrap = document.getElementById('certOptionWrap')
             if (!hide || !freePure) return
+
             function sync(){
               for (var i = 0; i < radios.length; i++){
                 if (radios[i].checked){
-                  hide.value     = radios[i].dataset.is_free
-                  freePure.value = radios[i].dataset.free_pure
+                  var isFree = radios[i].dataset.is_free === 'on'
+                  hide.value = isFree ? 'on' : 'off'
+                  // Sub-radio: tampilkan hanya saat free_pkg (gratis + e-sertifikat)
+                  var showSub = isFree && radios[i].value === 'free_pkg'
+                  if (certWrap) certWrap.classList.toggle('hidden', !showSub)
+                  // free_pure: radio utama free_pure → on; paid → off;
+                  // free_pkg → biarkan sub-radio yang atur (dipanggil syncCert)
+                  if (radios[i].value === 'free_pure') freePure.value = 'on'
+                  else if (!isFree)                     freePure.value = 'off'
+                  // free_pkg: jangan overwrite di sini — syncCert() yang urus
                   break
                 }
               }
             }
             radios.forEach(function(r){ r.addEventListener('change', sync) })
-            sync() // nilai awal dari radio yang ter-check saat render
-          })()
+
+            // 2) Sub-radio "cert_opt" → update hidden free_pure
+            //    hanya relevan saat free_pkg tercentang
+            var certRadios = document.querySelectorAll('input[name="cert_opt"]')
+            function syncCert(){
+              // Cek apakah free_pkg sedang aktif
+              var activeTier = null
+              for (var i = 0; i < radios.length; i++){
+                if (radios[i].checked){ activeTier = radios[i]; break }
+              }
+              if (!activeTier || activeTier.value !== 'free_pkg') return
+              for (var j = 0; j < certRadios.length; j++){
+                if (certRadios[j].checked){
+                  // without_cert → free_pure=on (cert_available=0)
+                  // with_cert   → free_pure=off (cert_available=1)
+                  freePure.value = (certRadios[j].value === 'without_cert') ? 'on' : 'off'
+                  break
+                }
+              }
+            }
+            certRadios.forEach(function(r){ r.addEventListener('change', syncCert) })
+
+            // Nilai awal: sync() dulu, lalu syncCert() untuk set free_pure
+            // sesuai sub-radio yang tercentang (EJS render initial checked)
+            sync()
+            syncCert()
+          })
         </script>
 
         <!-- Status (hanya saat edit) -->
@@ -221,6 +257,49 @@
               class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors"
             />
             <p class="mt-1.5 text-xs text-gray-500">Emoji yang tampil di navbar dropdown &amp; hero banner halaman kategori.</p>
+          </div>
+        </div>
+
+        <!-- Sub-radio: hanya muncul saat "free_pkg" tercentang.
+             with_cert  → cert_available=1 (ada opsi e-sertifikat berbayar)
+             without_cert → cert_available=0 (gratis, tanpa opsi sertifikat)
+             Nilai dikirim lewat hidden field cert_opt. -->
+        <div id="certOptionWrap" class="<%= currentTier === 'free_pkg' ? '' : 'hidden' %> space-y-2 rounded-lg border border-green-200 bg-green-50 px-4 py-3">
+          <label class="block text-xs font-semibold text-green-800 uppercase tracking-wide mb-1">Pilihan e-Sertifikat kategori ini</label>
+          <p class="text-xs text-green-700 mb-2">
+            Pilih apakah kategori gratis ini menampilkan opsi e-sertifikat berbayar kepada peserta.
+          </p>
+          <div class="space-y-1.5">
+            <label class="flex items-start gap-2 cursor-pointer">
+              <input
+                type="radio" name="cert_opt" value="with_cert"
+                <%= (currentTier === 'free_pkg' && category && category.cert_available !== 0) ? 'checked' : '' %>
+                class="mt-0.5 w-4 h-4 accent-green-600"
+              >
+              <span class="text-sm text-gray-700">
+                <span class="font-medium">Gratis dengan e-Sertifikat</span>
+                <p class="text-xs text-gray-500 mt-0.5">
+                  Rp 0 = ikut + e-sertifikat.
+                  <%= certFeeFmt || 'Rp 75.000' %> = ikut + e-sertifikat + Soft File Materi, QnA,
+                  Group Discussion, Sertifikat Digital, Info Lowongan, Recording, Networking,
+                  Diskusi dengan Ahli.
+                </p>
+              </span>
+            </label>
+            <label class="flex items-start gap-2 cursor-pointer">
+              <input
+                type="radio" name="cert_opt" value="without_cert"
+                <%= (currentTier === 'free_pkg' && category && category.cert_available === 0) ? 'checked' : '' %>
+                class="mt-0.5 w-4 h-4 accent-green-600"
+              >
+              <span class="text-sm text-gray-700">
+                <span class="font-medium">Tanpa e-Sertifikat</span>
+                <p class="text-xs text-gray-500 mt-0.5">
+                  Peserta pilih Rp 0 atau <%= certFeeFmt || 'Rp 75.000' %> —
+                  fasilitas sama dengan default, e-sertifikat tidak dijamin.
+                </p>
+              </span>
+            </label>
           </div>
         </div>
 

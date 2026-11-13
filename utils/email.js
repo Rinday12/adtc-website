@@ -44,8 +44,6 @@ function createTransporter() {
 
   // Don't verify on startup - verify only when sending (non-blocking)
   return transport
-
-  return transport
 }
 
 const transporter = createTransporter()

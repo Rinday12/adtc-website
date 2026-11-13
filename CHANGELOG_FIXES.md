@@ -1,3 +1,155 @@
+### Fix #58 — Bersihkan dead code: hapus fungsi/method/eksport yang tidak terpakai
+Tanggal: 2026-11-13
+File: models/Registration.js, models/Service.js, models/Training.js, app.js, routes/adminRoutes.js, utils/seo.js, utils/email.js, middleware/upload.js, controllers/adminController.js, controllers/adminCategoryController.js, controllers/adminTrainingController.js, controllers/registrationController.js
+Masalah: Proyek menumpuk method/fungsi/eksport yang tidak lagi dipakai setelah refactor (Fix #35, #48, #47, dll.) — membingungkan maintainer & menambah surface area.
+Akar: Perubahan fitur (hapus tier, ubah label, tambah opsi) tidak diikuti pembersihan kode lama; tiap sesi fokus fitur baru, dead code terakumulasi.
+Fix:
+- `models/Registration.js`: hapus `countByTraining()` (tidak dipanggil di controller/view)
+- `models/Service.js`: hapus `findAllActive()` (hanya `findAllActiveByCategory()` yang dipakai)
+- `models/Training.js`: hapus 3 field unused di select query (2 kolom lama yang sudah tak relevan)
+- `app.js`: hapus `console.log` debug `[MW] Categories loaded:`
+- `routes/adminRoutes.js`: hapus GET `/training/import` (sudah ada `/trainings/import`)
+- `utils/seo.js`: hapus eksport `jsonLd`, `BASE`, `KEYWORDS`, `DEFAULTS` (hanya `metaTags` yang dipakai)
+- `utils/email.js`: hapus `console.log` debug di function kirim email
+- `middleware/upload.js`: hapus komentar dead code
+- `controllers/*`: hapus variabel/fungsi lokal yang tak terpakai
+Verifikasi: grep global memastikan tidak ada referensi ke function yang dihapus. npm test: 130/130 pass (23 property test + 107 unit test). Server startup bersih tanpa error.
+Pelajaran: Tiap selesai refactor fitur besar, jalankan `grep -rn "functionName" --include="*.js" | grep -v "models/\|test"` untuk menemukan caller; bila 0 hasil → hapus. Jangan tunggu sesi khusus "cleanup" — lakukan saat mengubah file terkait.
+Log Keyword: dead code, unused function, countByTraining, findAllActive, cleanup
+
+### Fix #57 — Sederhanakan teks UI: semua kategori gratis kini menampilkan opsi Paket Lengkap
+Tanggal: 2026-11-13
+File: views/trainings/category.ejs, views/trainings/detail.ejs, views/admin/categories/list.ejs, views/admin/categories/form.ejs, views/admin/trainings/form.ejs
+Masalah: Sebelum Fix #52, kategori `is_free_tier=1 & cert_available=0` (full free) ditampilkan dengan label "Full free (Rp 0 total)" dan keterangan "tanpa e-sertifikat" — padahal sejak Fix #52 semua kategori gratis kini memberi opsi Paket Lengkap (certFee) kepada peserta.
+Akar: Label di 5 view masih mengacu semantik lama (full free = benar-benar tanpa opsi apa pun), padahal `freeTierWithCertOption()` kini mengembalikan `true` untuk semua `is_free_tier`.
+Fix:
+- `views/trainings/category.ejs`: hapus branch `cert_available === false`; satu teks intro + badge + card label untuk semua `is_free_tier`
+- `views/trainings/detail.ejs`: hapus branch `isFullFree` banner hijau khusus; semua free tier pakai banner hijau terpadu dengan mention opsi Paket Lengkap
+- `views/admin/categories/list.ejs`: `Full free (Rp 0 total)` → `Full free`; footnote memperjelas peserta tetap bisa pilih Paket Lengkap
+- `views/admin/categories/form.ejs`: radio `free_pure` deskripsi tidak lagi bilang "TIDAK ada opsi e-sertifikat"; kini menyebut opsi Paket Lengkap
+- `views/admin/trainings/form.ejs`: `<option>` label kategori full free: `(full free — tanpa e-sertifikat)` → `(full free — Rp 0 default, opsi Paket Lengkap tersedia)`
+Verifikasi: 23 property test PASS (resolveFinalPrice, calculateFinalPrice, validateRegistrationInput)
+Pelajaran: Setiap perubahan semantik di controller harus di-audit di semua view yang menampilkan label terkait — 5 file terlewat karena perubahan `cert_available` check tidak diikuti perubahan label UI.
+Log Keyword: full-free label, Paket Lengkap, cert_available, free_pure, category.ejs, detail.ejs
+
+### Fix #56 — Tambah sub-radio "dengan/tanpa e-sertifikat" di form kategori saat free_pkg dipilih
+Tanggal: 2026-11-13
+File: views/admin/categories/form.ejs
+Masalah: Form kategori hanya punya 3 radio utama (berbayar / full free / gratis+e-sertifikat).
+Saat pilih "Gratis + e-sertifikat" tidak ada cara untuk menentukan apakah kategori itu
+menampilkan opsi e-sertifikat atau tidak — admin harus edit per training (cert_override).
+Akar: Desain awal memisahkan keputusan per-kategori dan per-training; form kategori
+tidak punya UI untuk memilih default cert_available.
+Fix: Tambahkan div `certOptionWrap` (hidden kecuali free_pkg tercentang) berisi 2 sub-radio
+`cert_opt` (with_cert / without_cert). JS syncCert() menulis hasil ke hidden field `free_pure`
+yang sudah dibaca controller (tanpa perubahan controller). EJS set initial checked dari
+`category.cert_available`.
+Verifikasi: 130/130 test pass. Sub-radio muncul saat free_pkg, tersembunyi saat paid/free_pure.
+Pelajaran: Reuse hidden field `free_pure` yang sudah ada — controller create/update tak perlu
+diubah karena sub-radio sudah menulis ke field yang sama yang dibaca controller.
+
+### Fix #55 — Render banner teks "tanpa e-sertifikat" langsung dari server saat edit training pure
+Tanggal: 2026-11-13
+File: views/admin/trainings/form.ejs
+Masalah: Saat editing training yang sudah tersimpan dengan cert_override=0 ("pure"/tanpa e-sertifikat),
+banner hijau tetap menampilkan teks "tersedia e-sertifikat berbayar" karena teks dirender statis
+server-side tanpa mempertimbangkan nilai cert_override. JS Fix #54 baru memperbaiki banner
+hanya saat radio diklik (event change), sehingga saat halaman pertama load banner salah.
+Akar: Block EJS `existingCertOverride`/`certOverrideForm` dideklarasi di bawah banner
+(baris ~317), sehingga banner (baris ~273) tidak bisa menggunakannya.
+Fix: Pindahkan deklarasi `existingCertOverride` dan `certOverrideForm` ke dalam blok
+`%>` sebelum banner `freeTierBanner`. Tambahkan flag `bannerShowPure = bannerPaketNow && certOverrideForm === 'pure'`.
+Banner kini render teks "TANPA e-sertifikat" langsung dari server saat training pure di-edit.
+Verifikasi: 130/130 test pass. Banner benar sejak load tanpa perlu klik radio.
+Pelajaran: Variabel EJS yang dideklarasi di blok `%>` hanya terlihat di blok `%>` berikutnya,
+bisa dilihat di HTML antara blok tersebut — letakkan deklarasi di blok yang paling atas.
+
+### Fix #54 — Sinkronkan banner hijau dengan radio cert_override di form training
+Tanggal: 2026-11-13
+File: views/admin/trainings/form.ejs
+Masalah: Saat admin memilih radio "Tanpa e-Sertifikat" di section
+certOverrideWrap, banner hijau di atasnya tetap menampilkan teks
+"tersedia e-sertifikat berbayar Rp 75.000" — padahal konsekuensi pilihan
+admin adalah e-sertifikat TIDAK tersedia. Teks yang bertentangan di dua
+bagian form yang sama membingungkan admin.
+Akar: Banner di-render server-side berdasarkan kategori saat ini (belum
+mengetahui pilihan radio), dan tidak ada JS yang meng-update teksnya
+saat radio berganti.
+Fix: Tambahkan id `freeTierBannerTitle` & `freeTierBannerBody` di banner,
+lalu script IIFE di dalam `certOverrideWrap` yang mendengar `change` pada
+radio dan mengganti teks banner: "pure" → "pelatihan ini TANPA
+e-sertifikat, selalu Rp 0 total"; "paket"/default → teks asli. Saat
+halaman load, script juga membaca radio yang tercentang (saat edit)
+untuk sinkronkan banner dari awal.
+Verifikasi: npm test — 130/130 pass. Manual: di /admin/trainings/create,
+pilih kategori "Gratis + e-sertifikat" → banner muncul, klik radio
+"Tanpa e-Sertifikat" → banner berubah menjadi "TANPA e-sertifikat".
+Pelajaran: Bila dua elemen di form sama saling bergantung, tambahkan JS
+sinkron — jangan andalkan render server-side saja untuk teks yang
+bergantung pada pilihan dinamis.
+Log Keyword: cert_override, banner, Fix #54
+Deploy: ✅ LIVE 2026-11-13 (lokal, perlu push ke production)
+
+### Fix #53 — Bersihkan sisa kata "paket" di 3 teks admin yang terlihat
+Tanggal: 2026-11-13
+File: views/admin/trainings/form.ejs, views/admin/categories/list.ejs,
+  controllers/adminController.js
+Masalah: Setelah Fix #52, masih ada 3 tempat yang menyebut "paket" di teks
+yang dilihat admin: (1) banner full-free di form training masih bilang
+"TIDAK menampilkan opsi paket/sertifikat berbayar", (2) legend footer di
+halaman daftar kategori bilang "tanpa opsi paket", (3) header kolom Excel
+export bilang "Paket". Semua ini sisa dari label lama "paket komplit".
+Akar: Fix #52 mengganti label utama di radio form training & form kategori,
+tapi 3 teks pendukung di tempat lain terlewat.
+Fix: Ganti "paket/sertifikat berbayar" → "e-sertifikat berbayar";
+"tanpa opsi paket" → "tanpa opsi e-sertifikat";
+header Excel "Paket" → "Pilihan".
+Verifikasi: npm test — 130/130 pass. Audit agent (2026-11-13): tidak ada
+teks "paket" tersisa di label yang terlihat oleh admin di view apapun.
+Pelajaran: Saat mengganti istilah global, cari semua kemunculan di semua
+file yang menampilkan teks ke user — bukan hanya file utama. Gunakan
+grep global sebelum dan sesudah mengubah.
+Log Keyword: "paket", Fix #52, Fix #53
+Deploy: ✅ LIVE 2026-11-13 (lokal, perlu push ke production)
+
+### Fix #52 — Sederhanakan Radio cert_override di Form Admin + ganti label "paket komplit" → "e-sertifikat"
+Tanggal: 2026-11-13
+File: views/admin/trainings/form.ejs, views/admin/categories/form.ejs,
+  views/admin/categories/list.ejs
+Masalah: Form admin menampilkan 3 radio cert_override: "Ikut default kategori"
+(NULL), "Dengan paket komplit berbayar" (=1), "Full free — tanpa paket" (=0).
+Label "Ikut default kategori" membingungkan — admin tidak tahu default apa.
+Selain itu, section radio tetap muncul untuk kategori full free (cert_available=0)
+padahal tidak ada yang perlu di-override.
+Akar: Desain UI awal memakai 3 opsi untuk membedakan "override ke paket",
+"override ke pure", dan "ikuti kategori". Sekarang kategori full free sudah
+dipisahkan jelas dari kategori gratis+berbayar, jadi cukup 2 radio untuk
+kategori gratis+berbayar, dan section disembunyikan untuk kategori full free.
+Fix: views/admin/trainings/form.ejs, views/admin/categories/form.ejs,
+  views/admin/categories/list.ejs —
+  1. Ganti 3 radio menjadi 2 radio: "Dengan e-Sertifikat" (value="paket")
+     dan "Tanpa e-Sertifikat" (value="pure"). Radio "Ikut default kategori"
+     dihapus (nilai null = 'paket' = default ikut kategori, jadi tercentang
+     otomatis saat create).
+  2. Section #certOverrideWrap hanya tampil saat bannerPaketNow (kategori
+     gratis + e-sertifikat tersedia). Saat bannerPureNow (full free), section
+     disembunyikan — tidak ada yang perlu di-override.
+  3. JS updateBanner(): toggle certWrap diubah dari
+     `!(showPaket || showPure)` menjadi `!showPaket`.
+  4. Ganti semua label "paket komplit" menjadi "e-sertifikat":
+     - form.ejs kategori select: "(gratis + e-sertifikat berbayar)" /
+       "(full free — tanpa e-sertifikat)"
+     - form.ejs banner: "tersedia e-sertifikat berbayar" /
+       "bisa memilih e-sertifikat sebesar Rp 75.000"
+     - categories/form.ejs radio: "Gratis ikut + e-sertifikat"
+     - categories/list.ejs badge & catatan: "Gratis + e-sertifikat"
+Verifikasi: `node jest --testEnvironment node` → 130/130 test pass.
+Pelajaran: Nilai form cert_override yang dikirim: 'paket' → 1, 'pure' → 0,
+kosong → null. Controller sudah meng-handle tanpa perubahan. Nilai 'default'
+tidak lagi dikirim.
+Log Keyword: cert_override, form.ejs admin, 2 radio, hide full free
+Deploy: -
+
 ### Fix #51 — Override e-Sertifikat per-Training di Form Admin (cert_override)
 Tanggal: 2026-11-13
 File: migrations/2026-11-13_add_cert_override_to_trainings.sql, models/Training.js,
