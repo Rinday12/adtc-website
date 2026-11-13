@@ -297,8 +297,8 @@
         <% } else { %>
         <p class="font-semibold" id="freeTierBannerTitle">Kategori bertipe gratis — e-sertifikat tersedia</p>
         <p class="mt-1 text-green-700" id="freeTierBannerBody">
-          Peserta memilih: <strong>Rp 0</strong> (ikut tanpa e-sertifikat) atau
-          <strong><%= certFeeFmt || 'Rp 75.000' %></strong> (ikut + e-sertifikat + Soft File Materi,
+          Peserta memilih: <strong>Rp 0</strong> (ikut dengan e-sertifikat) atau
+          <strong><%= certFeeFmt || 'Rp 75.000' %></strong> (Paket Lengkap: e-sertifikat + Soft File,
           QnA, Group Discussion, Sertifikat Digital, Info Lowongan, Recording, Networking,
           Diskusi dengan Ahli — diverifikasi admin).
           Kolom harga di bawah <strong>dinonaktifkan otomatis</strong> — sistem
@@ -343,8 +343,8 @@
             } else {
               title.textContent = 'Kategori bertipe gratis — e-sertifikat tersedia'
               body.innerHTML =
-                'Peserta memilih: <strong>Rp 0</strong> (ikut tanpa e-sertifikat) atau ' +
-                '<strong>' + feeTxt + '</strong> (ikut + e-sertifikat + Soft File Materi, QnA, ' +
+                'Peserta memilih: <strong>Rp 0</strong> (ikut dengan e-sertifikat) atau ' +
+                '<strong>' + feeTxt + '</strong> (Paket Lengkap: e-sertifikat + Soft File, QnA, ' +
                 'Group Discussion, Sertifikat Digital, Info Lowongan, Recording, Networking, ' +
                 'Diskusi dengan Ahli — diverifikasi admin). ' +
                 'Kolom harga di bawah <strong>dinonaktifkan otomatis</strong> — sistem ' +
@@ -372,10 +372,10 @@
             <span>
               <span class="block text-sm font-medium text-gray-800">Dengan e-Sertifikat</span>
               <span class="block text-xs text-gray-500">
-                Rp 0 = ikut tanpa e-sertifikat ·
-                <%= certFeeFmt || 'Rp 75.000' %> = ikut + e-sertifikat + Soft File Materi,
-                QnA, Group Discussion, Sertifikat Digital, Info Lowongan,
-                Recording, Networking, Diskusi dengan Ahli
+                Rp 0 = ikut dengan e-sertifikat ·
+                <%= certFeeFmt || 'Rp 75.000' %> = Paket Lengkap (e-sertifikat + Soft File, QnA,
+                Group Discussion, Sertifikat Digital, Info Lowongan,
+                Recording, Networking, Diskusi dengan Ahli)
               </span>
             </span>
           </label>
@@ -388,8 +388,8 @@
             <span>
               <span class="block text-sm font-medium text-gray-800">Tanpa e-Sertifikat</span>
               <span class="block text-xs text-gray-500">
-                Peserta selalu Rp 0 — tanpa opsi e-sertifikat,
-                tidak ada yang bisa dibeli
+                Rp 0 = ikut tanpa e-sertifikat —
+                peserta selalu Rp 0, tidak ada opsi Paket Lengkap
               </span>
             </span>
           </label>

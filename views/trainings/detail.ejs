@@ -183,27 +183,18 @@
       <section aria-labelledby="price-heading">
         <h2 id="price-heading" class="text-lg font-semibold text-gray-800 mb-4">Biaya Pendaftaran</h2>
         <% if (isFree) { %>
-          <!-- Kategori gratis: semua harga Rp 0; opsional paket e-sertifikat berbayar
-               (ditampilkan hanya bila training.cert_available !== false). -->
+          <!-- Kategori gratis: semua harga Rp 0, tapi ada opsi Paket Lengkap -->
           <div class="rounded-xl border border-green-200 bg-green-50 px-5 py-4 flex items-start gap-3">
             <span class="text-green-600 text-lg flex-shrink-0" aria-hidden="true">&#9989;</span>
             <div>
               <p class="text-sm font-semibold text-green-800">Pendaftaran Gratis</p>
-              <% if (training.cert_available !== false) { %>
               <p class="text-xs text-green-700 mt-0.5">
-                Ikut pelatihan Rp 0 (tanpa e-sertifikat).
+                Ikut pelatihan Rp 0 — sudah termasuk e-sertifikat, Soft File Materi, QnA, dan Group Discussion.
               </p>
               <% if (certFee > 0) { %>
               <p class="text-xs text-amber-700 mt-2">
                 Opsi tambahan: <strong>Paket Lengkap</strong> <%= fmt.format(certFee) %> —
-                termasuk e-Sertifikat Digital, Soft File Materi, QnA, Group Discussion,
-                Info Lowongan Kerja, Recording, Networking, dan Diskusi dengan Ahli.
-              </p>
-              <% } %>
-              <% } else { %>
-              <p class="text-xs text-green-700 mt-0.5">
-                Ikut pelatihan Rp 0 — termasuk Soft File Materi, QnA, dan Group Discussion.
-                Tanpa opsi e-sertifikat.
+                termasuk Sertifikat Digital, Info Lowongan Kerja, Recording, Networking, dan Diskusi dengan Ahli.
               </p>
               <% } %>
             </div>
