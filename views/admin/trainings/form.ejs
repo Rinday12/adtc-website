@@ -98,6 +98,7 @@
           </div>
 
           <script>
+            document.addEventListener('DOMContentLoaded', function(){
             (function(){
               var sel    = document.getElementById('category')
               var wrap   = document.getElementById('custom-category-wrap')
@@ -166,6 +167,7 @@
               if (freeCb) freeCb.addEventListener('change', updateBanner)
               sync()
             })()
+            })
           </script>
         <% } else { %>
           <!-- Belum ada kategori: input teks langsung (auto-create saat simpan) -->
@@ -199,6 +201,7 @@
             // Cabang input teks: checkbox menyalakan banner varian "paket"
             // (kategori baru dari form training selalu tipe gratis-dengan-paket)
             // + menonaktifkan 3 kolom harga saat gratis.
+            document.addEventListener('DOMContentLoaded', function(){
             (function(){
               var cb = document.getElementById('new_cat_is_free')
               var banner = document.getElementById('freeTierBanner')
@@ -224,6 +227,7 @@
                 }
               })
             })()
+            })
           </script>
         <% } %>
       </div>
