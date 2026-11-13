@@ -40,11 +40,13 @@ function freeTierWithCertOption(training) {
  */
 function resolveFinalPrice(training, body, certFee) {
   if (training && training.is_free_tier) {
-    // cert_available === false → admin set cert_override=0 (tanpa opsi sertifikat)
-    // — peserta selalu Rp 0, abaikan body.payment_option.
+    // cert_available === false → kategori full free (cert_available=0 di DB)
+    // atau kategori tak dikenal → peserta selalu Rp 0, abaikan payment_option.
     if (training.cert_available === false) {
       return 0
     }
+    // Opsi Paket Lengkap (Rp certFee) selalu tersedia saat cert_available=true,
+    // terlepas dari cert_override (0 = Rp 0 tanpa sertifikat, 1 = Rp 0 dengan sertifikat).
     if (body && body.payment_option === 'sertifikat') {
       const fee = Number(certFee)
       // Nilai tak valid (NaN/kosong) atau negatif → anggap 0, jangan tagih negatif

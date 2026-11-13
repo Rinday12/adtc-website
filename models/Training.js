@@ -173,14 +173,17 @@ const Training = {
       rows[0].cert_available = rows[0].cert_available !== 0
       // cert_override (per training, di luar kategori):
       //   NULL = ikut default kategori (tidak mengubah perilaku lama)
-      //   0    = kategori gratis tapi tanpa paket e-sertifikat (full free)
-      //   1    = kategori gratis tapi tetap tawarkan paket e-sertifikat
-      // Konversi ke bolean efektif untuk dipakai view & controller:
-      if (rows[0].cert_override === 0) {
-        rows[0].cert_available = false
-      } else if (rows[0].cert_override === 1) {
+      //   0    = "Tanpa e-Sertifikat": Rp 0 tidak termasuk e-sertifikat,
+      //          tapi opsi Paket Lengkap (Rp certFee) tetap tersedia
+      //   1    = "Dengan e-Sertifikat": Rp 0 sudah termasuk e-sertifikat,
+      //          opsi Paket Lengkap (Rp certFee) tetap tersedia
+      // cert_available tetap mengikuti default kategori — override hanya
+      // mengubah deskripsi/label di view, bukan menyembunyikan opsi berbayar.
+      if (rows[0].cert_override === 1) {
         rows[0].cert_available = true
       }
+      // cert_override=0: tidak mengubah cert_available (opsi Rp 75.000 tetap ada),
+      // hanya label "Rp 0" yang berbeda (tanpa e-sertifikat).
       // Biarkan cert_override tetap ada di object (untuk form admin)
       // tapi hilangkan nilai NULL untuk kebersihan view.
       if (rows[0].cert_override === null || rows[0].cert_override === undefined) {

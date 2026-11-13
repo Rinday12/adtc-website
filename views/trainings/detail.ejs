@@ -128,12 +128,9 @@
       <!-- Fasilitas yang Didapat — selalu tampil, default untuk free tier -->
       <%
         const isOnline = training.exec_mode === 'online'
-        const freeTierFacilities = [
-          'Soft File Materi',
-          'QnA Support',
-          'Group Discussion',
-          'E-Sertifikat'
-        ]
+        const freeTierFacilities = training.cert_override === 0
+          ? ['Soft File Materi', 'QnA Support', 'Group Discussion']
+          : ['Soft File Materi', 'QnA Support', 'Group Discussion', 'E-Sertifikat']
         const fasilitasList = (training.fasilitas || '').split('\n').map(s => s.trim()).filter(Boolean)
         const fasilitasToShow = fasilitasList.length > 0 ? fasilitasList : freeTierFacilities
       %>
@@ -189,7 +186,7 @@
             <div>
               <p class="text-sm font-semibold text-green-800">Pendaftaran Gratis</p>
               <p class="text-xs text-green-700 mt-0.5">
-                Ikut pelatihan Rp 0 — sudah termasuk e-sertifikat, Soft File Materi, QnA, dan Group Discussion.
+                <% if (training.cert_override === 0) { %>Ikut pelatihan Rp 0 — tanpa e-sertifikat, termasuk Soft File Materi, QnA, dan Group Discussion.<% } else { %>Ikut pelatihan Rp 0 — sudah termasuk e-sertifikat, Soft File Materi, QnA, dan Group Discussion.<% } %>
               </p>
               <% if (certFee > 0) { %>
               <p class="text-xs text-amber-700 mt-2">
