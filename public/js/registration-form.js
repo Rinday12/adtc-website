@@ -77,7 +77,7 @@
   }
 
   /**
-   * Highlight the selected payment-option card (Gratis / Dengan Sertifikat).
+   * Highlight the selected payment-option card (Gratis / Paket Lengkap).
    * Tailwind di proyek ini (3.3.5) belum punya varian `has-[:checked]`, jadi
    * sorotan dipilih di-toggle manual. Form non-gratis tak punya elemen ini.
    */
@@ -96,6 +96,20 @@
       card.classList.toggle('border-gray-300', !on);
       card.classList.toggle('bg-white', !on);
     });
+
+    // Update label panel perbandingan fasilitas sesuai pilihan
+    var label = document.getElementById('certComparisonLabel');
+    if (label) {
+      var radios = grid.querySelectorAll('input[name="payment_option"]');
+      var selected = null;
+      radios.forEach(function (r) { if (r.checked) selected = r.value; });
+      if (selected === 'gratis') {
+        // User pilih Gratis → panel kanan menunjukkan opsi yang TIDAK ia pilih
+        label.textContent = label.textContent.replace(/—.*/g, '— Tanpa Sertifikat');
+      } else if (selected === 'sertifikat') {
+        label.textContent = label.textContent.replace(/—.*/g, '— Paket Lengkap');
+      }
+    }
   }
 
   document.addEventListener('DOMContentLoaded', function () {

@@ -215,8 +215,8 @@
               </li>
             </ul>
           </div>
-          <div class="bg-white rounded-lg p-3 border border-brand-300">
-            <p class="text-xs font-bold text-brand-800 mb-2">Rp <%= fmt.format(certFee) %> — Paket Lengkap</p>
+          <div class="bg-white rounded-lg p-3 border border-brand-300" id="certComparisonPanel">
+            <p class="text-xs font-bold text-brand-800 mb-2" id="certComparisonLabel">Rp <%= fmt.format(certFee) %> — Paket Lengkap</p>
             <ul class="space-y-1.5">
               <% ['Soft File Materi','QnA Support','Group Discussion','Sertifikat Digital','Info Lowongan Kerja','Recording Materi','Networking','Diskusi dengan Para Ahli'].forEach(function(benefit) { %>
               <li class="flex items-center gap-1.5 text-xs text-gray-700">
