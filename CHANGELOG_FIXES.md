@@ -1,20 +1,74 @@
-### Fix #48 — Syarat Promosi untuk Kategori Gratis: Bukti IG Story, WA Share, & Link Komentar
-Tanggal: 2026-11-12
-File: migrations/2026-11-12_add_free_tier_promo_proofs_to_registrations.sql, middleware/upload.js, routes/publicRoutes.js, models/Registration.js, controllers/registrationController.js, views/registration/form.ejs, views/admin/registration-detail.ejs
-Masalah: Owner ADTC ingin peserta kategori gratis mengisi syarat promosi sebelum daftar: (1) bukti post flyer di IG story, (2) bukti share ke 3 grup WhatsApp, (3) link komentar di postingan IG adtc_uad.
-Akar: Tidak ada field dan validasi untuk 3 syarat ini di form pendaftaran maupun skema DB — `registrations` tidak punya kolom untuk menyimpannya.
+### Fix #51 — Override e-Sertifikat per-Training di Form Admin (cert_override)
+Tanggal: 2026-11-13
+File: migrations/2026-11-13_add_cert_override_to_trainings.sql, models/Training.js,
+  controllers/adminTrainingController.js, views/admin/trainings/form.ejs,
+  tests/property/resolveFinalPrice.test.js
+Masalah: Admin ingin memilih apakah pelatihan gratis tertentu tawarkan paket
+e-sertifikat berbayar (Rp 75.000) atau murni gratis — tanpa mengubah flag
+kategori pre-existing. Sebelumnya keputusan hanya ada di level kategori
+(`categories.cert_available`), jadi semua training dalam kategori sama perilakunya.
+Akar: Tidak ada kolom per-training untuk override perilaku kategori;
+`categories.cert_available` bersifat global per kategori.
+Fix: Kolom baru `trainings.cert_override` (TINYINT NULL):
+  - NULL = ikut default kategori (perilaku lama tidak berubah)
+  - 0    = kategori gratis tapi TANPA paket e-sertifikat (full free)
+  - 1    = kategori gratis TAPI tetap tawarkan paket e-sertifikat
+  `Training.findBySlug()` sudah meng-convert nilai ini ke `cert_available`
+  efektif sebelum controller/view menerimanya, sehingga `resolveFinalPrice`,
+  `freeTierWithCertOption`, dan semua view publik/admin memakai nilai akhir
+  yang benar tanpa perubahan logika. Form admin menampilkan radio
+  "Override e-Sertifikat" (3 opsi) hanya saat kategori terpilih bertipe gratis.
+Verifikasi: 130/130 test pass (termasuk 3 test case baru di
+  tests/property/resolveFinalPrice.test.js: cert_override=0 → selalu 0,
+  cert_override=1 → sertifikat=CERT_FEE, cert_override=null → ikuti kategori).
+Pelajaran: Pola override per-record (NULL = default) lebih aman daripada
+mengubah nilai parent; flag kategori pre-existing tetap utuh.
+Log Keyword: cert_override, cert_available, findBySlug, full-free,
+  freeTierWithCertOption, resolveFinalPrice, paket sertifikat
+
+---
+
+### Fix #50 — Sembunyikan Persyaratan Promo Saat Pilih "Dengan Sertifikat" di Kategori Gratis
+Tanggal: 2026-11-13
+File: views/registration/form.ejs, public/js/registration-form.js, controllers/registrationController.js
+Masalah: Peserta kategori "Pelatihan gratis + berbayar" yang memilih radio "Dengan Sertifikat" (Rp 75.000) tetap melihat & wajib mengisi form "Persyaratan" (bukti follow, IG story, WA share, komentar IG) — padahal syarat promo hanya relevan untuk jalur gratis.
+Akar: Section Persyaratan di form.ejs di-render secara statis berdasarkan `training.is_free_tier` tanpa mengecek `payment_option`; JS `togglePaymentOption()` hanya highlight card radio, tidak toggle visibilitas section bukti promo.
 Fix:
-  - Migration: tambah 3 kolom NULL-able di `registrations` (ig_story_proof, wa_share_proof, post_comment_url).
-  - `middleware/upload.js`: tambah routing direktori `uploads/ig_story_proofs/` dan `uploads/wa_share_proofs/`.
-  - `routes/publicRoutes.js`: tambahkan `ig_story_proof` dan `wa_share_proof` di `upload.fields()`.
-  - `models/Registration.create()`: simpan 3 field baru sebagai optional updates (pola sama dengan social_proof).
-  - `validateRegistrationInput()`: bila `training.is_free_tier`, ketiganya wajib (file + URL); kategori berbayar tidak terpengaruh.
-  - `form.ejs`: section "Syarat Promosi" hanya tampil bila `training.is_free_tier`; 3 input (2 file + 1 URL, semua `required`).
-  - `registration-detail.ejs` admin: section baru "Bukti Promosi & Sosial" menampilkan social_proof, ig_story_proof, wa_share_proof (gambar) + post_comment_url (link).
+  - `views/registration/form.ejs`: tambahkan `id="freeTierProofs"` pada div section Persyaratan agar bisa di-toggle via JS.
+  - `public/js/registration-form.js`: fungsi baru `toggleFreeTierProofs()` — sembunyikan section & hapus `required` dari input saat radio "sertifikat" dipilih; tampilkan & kembalikan `required` saat radio "gratis" dipilih. Dipanggil saat inisialisasi & setiap `change` pada radio.
+  - `controllers/registrationController.js` `validateRegistrationInput()`: skip validasi 4 bukti promo (social_proof, ig_story_proof, wa_share_proof, ig_comment_proof) bila `body.payment_option === 'sertifikat'` — mencegah bypass form via HTTP manual. Check global `social_proof` juga dikecualikan untuk kasus ini.
+Verifikasi: `npm test` 127/127 lulus. Pelajaran: validasi server-side dan visibilitas form harus sinkron — menyembunyikan di UI tanpa menyesuaikan validasi server = celah bypass.
+Log Keyword: sembunyikan persyaratan promo sertifikat free tier payment_option social_proof ig_story_proof
+Tanggal: 2026-11-13
+File: models/Registration.js, controllers/registrationController.js, views/registration/success.ejs
+Masalah: Peserta kategori gratis (Rp 0) masuk ke status `pending` dan harus menunggu admin approve sebelum upload bukti pembayaran — padahal tidak ada pembayaran yang perlu dilakukan, jadi alurnya tidak masuk akal.
+Akar: `Registration.create()` selalu set status `'pending'` tanpa membedakan final_price; tidak ada logika auto-verify untuk peserta Rp 0.
+Fix:
+  - `models/Registration.create()`: status awal = `Number(final_price) > 0 ? 'pending' : 'verified'` — peserta Rp 0 langsung terverifikasi.
+  - `controllers/registrationController.submitForm()`: setelah insert, kirim `sendStatusNotification(created, 'verified')` bila `safeFinalPrice === 0` — email konfirmasi auto-verify.
+  - `views/registration/success.ejs`: banner sukses, blok verified CTA, dan info pembayaran kini membedakan peserta gratis (status `verified` + `final_price=0`) — menampilkan "Terverifikasi — Langsung Terdaftar" + catatan "Gratis — Tidak Ada Pembayaran", bukan CTA upload bukti bayar.
+Verifikasi: `npm test` 127/127 lulus. Perilaku baru: peserta gratis → langsung `status=verified`, tidak perlu admin approve; peserta berbayar tetap `pending`.
+Pelajaran: Status awal creation harus sesuai harga — gratis = langsung verified, berbayar = pending. Perubahan view success.ejs harus mengikuti dua jalur (verified+gratis vs verified+berbayar) agar teks CTA tidak menyesatkan.
+Log Keyword: auto-verify gratis status pending final_price verified success.ejs
+
+### Fix #48 — Persyaratan Kategori Gratis: Bukti IG Story, WA Share, Screenshot Komentar, & Bukti Follow
+Tanggal: 2026-11-12
+File: migrations/2026-11-12_add_free_tier_promo_proofs_to_registrations.sql, migrations/2026-11-12_add_ig_comment_proof_to_registrations.sql, middleware/upload.js, routes/publicRoutes.js, models/Registration.js, controllers/registrationController.js, views/registration/form.ejs, views/admin/registration-detail.ejs
+Masalah: Owner ADTC ingin peserta kategori gratis memenuhi 4 persyaratan sebelum daftar: (1) bukti follow adtc_uad, (2) bukti post flyer di IG story, (3) bukti share ke 3 grup WhatsApp, (4) bukti komentar di postingan IG adtc_uad (screenshot, bukan URL).
+Akar: Tidak ada field dan validasi untuk 4 persyaratan ini di form pendaftaran maupun skema DB — `registrations` tidak punya kolom untuk menyimpannya.
+Fix:
+  - Migration 1: tambah 2 kolom NULL-able (ig_story_proof, wa_share_proof). Migration 2: tambah kolom ig_comment_proof.
+  - `middleware/upload.js`: tambah routing direktori `uploads/ig_story_proofs/`, `uploads/wa_share_proofs/`, dan `uploads/ig_comment_proofs/`.
+  - `routes/publicRoutes.js`: tambahkan 3 field baru di `upload.fields()`.
+  - `models/Registration.create()`: simpan 4 field baru sebagai optional updates (pola sama dengan social_proof).
+  - `validateRegistrationInput()`: `social_proof` (bukti follow) kini hanya wajib untuk `training.is_free_tier`; 3 field IG story, WA share, dan IG comment proof wajib khusus kategori gratis.
+  - `form.ejs`: section "Persyaratan (wajib — kategori gratis)" tampil hanya bila `is_free_tier`; memuat 4 input file (social_proof, ig_story_proof, wa_share_proof, ig_comment_proof, semua `required`).
+  - `registration-detail.ejs` admin: section "Bukti Persyaratan" menampilkan 4 gambar (social_proof, ig_story_proof, wa_share_proof, ig_comment_proof).
+  - Label "Syarat Promosi" diganti "Persyaratan" — tidak lagi memakai kata "promosi".
 Verifikasi: Semua 127 test lulus (npx jest, 0 gagal).
 Pelajaran: Pola optional updates di Registration.create (swallow error bila kolom belum ada di skema lama) membuat deploy migration bisa berjalan di urutan mana pun tanpa membatalkan pendaftaran yang sudah live.
-Log Keyword: fix-48 free-tier-promo-requirements
-Deploy: Migration SQL manual di cPanel → phpMyAdmin; restart app setelah kode commit.
+Log Keyword: fix-48 free-tier-requirements ig-comment-proof
+Deploy: Migration SQL 1 & 2 manual di cPanel → phpMyAdmin; restart app setelah kode commit.
 
 ### Fix #47 — Tambah Kategori "Pelatihan gratis + berbayar" (gratis + paket sertifikat)
 Tanggal: 2026-11-12

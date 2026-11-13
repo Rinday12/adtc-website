@@ -157,4 +157,50 @@ describe('Property Tests: resolveFinalPrice', () => {
     expect(resolveFinalPrice(t, b1, 75000)).toBe(resolveFinalPrice(t, b1, 75000))
     expect(resolveFinalPrice(t, b2, 75000)).toBe(resolveFinalPrice(t, b2, 75000))
   })
+
+  /**
+   * cert_override (di-convert oleh model menjadi cert_available) —
+   * Skenario per-training: kategori gratis dengan cert_available=true,
+   * tapi cert_override=0 → model set cert_available=false sebelum
+   * resolveFinalPrice dipanggil. Di sini kita test langsung nilai
+   * cert_available yang sudah di-convert (mimik output model).
+   */
+  test('cert_override=0 (model set cert_available=false) → selalu 0', () => {
+    fc.assert(
+      fc.property(
+        fc.constantFrom('gratis', 'sertifikat', undefined),
+        (opt) => {
+          const body = opt === undefined ? {} : { payment_option: opt }
+          // cert_override=0 → model sudah set cert_available=false
+          const training = { is_free_tier: true, cert_available: false }
+          expect(resolveFinalPrice(training, body, 75000)).toBe(0)
+        }
+      ),
+      { numRuns: 50 }
+    )
+  })
+
+  test('cert_override=1 (model set cert_available=true) → sertifikat = CERT_FEE', () => {
+    fc.assert(
+      fc.property(
+        fc.integer({ min: 1, max: 500000 }),
+        (certFee) => {
+          const training = { is_free_tier: true, cert_available: true }
+          expect(resolveFinalPrice(training, { payment_option: 'sertifikat' }, certFee)).toBe(certFee)
+          expect(resolveFinalPrice(training, { payment_option: 'gratis' }, certFee)).toBe(0)
+        }
+      ),
+      { numRuns: 200 }
+    )
+  })
+
+  test('cert_override=null (default, model tidak mengubah cert_available kategori) → ikuti kategori', () => {
+    // Kategori gratis dengan cert_available=1 (default kategori)
+    const tPaket = { is_free_tier: true, cert_available: 1 }
+    expect(resolveFinalPrice(tPaket, { payment_option: 'sertifikat' }, 75000)).toBe(75000)
+
+    // Kategori gratis dengan cert_available=0 (full free di kategori)
+    const tPure = { is_free_tier: true, cert_available: 0 }
+    expect(resolveFinalPrice(tPure, { payment_option: 'sertifikat' }, 75000)).toBe(0)
+  })
 })

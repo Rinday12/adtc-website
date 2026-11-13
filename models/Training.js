@@ -171,6 +171,21 @@ const Training = {
       // NULL (kategori tak dikenal / DB lama) → anggap paket tersedia,
       // agar perilaku kategori gratis lama tidak berubah.
       rows[0].cert_available = rows[0].cert_available !== 0
+      // cert_override (per training, di luar kategori):
+      //   NULL = ikut default kategori (tidak mengubah perilaku lama)
+      //   0    = kategori gratis tapi tanpa paket e-sertifikat (full free)
+      //   1    = kategori gratis tapi tetap tawarkan paket e-sertifikat
+      // Konversi ke bolean efektif untuk dipakai view & controller:
+      if (rows[0].cert_override === 0) {
+        rows[0].cert_available = false
+      } else if (rows[0].cert_override === 1) {
+        rows[0].cert_available = true
+      }
+      // Biarkan cert_override tetap ada di object (untuk form admin)
+      // tapi hilangkan nilai NULL untuk kebersihan view.
+      if (rows[0].cert_override === null || rows[0].cert_override === undefined) {
+        delete rows[0].cert_override
+      }
     }
     return rows[0] || null
   },
@@ -278,6 +293,8 @@ const Training = {
       is_free_tier: r.is_free_tier === 1,
       // NULL (DB lama / kolom belum migrasi) → anggap paket tersedia,
       // sama dengan findBySlug — perilaku kategori gratis lama tak berubah.
+      // cert_override per-training (0=null-pure free, 1=tetap ada paket)
+      // di-hitung di subquery findBySlug; di sini hanya level kategori.
       cert_available: r.cert_available !== 0,
       accent:       r.accent || 'blue',
       icon:         r.icon || ''
@@ -309,8 +326,8 @@ const Training = {
         (title, slug, description, category, category_order,
          price_general, price_student_uad, price_employee_uad,
          quota, start_date, whatsapp_group_link, cover_image,
-         exec_mode, fasilitas, status)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active')`,
+         exec_mode, fasilitas, training_document, cert_override, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active')`,
       [
         data.title, data.slug, data.description || null,
         data.category, data.category_order || 99,
@@ -318,7 +335,9 @@ const Training = {
         data.price_employee_uad || 0, data.quota || 30,
         data.start_date || null, data.whatsapp_group_link || null,
         data.cover_image || null,
-        data.exec_mode || 'offline', data.fasilitas || null
+        data.exec_mode || 'offline', data.fasilitas || null,
+        data.training_document || null,
+        data.cert_override ?? null
       ]
     )
     return result.insertId
@@ -384,12 +403,12 @@ const Training = {
       'title', 'slug', 'description', 'category', 'category_order',
       'price_general', 'price_student_uad', 'price_employee_uad',
       'quota', 'start_date', 'status', 'whatsapp_group_link', 'cover_image',
-      'exec_mode', 'fasilitas'
+      'exec_mode', 'fasilitas', 'training_document', 'cert_override'
     ]
     // Kolom nullable — boleh di-set ke NULL (menghapus isi, mis. hapus fasilitas).
     // Kolom wajib: null = tidak diubah; undefined = tidak dikirim.
     const nullableFields = new Set(['description', 'start_date', 'whatsapp_group_link',
-      'cover_image', 'exec_mode', 'fasilitas'])
+      'cover_image', 'exec_mode', 'fasilitas', 'training_document', 'cert_override'])
     const sets = []
     const values = []
     for (const key of allowedFields) {

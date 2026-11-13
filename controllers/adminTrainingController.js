@@ -173,6 +173,19 @@ const adminTrainingController = {
       const execMode = req.body.exec_mode === 'online' ? 'online' : 'offline'
       // fasilitas hanya relevan untuk offline; simpan sebagai teks (satuan per baris)
       const fasilitas = execMode === 'offline' ? (req.body.fasilitas || '').trim() || null : null
+      // Link Google Drive untuk dokumen peserta (opsional)
+      const training_document = req.body.training_document?.trim() || null
+
+      // cert_override: hanya relevan untuk kategori free tier.
+      // Form mengirim: 'paket' (=1) atau 'pure' (=0) atau kosong (=null/NULL).
+      // Kategori berbayar → NULL (override tidak berlaku).
+      let certOverride = null
+      if (freeTier) {
+        const rawOverride = req.body.cert_override
+        if (rawOverride === 'paket')      certOverride = 1
+        else if (rawOverride === 'pure') certOverride = 0
+        // 'default'/kosong → NULL = ikut default kategori
+      }
 
       // Auto-buat kategori bila nama baru belum terdaftar; centang
       // "new_cat_is_free" hanya relevan saat kategori ini baru dibuat.
@@ -190,7 +203,9 @@ const adminTrainingController = {
         whatsapp_group_link: req.body.whatsapp_group_link?.trim() || null,
         cover_image:        coverImage,
         exec_mode:          execMode,
-        fasilitas:          fasilitas
+        fasilitas:          fasilitas,
+        training_document:  training_document,
+        cert_override:      certOverride
       })
 
       req.flash('success', 'Pelatihan berhasil ditambahkan.')
@@ -247,6 +262,17 @@ const adminTrainingController = {
       const coverImage = req.file?.path || training.cover_image
       const execMode = req.body.exec_mode === 'online' ? 'online' : 'offline'
       const fasilitas = execMode === 'offline' ? (req.body.fasilitas || '').trim() || null : null
+      // Link Google Drive untuk dokumen peserta (opsional)
+      const training_document = req.body.training_document?.trim() || null
+
+      // cert_override: sama logika dengan postCreate.
+      let certOverride = null
+      if (freeTier) {
+        const rawOverride = req.body.cert_override
+        if (rawOverride === 'paket')      certOverride = 1
+        else if (rawOverride === 'pure') certOverride = 0
+        // 'default'/kosong → NULL = ikut default kategori
+      }
 
       // Auto-buat kategori bila nama baru belum terdaftar (centang free
       // hanya berlaku saat kategori ini DIKREASIKAN).
@@ -266,7 +292,9 @@ const adminTrainingController = {
         whatsapp_group_link: req.body.whatsapp_group_link?.trim() || null,
         cover_image:        coverImage,
         exec_mode:          execMode,
-        fasilitas:          fasilitas
+        fasilitas:          fasilitas,
+        training_document:  training_document,
+        cert_override:      certOverride
       })
 
       req.flash('success', 'Pelatihan berhasil diperbarui.')

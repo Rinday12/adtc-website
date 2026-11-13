@@ -50,12 +50,17 @@ const Registration = {
       social_proof,
       ig_story_proof,
       wa_share_proof,
-      post_comment_url,
+      ig_comment_proof,
       final_price
     } = data
 
     const referenceCode = generateReferenceCode()
     const accessToken   = generateAccessToken()
+
+    // Peserta gratis (final_price = 0) tidak ada tahap pembayaran,
+    // jadi langsung auto-verify tanpa perlu approval admin.
+    // Peserta berbayar tetap 'pending' — menunggu admin approve.
+    const initialStatus = Number(final_price) > 0 ? 'pending' : 'verified'
 
     // INSERT tanpa identity_card_proof, social_proof, institution,
     // payment_option — kolom-kolom opsional ini ditangani terpisah agar
@@ -75,7 +80,7 @@ const Registration = {
         final_price,
         referenceCode,
         accessToken,
-        'pending'
+        initialStatus
       ]
     )
 
@@ -118,10 +123,10 @@ const Registration = {
         [wa_share_proof, insertId]
       ])
     }
-    if (post_comment_url) {
+    if (ig_comment_proof) {
       optionalUpdates.push([
-        'UPDATE registrations SET post_comment_url = ? WHERE id = ?',
-        [post_comment_url, insertId]
+        'UPDATE registrations SET ig_comment_proof = ? WHERE id = ?',
+        [ig_comment_proof, insertId]
       ])
     }
 

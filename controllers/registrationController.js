@@ -126,17 +126,28 @@ function validateRegistrationInput(body, files, training) {
   // Field baru — wajib untuk semua kategori
   if (!body.institution || !body.institution.trim())
     errors.push('Asal instansi wajib diisi.')
-  if (!files?.social_proof?.[0])
+
+  // social_proof: wajib untuk kategori berbayar, dan untuk kategori gratis
+  // yang memilih "Gratis" (promo). Tidak wajib bila memilih "Dengan
+  // Sertifikat" (form menyembunyikan section Persyaratan).
+  const freeTierPays = training?.is_free_tier && body.payment_option === 'sertifikat'
+  if (!freeTierPays && !files?.social_proof?.[0])
     errors.push('Bukti follow akun adtc_uad wajib diupload.')
 
-  // Syarat promosi — wajib khusus kategori gratis (is_free_tier)
-  if (training?.is_free_tier) {
+  // Persyaratan kategori gratis — wajib khusus is_free_tier,
+  // KECUALI peserta memilih "Dengan Sertifikat" (berbayar) — promo
+  // tidak relevan lagi karena peserta membayar, bukan dapat slot gratis.
+  // Sertakan social_proof di syarat promo ini karena form menampilkannya
+  // di section Persyaratan (bukan di blok terpisah) untuk kategori gratis.
+  if (training?.is_free_tier && body.payment_option !== 'sertifikat') {
+    if (!files?.social_proof?.[0])
+      errors.push('Bukti follow adtc_uad wajib diupload (kategori gratis).')
     if (!files?.ig_story_proof?.[0])
       errors.push('Bukti post flyer di IG story wajib diupload (kategori gratis).')
     if (!files?.wa_share_proof?.[0])
       errors.push('Bukti share ke 3 grup WhatsApp wajib diupload (kategori gratis).')
-    if (!body.post_comment_url || !body.post_comment_url.trim())
-      errors.push('Link komentar di postingan IG adtc_uad wajib diisi (kategori gratis).')
+    if (!files?.ig_comment_proof?.[0])
+      errors.push('Bukti komentar di postingan IG adtc_uad wajib diupload (kategori gratis).')
   }
 
   return { valid: errors.length === 0, errors }
@@ -237,7 +248,7 @@ const registrationController = {
       const social_proof = req.files?.social_proof?.[0]?.path || null
       const ig_story_proof = req.files?.ig_story_proof?.[0]?.path || null
       const wa_share_proof = req.files?.wa_share_proof?.[0]?.path || null
-      const post_comment_url = req.body.post_comment_url?.trim() || null
+      const ig_comment_proof = req.files?.ig_comment_proof?.[0]?.path || null
       const institution = req.body.institution?.trim() || null
       // Simpan pilihan pembayaran hanya untuk tier gratis yang memakai paket
       // (sertifikat / gratis murni); kategori berbayar mengabaikan field ini.
@@ -256,7 +267,7 @@ const registrationController = {
         social_proof,
         ig_story_proof,
         wa_share_proof,
-        post_comment_url
+        ig_comment_proof
       })
 
       // Validate training exists and has required fields
@@ -281,11 +292,28 @@ const registrationController = {
         social_proof,
         ig_story_proof,
         wa_share_proof,
-        post_comment_url,
+        ig_comment_proof,
         final_price: safeFinalPrice
       })
 
       console.log('[Register] Created registration with token:', accessToken)
+      // Peserta gratis (final_price = 0) langsung auto-verified — kirim
+      // email konfirmasi agar peserta tahu sudah terdaftar tanpa perlu
+      // menunggu admin.
+      if (safeFinalPrice === 0) {
+        const { sendStatusNotification } = require('../utils/email')
+        const created = {
+          email: req.body.email.trim().toLowerCase(),
+          full_name: req.body.full_name.trim(),
+          training_title: training.title,
+          final_price: 0,
+          access_token: accessToken,
+          status: 'verified'
+        }
+        sendStatusNotification(created, 'verified')
+          .then(() => console.log('[EMAIL] Notifikasi auto-verify gratis dikirim ke:', created.email))
+          .catch(err => console.error('[EMAIL] Gagal mengirim notifikasi auto-verify:', err.message))
+      }
       res.redirect(`/registrations/${accessToken}/success`)
     } catch (err) {
       console.error('[Register] Critical error:', err)

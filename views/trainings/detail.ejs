@@ -125,11 +125,41 @@
 
       <hr class="border-gray-100" />
 
-      <!-- Mode Pelaksanaan & Fasilitas -->
+      <!-- Fasilitas yang Didapat — selalu tampil, default untuk free tier -->
       <%
         const isOnline = training.exec_mode === 'online'
-        const fasilitasList = isOnline ? [] :
-          (training.fasilitas || '').split('\n').map(s => s.trim()).filter(Boolean)
+        const freeTierFacilities = [
+          'Soft File Materi',
+          'QnA Support',
+          'Group Discussion',
+          'E-Sertifikat'
+        ]
+        const fasilitasList = (training.fasilitas || '').split('\n').map(s => s.trim()).filter(Boolean)
+        const fasilitasToShow = fasilitasList.length > 0 ? fasilitasList : freeTierFacilities
+      %>
+      <section aria-labelledby="fasilitas-heading">
+        <h2 id="fasilitas-heading" class="text-lg font-semibold text-gray-800 mb-1">Fasilitas yang Didapat</h2>
+        <p class="text-sm text-gray-500 mb-4">
+          <% if (!isOnline) { %>Berikut yang tersedia untuk peserta pelatihan ini.<% } else { %>Berikut yang Anda dapatkan saat mengikuti pelatihan ini.<% } %>
+        </p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <% fasilitasToShow.forEach(function(f, idx) { %>
+          <div class="flex items-center gap-3 rounded-xl border border-gray-100 bg-white
+                      hover:border-brand-200 hover:shadow-sm transition-all duration-200 px-4 py-3">
+            <span class="w-7 h-7 rounded-full bg-brand-50 text-brand-500 font-bold text-sm
+                         flex items-center justify-center shrink-0" aria-hidden="true">
+              <%= idx + 1 %>
+            </span>
+            <span class="text-sm font-medium text-gray-800"><%= f %></span>
+          </div>
+          <% }) %>
+        </div>
+      </section>
+
+      <hr class="border-gray-100" />
+
+      <!-- Mode Pelaksanaan & Fasilitas -->
+      <%
         const modeLabel = isOnline ? 'Pelaksanaan Online' : 'Pelaksanaan Offline'
         const modeDesc  = isOnline
           ? 'Dikuti dari mana saja via daring'
@@ -144,27 +174,6 @@
           <p class="text-navy-200 text-xs mt-0.5"><%= modeDesc %></p>
         </div>
       </section>
-
-      <% if (!isOnline && fasilitasList.length > 0) { %>
-      <section aria-labelledby="fasilitas-heading" class="mt-4">
-        <h2 id="fasilitas-heading" class="text-lg font-semibold text-gray-800 mb-1">Fasilitas yang Didapat</h2>
-        <p class="text-sm text-gray-500 mb-4">Berikut yang tersedia untuk peserta pelatihan ini.</p>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <% fasilitasList.forEach(function(f, idx) { %>
-          <div class="flex items-center gap-3 rounded-xl border border-gray-100 bg-white
-                      hover:border-brand-200 hover:shadow-sm transition-all duration-200 px-4 py-3">
-            <span class="w-7 h-7 rounded-full bg-brand-50 text-brand-500 font-bold text-sm
-                         flex items-center justify-center shrink-0" aria-hidden="true">
-              <%= idx + 1 %>
-            </span>
-            <span class="text-sm font-medium text-gray-800"><%= f %></span>
-          </div>
-          <% }) %>
-        </div>
-      </section>
-      <% } %>
-
-      <hr class="border-gray-100" />
 
       <!-- Biaya Pendaftaran -->
       <%
@@ -240,6 +249,34 @@
           <% } %>
         <% } %>
       </section>
+
+      <!-- Instruksi Upload Dokumen (untuk kategori berbayar dengan training_document terisi) -->
+      <% if (training.training_document && !training.is_free_tier) { %>
+      <section aria-labelledby="doc-heading">
+        <h2 id="doc-heading" class="text-lg font-semibold text-gray-800 mb-1">Instruksi Upload Dokumen</h2>
+        <p class="text-sm text-gray-500 mb-3">
+          Peserta kategori <strong>berbayar</strong> wajib mengunggah dokumen yang diminta penyelenggara
+          (misalnya surat pengantar, CV, atau lainnya) ke Google Drive.
+        </p>
+        <div class="rounded-xl border border-blue-200 bg-blue-50 px-5 py-4 space-y-2">
+          <div class="flex items-start gap-3">
+            <span class="text-blue-500 text-lg flex-shrink-0 mt-0.5" aria-hidden="true">&#128193;</span>
+            <div class="flex-1">
+              <p class="text-sm font-semibold text-blue-800">Langkah-langkah:</p>
+              <ol class="text-xs text-blue-700 mt-2 space-y-1.5 list-decimal list-inside">
+                <li>Buka <a href="<%= training.training_document %>" target="_blank" rel="noopener noreferrer" class="underline font-medium">Google Drive folder pelatihan ini</a></li>
+                <li>Buat subfolder baru dengan <strong>Nama Lengkap Anda</strong> (misal: "Budi Santoso")</li>
+                <li>Unggah 1 file dokumen ke dalam subfolder tersebut (format: JPG, PNG, atau PDF; ukuran maksimal 5MB)</li>
+                <li>Kerjakan saat mendaftar melalui form di bawah</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+        <p class="mt-2 text-xs text-gray-400">
+          File harus diunggah SEBELUM pembayaran diverifikasi admin untuk menghindari penundaan proses.
+        </p>
+      </section>
+      <% } %>
 
       <!-- CTA -->
       <div class="flex flex-col sm:flex-row items-center gap-4 pt-2">

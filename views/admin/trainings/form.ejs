@@ -131,6 +131,8 @@
               // "__new__", admin memutuskan sendiri: checkbox new_cat_is_free.
               // Checkbox baru (belum ada "full free" di form training) selalu
               // menghasilkan varian "paket" — full-free hanya via /admin/categories.
+              var certWrap = document.getElementById('certOverrideWrap')
+
               function updateBanner(){
                 var opt = sel.options[sel.selectedIndex]
                 var showPaket, showPure
@@ -144,6 +146,7 @@
                 }
                 if (banner) banner.classList.toggle('hidden', !showPaket)
                 if (pureBanner) pureBanner.classList.toggle('hidden', !showPure)
+                if (certWrap) certWrap.classList.toggle('hidden', !(showPaket || showPure))
                 setPricesDisabled(showPaket || showPure)
               }
 
@@ -200,11 +203,13 @@
               var cb = document.getElementById('new_cat_is_free')
               var banner = document.getElementById('freeTierBanner')
               var pure = document.getElementById('freePureBanner')
+              var certWrap = document.getElementById('certOverrideWrap')
               var grid = document.getElementById('priceGrid')
               if (!cb) return
               cb.addEventListener('change', function(){
                 if (banner) banner.classList.toggle('hidden', !cb.checked)
                 if (pure) pure.classList.add('hidden')
+                if (certWrap) certWrap.classList.toggle('hidden', !cb.checked)
                 if (grid){
                   grid.querySelectorAll('div[data-price-field]').forEach(function(cell){
                     var input = cell.querySelector('input')
@@ -276,6 +281,73 @@
           TIDAK menampilkan opsi paket/sertifikat berbayar. Kolom harga di
           bawah <strong>dinonaktifkan otomatis</strong> dan disimpan sebagai 0.
         </p>
+      </div>
+
+      <%
+        // cert_override: pilihan per-training untuk kategori gratis.
+        //   default = NULL  → ikut default kategori
+        //   paket   = 1     → kategori gratis tapi tetap tawarkan paket e-sertifikat
+        //   pure    = 0     → kategori gratis tapi TIDAK ada paket e-sertifikat (full free)
+        //
+        // Saat edit: training.cert_override adalah 0/1/null (setelah findBySlug
+        // sudah dihapus NULL-nya; null berarti default).
+        var existingCertOverride = isEdit ? training?.cert_override : undefined
+        // Konversi ke nilai form: null/undefined → 'default', 0 → 'pure', 1 → 'paket'
+        var certOverrideForm = (existingCertOverride === 0) ? 'pure'
+                       : (existingCertOverride === 1) ? 'paket'
+                       : 'default'
+      %>
+      <div id="certOverrideWrap" class="mb-4 <%= (bannerPaketNow || bannerPureNow) ? '' : 'hidden' %>">
+        <label class="block text-sm font-medium text-gray-700 mb-2">Override e-Sertifikat (kategori gratis)</label>
+        <p class="text-xs text-gray-500 mb-2">
+          Pilihan ini berlaku hanya untuk pelatihan ini, bukan seluruh kategori.
+          Default kategori tetap tidak diubah.
+        </p>
+        <div class="space-y-2">
+          <label class="flex items-start gap-2 cursor-pointer">
+            <input
+              type="radio" name="cert_override" value="default"
+              <%= certOverrideForm === 'default' ? 'checked' : '' %>
+              class="mt-0.5 text-brand-600 focus:ring-brand-500"
+            >
+            <span>
+              <span class="block text-sm font-medium text-gray-800">Ikut default kategori</span>
+              <span class="block text-xs text-gray-500">
+                <% if (bannerPureNow) { %>
+                  Full free — tanpa paket (sesuai setting kategori)
+                <% } else { %>
+                  Paket komplit berbayar tersedia (sesuai setting kategori)
+                <% } %>
+              </span>
+            </span>
+          </label>
+          <label class="flex items-start gap-2 cursor-pointer">
+            <input
+              type="radio" name="cert_override" value="paket"
+              <%= certOverrideForm === 'paket' ? 'checked' : '' %>
+              class="mt-0.5 text-brand-600 focus:ring-brand-500"
+            >
+            <span>
+              <span class="block text-sm font-medium text-gray-800">Dengan paket komplit berbayar</span>
+              <span class="block text-xs text-gray-500">
+                Peserta bisa pilih "Gratis (Rp 0)" atau "Dengan Sertifikat (<%= certFeeFmt || 'Rp 0' %>)"
+              </span>
+            </span>
+          </label>
+          <label class="flex items-start gap-2 cursor-pointer">
+            <input
+              type="radio" name="cert_override" value="pure"
+              <%= certOverrideForm === 'pure' ? 'checked' : '' %>
+              class="mt-0.5 text-brand-600 focus:ring-brand-500"
+            >
+            <span>
+              <span class="block text-sm font-medium text-gray-800">Full free — tanpa paket</span>
+              <span class="block text-xs text-gray-500">
+                Peserta selalu bayar Rp 0, tanpa opsi sertifikat
+              </span>
+            </span>
+          </label>
+        </div>
       </div>
 
       <div class="grid grid-cols-2 gap-4" id="priceGrid">
@@ -387,6 +459,19 @@
           }
         })
       </script>
+    </div>
+
+    <div class="px-6 py-4 border-t border-gray-100">
+      <h2 class="text-base font-semibold text-gray-800 mb-4">Dokumen Peserta</h2>
+      <div>
+        <label for="training_document" class="block text-sm font-medium text-gray-700 mb-1">Link Google Drive Folder (Dokumen Peserta)</label>
+        <input type="url" id="training_document" name="training_document" value="<%= isEdit ? (training?.training_document || '') : '' %>" class="w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500" placeholder="https://drive.google.com/drive/folders/XXXXXX">
+        <p class="text-xs text-gray-400 mt-1">
+          Opsional. Buat folder baru di Google Drive dengan nama pelatihan, lalu tempel link foldernya di sini.
+          Peserta kategori berbayar akan diinstruksikan untuk membuat subfolder dengan <strong>nama lengkap</strong> di dalam folder ini
+          dan mengunggah dokumen yang diminta penyelenggara (maks 1 file, JPG/PNG/PDF, 5MB).
+        </p>
+      </div>
     </div>
 
     <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end gap-3">
