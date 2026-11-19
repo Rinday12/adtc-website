@@ -155,6 +155,7 @@ const adminController = {
       }
       res.render('admin/registration-detail', {
         registration,
+        certFee: Number(process.env.CERT_FEE || 0),
         title: `Detail Pendaftaran #${registration.id}`,
         adminUser: req.session.adminUsername || 'Admin',
         currentPath: req.originalUrl

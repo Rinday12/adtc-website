@@ -62,7 +62,8 @@ const contentController = {
           'BNSP untuk tenaga kerja profesional di Yogyakarta.',
         trainings,
         benefits,
-        promo
+        promo,
+        certFee: Number(process.env.CERT_FEE || 0)
       })
     } catch (err) {
       console.error('[getHome] Unexpected error:', err)

@@ -98,7 +98,13 @@
                   ? Number(promo.byTraining[training.id])
                   : Number(promo.promo_price)
                 if (isNaN(p) || p < 0) return null
-                if (training.is_free_tier) return null
+                if (training.is_free_tier) {
+                  // Kategori gratis + sertifikat boleh dipromokan (Fix #61).
+                  // Hero hanya tampil bila training punya harga berbayar
+                  // (price_general), jadi cabang gratis di sini tak akan
+                  // tercapai — dikembalikan null agar aman.
+                  return null
+                }
                 const prices = [Number(training.price_general)||0, Number(training.price_student_uad)||0, Number(training.price_employee_uad)||0].filter(x => x > 0)
                 const minNormal = prices.length ? Math.min.apply(null, prices) : 0
                 return p < minNormal ? p : null
@@ -459,7 +465,11 @@
                     ? Number(promo.byTraining[training.id])
                     : Number(promo.promo_price)
                   if (isNaN(p) || p < 0) return null
-                  if (training.is_free_tier) return null
+                  if (training.is_free_tier) {
+                    // Card home: guard atas (<% if (training.price_general) %>)
+                    // sudah memastikan training berbayar, tak perlu cek CERT_FEE.
+                    return null
+                  }
                   const prices = [Number(training.price_general)||0, Number(training.price_student_uad)||0, Number(training.price_employee_uad)||0].filter(x => x > 0)
                   const minNormal = prices.length ? Math.min.apply(null, prices) : 0
                   return p < minNormal ? p : null

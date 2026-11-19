@@ -1,14 +1,15 @@
 // tests/property/resolveFinalPrice.test.js
 // Uji logika penentuan total tagihan peserta (controllers/registrationController.js):
-//   - kategori berbayar  → harga sesuai kategori
+//   - kategori berbayar  → harga sesuai kategori (promo bisa menimpa bila lebih murah)
 //   - kategori gratis    → pilihan "gratis" (=0) / "dengan sertifikat" (= CERT_FEE)
+//                          dan CERT_FEE itu sendiri bisa dipromo (Opsi A, Fix #61)
 //
 // Logika di-inline di sini (meniru pola calculateFinalPrice.test.js) agar tidak
 // menarik import model → database saat test.
 
 const fc = require('fast-check')
 
-function calculateFinalPrice(category, training) {
+function calculateFinalPrice(category, training, promo) {
   if (!training) return 0
   const priceMap = {
     'umum':          training.price_general,
@@ -16,11 +17,35 @@ function calculateFinalPrice(category, training) {
     'karyawan_uad':  training.price_employee_uad
   }
   const raw = priceMap[category] ?? training.price_general
-  const num = Number(raw)
-  return isNaN(num) ? 0 : num
+  const normalPrice = Number(raw)
+  const normal = isNaN(normalPrice) ? 0 : normalPrice
+
+  if (promo && promo.is_active) {
+    const p = effectivePromoPrice(promo, training)
+    if (p != null && p < normal) return p
+  }
+  return normal
 }
 
-function resolveFinalPrice(training, body, certFee) {
+// Salinan effectivePromoPrice dari controller (period + byTraining + global).
+function effectivePromoPrice(promo, training) {
+  if (!promo || !promo.is_active) return null
+  const byTrainingPrice = promo.byTraining && promo.byTraining[training.id] != null
+    ? Number(promo.byTraining[training.id])
+    : null
+  const promoPrice = byTrainingPrice != null ? byTrainingPrice : Number(promo.promo_price)
+  if (isNaN(promoPrice)) return null
+  const now = Date.now()
+  const starts = promo.promo_starts_at ? new Date(promo.promo_starts_at).getTime() : null
+  const ends = promo.promo_ends_at ? new Date(promo.promo_ends_at).getTime() : null
+  const withinWindow =
+    (starts === null || now >= starts) &&
+    (ends === null || now <= ends)
+  if (!withinWindow) return null
+  return promoPrice
+}
+
+function resolveFinalPrice(training, body, certFee, promo) {
   if (training && training.is_free_tier) {
     // Kategori gratis murni (cert_available false/0) → selalu 0.
     if (training.cert_available === false || training.cert_available === 0) {
@@ -28,11 +53,15 @@ function resolveFinalPrice(training, body, certFee) {
     }
     if (body && body.payment_option === 'sertifikat') {
       const fee = Number(certFee)
-      return isNaN(fee) || fee < 0 ? 0 : fee
+      const base = isNaN(fee) || fee < 0 ? 0 : fee
+      // Opsi A: kategori gratis + sertifikat boleh dipromo → min(CERT_FEE, promo)
+      const p = effectivePromoPrice(promo, training)
+      if (p != null && p < base) return p
+      return base
     }
     return 0
   }
-  return calculateFinalPrice(body?.category, training)
+  return calculateFinalPrice(body?.category, training, promo)
 }
 
 describe('Property Tests: resolveFinalPrice', () => {
@@ -202,5 +231,191 @@ describe('Property Tests: resolveFinalPrice', () => {
     // Kategori gratis dengan cert_available=0 (full free di kategori)
     const tPure = { is_free_tier: true, cert_available: 0 }
     expect(resolveFinalPrice(tPure, { payment_option: 'sertifikat' }, 75000)).toBe(0)
+  })
+
+  // ── Opsi A (Fix #61): kategori gratis + sertifikat boleh ikut promo ──
+
+  test('gratis + sertifikat + promo byTraining lebih murah → harga promo', () => {
+    const training = { id: 42, is_free_tier: true, cert_available: 1 }
+    const promo = {
+      is_active: true,
+      promo_price: 50000,
+      byTraining: { 42: 57000 },
+      promo_starts_at: null,
+      promo_ends_at: null
+    }
+    // CERT_FEE = 75000 > 57000 → ambil 57000
+    expect(resolveFinalPrice(training, { payment_option: 'sertifikat' }, 75000, promo)).toBe(57000)
+  })
+
+  test('gratis + sertifikat + promo global (tanpa byTraining) lebih murah → harga global', () => {
+    const training = { id: 42, is_free_tier: true, cert_available: 1 }
+    const promo = {
+      is_active: true,
+      promo_price: 50000,
+      byTraining: {},
+      promo_starts_at: null,
+      promo_ends_at: null
+    }
+    // CERT_FEE = 75000 > 50000 → ambil 50000
+    expect(resolveFinalPrice(training, { payment_option: 'sertifikat' }, 75000, promo)).toBe(50000)
+  })
+
+  test('gratis + sertifikat + promo lebih mahal dari CERT_FEE → tetap CERT_FEE', () => {
+    const training = { id: 42, is_free_tier: true, cert_available: 1 }
+    const promo = {
+      is_active: true,
+      promo_price: 100000,
+      byTraining: {},
+      promo_starts_at: null,
+      promo_ends_at: null
+    }
+    // CERT_FEE = 75000 < 100000 → promo tak dipakai
+    expect(resolveFinalPrice(training, { payment_option: 'sertifikat' }, 75000, promo)).toBe(75000)
+  })
+
+  test('gratis + sertifikat + promo di luar periode → tetap CERT_FEE', () => {
+    const training = { id: 42, is_free_tier: true, cert_available: 1 }
+    const promo = {
+      is_active: true,
+      promo_price: 10000,
+      byTraining: {},
+      promo_starts_at: '2020-01-01',
+      promo_ends_at: '2020-12-31'
+    }
+    expect(resolveFinalPrice(training, { payment_option: 'sertifikat' }, 75000, promo)).toBe(75000)
+  })
+
+  test('gratis + sertifikat + promo nonaktif → tetap CERT_FEE', () => {
+    const training = { id: 42, is_free_tier: true, cert_available: 1 }
+    const promo = {
+      is_active: false,
+      promo_price: 10000,
+      byTraining: { 42: 10000 },
+      promo_starts_at: null,
+      promo_ends_at: null
+    }
+    expect(resolveFinalPrice(training, { payment_option: 'sertifikat' }, 75000, promo)).toBe(75000)
+  })
+
+  test('gratis + "gratis" + promo → tetap 0 (promo tidak mengubah opsi gratis)', () => {
+    const training = { id: 42, is_free_tier: true, cert_available: 1 }
+    const promo = {
+      is_active: true,
+      promo_price: 50000,
+      byTraining: {},
+      promo_starts_at: null,
+      promo_ends_at: null
+    }
+    expect(resolveFinalPrice(training, { payment_option: 'gratis' }, 75000, promo)).toBe(0)
+    expect(resolveFinalPrice(training, {}, 75000, promo)).toBe(0)
+  })
+
+  test('gratis murni (cert_available=0) + promo + sertifikat → tetap 0', () => {
+    const training = { id: 42, is_free_tier: true, cert_available: 0 }
+    const promo = {
+      is_active: true,
+      promo_price: 50000,
+      byTraining: {},
+      promo_starts_at: null,
+      promo_ends_at: null
+    }
+    expect(resolveFinalPrice(training, { payment_option: 'sertifikat' }, 75000, promo)).toBe(0)
+  })
+
+  // Property: hasil gratis+sertifikat+promo selalu = min(CERT_FEE, promo) saat promo valid
+  test('gratis + sertifikat + promo valid → min(CERT_FEE, promo)', () => {
+    fc.assert(
+      fc.property(
+        fc.integer({ min: 0, max: 200000 }),
+        fc.integer({ min: 0, max: 200000 }),
+        (certFee, promoPrice) => {
+          const training = { id: 1, is_free_tier: true, cert_available: 1 }
+          const promo = {
+            is_active: true,
+            promo_price: promoPrice,
+            byTraining: {},
+            promo_starts_at: null,
+            promo_ends_at: null
+          }
+          const result = resolveFinalPrice(training, { payment_option: 'sertifikat' }, certFee, promo)
+          // promoPrice valid & dalam periode → hasil harus min(certFee, promoPrice)
+          const expected = Math.min(certFee, promoPrice)
+          expect(result).toBe(expected)
+        }
+      ),
+      { numRuns: 200 }
+    )
+  })
+
+  // Property: promo tak berlaku (nonaktif / luar periode / harga tak valid) → hasil = CERT_FEE
+  test('gratis + sertifikat + promo tak berlaku → CERT_FEE', () => {
+    fc.assert(
+      fc.property(
+        fc.integer({ min: 0, max: 200000 }),
+        (certFee) => {
+          const training = { id: 1, is_free_tier: true, cert_available: 1 }
+          // Nonaktif
+          expect(resolveFinalPrice(
+            training, { payment_option: 'sertifikat' }, certFee,
+            { is_active: false, promo_price: 1000, byTraining: {} }
+          )).toBe(certFee)
+          // Promo null / undefined
+          expect(resolveFinalPrice(training, { payment_option: 'sertifikat' }, certFee, null)).toBe(certFee)
+          expect(resolveFinalPrice(training, { payment_option: 'sertifikat' }, certFee, undefined)).toBe(certFee)
+        }
+      ),
+      { numRuns: 200 }
+    )
+  })
+
+  // Property: berbayar + promo byTraining lebih murah → harga per training
+  test('berbayar + promo byTraining → harga per training, lebih murah dari normal', () => {
+    fc.assert(
+      fc.property(
+        fc.integer({ min: 100000, max: 1000000 }),
+        fc.integer({ min: 0, max: 99999 }),
+        (normalPrice, promoPrice) => {
+          const training = {
+            id: 7,
+            is_free_tier: false,
+            price_general: normalPrice,
+            price_student_uad: normalPrice,
+            price_employee_uad: normalPrice
+          }
+          const promo = {
+            is_active: true,
+            promo_price: normalPrice, // global mahal, tak relevan
+            byTraining: { 7: promoPrice },
+            promo_starts_at: null,
+            promo_ends_at: null
+          }
+          const result = resolveFinalPrice(training, { category: 'umum' }, 75000, promo)
+          // byTraining (promoPrice < normalPrice) harus menang
+          expect(result).toBe(promoPrice)
+        }
+      ),
+      { numRuns: 300 }
+    )
+  })
+
+  test('berbayar + promo byTraining tidak ada → fallback ke harga global', () => {
+    const training = {
+      id: 9,
+      is_free_tier: false,
+      price_general: 200000,
+      price_student_uad: 180000,
+      price_employee_uad: 190000
+    }
+    const promo = {
+      is_active: true,
+      promo_price: 150000,
+      byTraining: { 7: 50000 }, // training 7 ada, training 9 tidak
+      promo_starts_at: null,
+      promo_ends_at: null
+    }
+    // training 9 → fallback ke global 150000 (< 180000 normal mahasiswa)
+    const result = resolveFinalPrice(training, { category: 'mahasiswa_uad' }, 75000, promo)
+    expect(result).toBe(150000)
   })
 })

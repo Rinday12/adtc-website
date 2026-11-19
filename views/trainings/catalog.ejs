@@ -205,7 +205,14 @@
                           ? Number(promo.byTraining[training.id])
                           : Number(promo.promo_price)
                         if (isNaN(p) || p < 0) return null
-                        if (training.is_free_tier) return null
+                        if (training.is_free_tier) {
+                          // Kategori gratis + sertifikat boleh dipromokan (Fix #61).
+                          // Banner hanya relevan bila p < CERT_FEE — opsi "gratis"
+                          // (Rp 0) tak tersentuh promo, jadi tak perlu dibandingkan.
+                          const certFee = Number((typeof certFee !== 'undefined') ? certFee : 0)
+                          if (!certFee || p >= certFee) return null
+                          return p
+                        }
                         const prices = [Number(training.price_general)||0, Number(training.price_student_uad)||0, Number(training.price_employee_uad)||0].filter(x => x > 0)
                         const minNormal = prices.length ? Math.min.apply(null, prices) : 0
                         return p < minNormal ? p : null

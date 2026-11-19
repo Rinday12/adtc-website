@@ -37,7 +37,7 @@
     </div>
   <% } %>
 
-  <!-- Banner Promo (hanya untuk kategori berbayar, bila promo aktif & lebih murah) -->
+  <!-- Banner Promo (kategori berbayar: promo < harga normal; kategori gratis: promo < CERT_FEE) -->
   <%
     const promoNow = (function(){
       if (typeof promo === 'undefined' || !promo || !promo.is_active) return null
@@ -52,8 +52,14 @@
         ? Number(promo.byTraining[training.id])
         : Number(promo.promo_price)
       if (isNaN(p) || p < 0) return null
-      // Promo hanya relevan untuk kategori berbayar; tier gratis tak tersentuh.
-      if (training.is_free_tier) return null
+      if (training.is_free_tier) {
+        // Opsi A (Fix #61): kategori gratis + "Dengan Sertifikat" boleh dipromokan.
+        // Promo hanya tampilkan bila p < CERT_FEE (paket sertifikat) — opsi "gratis"
+        // tetap Rp 0 tak tersentuh, jadi banner cuma relevan saat p < certFee.
+        const certFee = Number((typeof certFee !== 'undefined') ? certFee : 0)
+        if (!certFee || p >= certFee) return null
+        return promo
+      }
       const prices = [Number(training.price_general)||0, Number(training.price_student_uad)||0, Number(training.price_employee_uad)||0].filter(x => x > 0)
       const minNormal = prices.length ? Math.min.apply(null, prices) : 0
       return p < minNormal ? promo : null
@@ -225,16 +231,18 @@
             <%= (typeof formData !== 'undefined' && formData.payment_option === 'sertifikat') ? 'checked' : '' %>
             class="mt-0.5 text-brand-600 focus:ring-brand-500"
           />
+          <% const effCertPrice = (promoNow && promoNow < certFee) ? promoNow : certFee %>
+          <% const certHasPromo = (promoNow && promoNow < certFee) %>
           <span>
             <span class="block text-sm font-semibold text-gray-800">Paket Lengkap</span>
-            <span class="block text-xs text-gray-500"><%= fmt.format(certFee) %> — Soft File, QnA, Group Discussion, Sertifikat, Info Lowongan, Recording, Networking, Diskusi Ahli</span>
+            <span class="block text-xs text-gray-500"><% if (certHasPromo) { %><s class="text-gray-400"><%= fmt.format(certFee) %></s> <span class="text-green-700 font-semibold"><%= fmt.format(effCertPrice) %> (promo)</span><% } else { %><%= fmt.format(certFee) %><% } %> — Soft File, QnA, Group Discussion, Sertifikat, Info Lowongan, Recording, Networking, Diskusi Ahli</span>
           </span>
         </label>
       </div>
 
       <p class="text-xs text-gray-500 mt-1">
         Pendaftaran gratis. Pilih <strong>Gratis</strong> (Rp 0<% if (training.cert_override !== 0) { %>, sudah termasuk e-sertifikat<% } else { %>, tanpa e-sertifikat — beli Paket Lengkap bila ingin<% } %>)
-        atau <strong>Paket Lengkap</strong> (<%= fmt.format(certFee) %>) — dibayar setelah diverifikasi admin.
+        atau <strong>Paket Lengkap</strong> (<% if (effCertPrice !== certFee) { %><s class="text-gray-400"><%= fmt.format(certFee) %></s> <span class="text-green-700 font-semibold"><%= fmt.format(effCertPrice) %></span><% } else { %><%= fmt.format(certFee) %><% } %>) — dibayar setelah diverifikasi admin.
       </p>
 
       <!-- Perbandingan fasilitas: Gratis vs Paket Lengkap -->
@@ -267,7 +275,7 @@
             </ul>
           </div>
           <div class="bg-white rounded-lg p-3 border border-brand-300" id="certComparisonPanel">
-            <p class="text-xs font-bold text-brand-800 mb-2" id="certComparisonLabel">Rp <%= fmt.format(certFee) %> — Paket Lengkap</p>
+            <p class="text-xs font-bold text-brand-800 mb-2" id="certComparisonLabel"><% if (effCertPrice !== certFee) { %><s class="text-gray-400"><%= fmt.format(certFee) %></s> <span class="text-green-700"><%= fmt.format(effCertPrice) %> — Paket Lengkap (promo)</span><% } else { %><%= fmt.format(certFee) %> — Paket Lengkap<% } %></p>
             <ul class="space-y-1.5">
               <% ['Soft File Materi','QnA Support','Group Discussion','Sertifikat Digital','Info Lowongan Kerja','Recording Materi','Networking','Diskusi dengan Para Ahli'].forEach(function(benefit) { %>
               <li class="flex items-center gap-1.5 text-xs text-gray-700">

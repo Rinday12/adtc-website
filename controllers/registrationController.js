@@ -29,26 +29,34 @@ function calculateFinalPrice(category, training, promo) {
 
   // Promo global: hanya dipakai bila promo ada & is_active & dalam periode.
   if (promo && promo.is_active) {
-    // Harga per training (byTraining, tabel promo_trainings) — fallback ke
-    // harga default global bila training ini tak punya harga khusus.
-    const byTrainingPrice = promo.byTraining && promo.byTraining[training.id] != null
-      ? Number(promo.byTraining[training.id])
-      : null
-    const promoPrice = byTrainingPrice != null ? byTrainingPrice : Number(promo.promo_price)
-    const now = Date.now()
-    const starts = promo.promo_starts_at ? new Date(promo.promo_starts_at).getTime() : null
-    const ends = promo.promo_ends_at ? new Date(promo.promo_ends_at).getTime() : null
-    const withinWindow =
-      (starts === null || now >= starts) &&
-      (ends === null || now <= ends)
-    // Harga promo hanya berlaku bila lebih murah dari harga normal kategori
-    // ini — mencegah "promo" yang justru menaikkan harga.
-    if (withinWindow && !isNaN(promoPrice) && promoPrice < normalPrice) {
-      return promoPrice
-    }
+    const promoPrice = effectivePromoPrice(promo, training)
+    if (promoPrice != null && promoPrice < normalPrice) return promoPrice
   }
 
   return normalPrice
+}
+
+/**
+ * Hitung harga promo efektif untuk sebuah training berdasarkan promo aktif:
+ * 1) harga khusus training (byTraining, tabel promo_trainings), bila ada
+ * 2) fallback ke harga default global (promo.promo_price)
+ * Return null bila promo tak berlaku (nonaktif, luar periode, atau harga tak valid).
+ */
+function effectivePromoPrice(promo, training) {
+  if (!promo || !promo.is_active) return null
+  const byTrainingPrice = promo.byTraining && promo.byTraining[training.id] != null
+    ? Number(promo.byTraining[training.id])
+    : null
+  const promoPrice = byTrainingPrice != null ? byTrainingPrice : Number(promo.promo_price)
+  if (isNaN(promoPrice)) return null
+  const now = Date.now()
+  const starts = promo.promo_starts_at ? new Date(promo.promo_starts_at).getTime() : null
+  const ends = promo.promo_ends_at ? new Date(promo.promo_ends_at).getTime() : null
+  const withinWindow =
+    (starts === null || now >= starts) &&
+    (ends === null || now <= ends)
+  if (!withinWindow) return null
+  return promoPrice
 }
 
 /**
@@ -95,12 +103,16 @@ function resolveFinalPrice(training, body, certFee, promo) {
     if (training.cert_available === false) {
       return 0
     }
-    // Opsi Paket Lengkap (Rp certFee) selalu tersedia saat cert_available=true,
-    // terlepas dari cert_override (0 = Rp 0 tanpa sertifikat, 1 = Rp 0 dengan sertifikat).
+    // Opsi "Paket Lengkap / Dengan Sertifikat" — harga dasar = CERT_FEE.
+    // Bila promo aktif & training ini punya harga promo efektif (byTraining,
+    // fallback ke global), ambil min(CERT_FEE, promo) agar promo ikut berlaku
+    // untuk kategori gratis yang memilih sertifikat (Opsi A, dikonfirmasi user).
     if (body && body.payment_option === 'sertifikat') {
       const fee = Number(certFee)
-      // Nilai tak valid (NaN/kosong) atau negatif → anggap 0, jangan tagih negatif
-      return isNaN(fee) || fee < 0 ? 0 : fee
+      const base = isNaN(fee) || fee < 0 ? 0 : fee
+      const promoPrice = effectivePromoPrice(promo, training)
+      if (promoPrice != null && promoPrice < base) return promoPrice
+      return base
     }
     return 0
   }
@@ -415,6 +427,8 @@ const registrationController = {
 module.exports = registrationController
 module.exports.calculateFinalPrice = calculateFinalPrice
 module.exports.resolveFinalPrice = resolveFinalPrice
+module.exports.calculateFinalPrice = calculateFinalPrice
+module.exports.effectivePromoPrice = effectivePromoPrice
 module.exports.allowedCategories = allowedCategories
 module.exports.isUadCategory = isUadCategory
 module.exports.freeTierWithCertOption = freeTierWithCertOption

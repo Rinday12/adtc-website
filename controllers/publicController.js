@@ -51,6 +51,7 @@ const publicController = {
         groupMap,
         totalActive,
         promo,
+        certFee: Number(process.env.CERT_FEE || 0),
         activeCategory: req.query.category || null,
         title: 'Katalog Pelatihan ADTC'
       })
@@ -108,6 +109,7 @@ const publicController = {
         trainings,
         services,
         promo,
+        certFee: Number(process.env.CERT_FEE || 0),
         total: trainings.length,
         title: `${category.category} — ADTC`
       })

@@ -268,14 +268,27 @@
                       ? Number(promo.byTraining[training.id])
                       : Number(promo.promo_price)
                     if (isNaN(p) || p < 0) return null
-                    if (isFreeTraining) return null
+                    if (isFreeTraining) {
+                      // Kategori gratis + sertifikat boleh dipromokan (Fix #61).
+                      // Banner hanya relevan bila p < CERT_FEE.
+                      const certFeeVal = Number((typeof certFee !== 'undefined') ? certFee : 0)
+                      if (!certFeeVal || p >= certFeeVal) return null
+                      return p
+                    }
                     const prices = [Number(training.price_general)||0, Number(training.price_student_uad)||0, Number(training.price_employee_uad)||0].filter(x => x > 0)
                     const minNormal = prices.length ? Math.min.apply(null, prices) : 0
                     return p < minNormal ? p : null
                   })()
                 %>
                 <% if (isFreeTraining) { %>
-                  <span class="font-bold text-navy-700">Gratis — Rp 0, opsi Paket Lengkap tersedia</span>
+                  <% if (catPromo != null) { %>
+                    <span class="font-bold text-navy-700">Gratis — Rp 0</span>
+                    <span class="text-xs text-gray-400 line-through ml-2">Paket <%= fmt.format(typeof certFee !== 'undefined' ? certFee : 0) %></span>
+                    <span class="font-bold text-amber-600 ml-2">Paket <%= fmt.format(catPromo) %></span>
+                    <span class="inline-block bg-amber-100 text-amber-700 text-xs font-semibold px-2 py-0.5 rounded-full ml-1">Promo</span>
+                  <% } else { %>
+                    <span class="font-bold text-navy-700">Gratis — Rp 0, opsi Paket Lengkap tersedia</span>
+                  <% } %>
                 <% } else if (catPromo != null) { %>
                   <span class="text-gray-500">Mulai dari</span>
                   <span class="text-xs text-gray-400 line-through"><%= fmt.format(training.price_general) %></span>
