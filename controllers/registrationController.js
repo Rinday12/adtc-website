@@ -1,9 +1,22 @@
 // controllers/registrationController.js
 const Training = require('../models/Training')
 const Registration = require('../models/Registration')
+const PromoSetting = require('../models/PromoSetting')
 const { generateWhatsAppUrl } = require('../utils/whatsapp')
 
-function calculateFinalPrice(category, training) {
+/**
+ * Hitung harga final peserta berdasarkan kategori + promo global aktif.
+ *
+ * @param {string} category  - 'umum' | 'mahasiswa_uad' | 'karyawan_uad' | undefined/null
+ * @param {object} training  - baris training (field price_*)
+ * @param {object|null} promo - baris promo aktif, atau null/undefined bila tidak ada
+ * @returns {number}
+ *
+ * Bila promo aktif & valid (dalam periode & harga promo < harga normal
+ * per kategori), kembalikan promo_price; selain itu tetap harga normal
+ * per kategori (fallback ke price_general bila kategori tak dikenal).
+ */
+function calculateFinalPrice(category, training, promo) {
   if (!training) return 0
   const priceMap = {
     'umum':          training.price_general,
@@ -12,8 +25,42 @@ function calculateFinalPrice(category, training) {
   }
   // DECIMAL(10,2) dari mysql2 = string → konversi ke Number agar aman
   const raw = priceMap[category] ?? training.price_general
-  const num = Number(raw)
-  return isNaN(num) ? 0 : num
+  const normalPrice = isNaN(Number(raw)) ? 0 : Number(raw)
+
+  // Promo global: hanya dipakai bila promo ada & is_active & dalam periode.
+  if (promo && promo.is_active) {
+    // Harga per training (byTraining, tabel promo_trainings) — fallback ke
+    // harga default global bila training ini tak punya harga khusus.
+    const byTrainingPrice = promo.byTraining && promo.byTraining[training.id] != null
+      ? Number(promo.byTraining[training.id])
+      : null
+    const promoPrice = byTrainingPrice != null ? byTrainingPrice : Number(promo.promo_price)
+    const now = Date.now()
+    const starts = promo.promo_starts_at ? new Date(promo.promo_starts_at).getTime() : null
+    const ends = promo.promo_ends_at ? new Date(promo.promo_ends_at).getTime() : null
+    const withinWindow =
+      (starts === null || now >= starts) &&
+      (ends === null || now <= ends)
+    // Harga promo hanya berlaku bila lebih murah dari harga normal kategori
+    // ini — mencegah "promo" yang justru menaikkan harga.
+    if (withinWindow && !isNaN(promoPrice) && promoPrice < normalPrice) {
+      return promoPrice
+    }
+  }
+
+  return normalPrice
+}
+
+/**
+ * Ambil promo aktif untuk ditampilkan di view (bisa null bila tidak ada
+ * atau tabel belum ada — tidak me-error saat promo belum dikonfigurasi).
+ */
+async function getActivePromo() {
+  try {
+    return await PromoSetting.findActive()
+  } catch (_) {
+    return null
+  }
 }
 
 /**
@@ -36,9 +83,12 @@ function freeTierWithCertOption(training) {
  * bisa dimanipulasi client. Flag cert_available juga dari DB — form hanya
  * memilih antara apa yang DIIZINKAN server.
  *
+ * Promo global (argumen ke-4) hanya menggantikan harga kategori berbayar;
+ * kategori gratis tetap memakai logika Rp 0 / CERT_FEE, tidak tersentuh.
+ *
  * Di-export agar bisa diuji oleh property test.
  */
-function resolveFinalPrice(training, body, certFee) {
+function resolveFinalPrice(training, body, certFee, promo) {
   if (training && training.is_free_tier) {
     // cert_available === false → kategori full free (cert_available=0 di DB)
     // atau kategori tak dikenal → peserta selalu Rp 0, abaikan payment_option.
@@ -54,7 +104,7 @@ function resolveFinalPrice(training, body, certFee) {
     }
     return 0
   }
-  return calculateFinalPrice(body?.category, training)
+  return calculateFinalPrice(body?.category, training, promo)
 }
 
 /**
@@ -163,12 +213,14 @@ const registrationController = {
       return res.redirect(`/trainings/${training.slug}`)
     }
 
+    const promo = await getActivePromo()
     res.render('registration/form', {
       training,
       allowedCategories: allowedCategories(training),
       title: `Daftar - ${training.title}`,
       errors: [],
       formData: {},
+      promo,
       certFee: Number(process.env.CERT_FEE || 0),
       fmt: new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 })
     })
@@ -188,8 +240,10 @@ const registrationController = {
       }
 
       // Konteks form untuk render ulang saat error (tier gratis → pilih bayar)
+      const promo = await getActivePromo()
       const formCtx = {
         allowedCategories: allowedCategories(training),
+        promo,
         certFee: Number(process.env.CERT_FEE || 0),
         fmt: new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 })
       }
@@ -233,7 +287,7 @@ const registrationController = {
       // "gratis / dengan sertifikat" (tier gratis). CERT_FEE dari env,
       // bukan dari form, agar nominal tidak bisa dimanipulasi client.
       const certFee = Number(process.env.CERT_FEE || 0)
-      const final_price = resolveFinalPrice(training, req.body, certFee)
+      const final_price = resolveFinalPrice(training, req.body, certFee, promo)
       const identity_card_proof = req.files?.identity_card_proof?.[0]?.path || null
       const social_proof = req.files?.social_proof?.[0]?.path || null
       const ig_story_proof = req.files?.ig_story_proof?.[0]?.path || null

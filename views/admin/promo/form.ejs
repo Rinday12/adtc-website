@@ -1,0 +1,253 @@
+<%- include('../../layout/header', { title, adminUser, currentPath }) %>
+<%- include('../layout/sidebar', { adminUser, currentPath }) %>
+
+<!-- Tombol buka sidebar di layar mobile -->
+<button
+  type="button"
+  onclick="toggleSidebar()"
+  class="lg:hidden fixed top-4 left-4 z-50 w-10 h-10 bg-navy-800 text-white rounded-lg shadow-lg flex items-center justify-center"
+  aria-label="Buka menu"
+>
+  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+  </svg>
+</button>
+
+<!-- Main content — di-offset agar tidak tertutup sidebar di desktop -->
+<div class="lg:pl-64">
+<div class="max-w-3xl mx-auto px-4 py-6 lg:px-6">
+  <%
+    const val = typeof values !== 'undefined' ? values : (promo || {})
+    const byTraining = (promo && promo.byTraining) ? promo.byTraining : {}
+    const selectedIds = (val.training_ids && val.training_ids.length)
+      ? val.training_ids
+      : Object.keys(byTraining)
+    const priceFor = function(tid, idx) {
+      const prices = val.promo_prices || {}
+      const p = (Array.isArray(prices) ? prices[idx] : prices[tid])
+      return (p != null && String(p).trim() !== '') ? p : (byTraining[tid] != null ? byTraining[tid] : '')
+    }
+  %>
+
+  <!-- Page Header -->
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-800">Setting Promo Harga</h1>
+      <p class="text-gray-500 text-sm mt-1">
+        Set 1 promo global (label + periode) dan pilih training mana saja yang ikut promo,
+        lengkap dengan harga promo per training bila berbeda dari harga default.
+      </p>
+    </div>
+    <a
+      href="/admin/dashboard"
+      class="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-800 transition-colors border border-gray-300 hover:border-gray-400 rounded-lg px-4 py-2"
+    >
+      &larr; Kembali
+    </a>
+  </div>
+
+  <% if (promo && promo.is_active) { %>
+    <div class="bg-green-50 border border-green-200 rounded-xl px-5 py-4 mb-6 text-sm text-green-800">
+      Promo <strong>"<%= promo.label %>"</strong> sedang aktif — harga default
+      Rp <%= Number(promo.promo_price || 0).toLocaleString('id-ID') %><% if (promo.byTraining && Object.keys(promo.byTraining).length) { %>
+      <% const btKeys = Object.keys(promo.byTraining) %>
+      <% if (btKeys.length <= 3) { %>
+        (per training:
+        <% btKeys.forEach(function(k, i) { %><%= i ? ', ' : '' %> #<%= k %> Rp <%= Number(promo.byTraining[k]).toLocaleString('id-ID') %><% }) %>
+      <% } else { %>(<%= btKeys.length %> training punya harga khusus)<% } %>
+      <% } %>
+      . Mengisi form di bawah akan mengganti setting ini.
+    </div>
+  <% } %>
+
+  <!-- Validation Errors -->
+  <% if (typeof errors !== 'undefined' && errors && errors.length > 0) { %>
+    <div class="bg-red-50 border border-red-200 rounded-xl px-5 py-4 mb-6" role="alert">
+      <div class="flex items-center gap-2 mb-2">
+        <svg class="w-4 h-4 text-red-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <p class="text-sm font-semibold text-red-700">Harap perbaiki kesalahan berikut:</p>
+      </div>
+      <ul class="list-disc list-inside space-y-1">
+        <% errors.forEach(function(err) { %>
+          <li class="text-sm text-red-600"><%= err %></li>
+        <% }) %>
+      </ul>
+    </div>
+  <% } %>
+
+  <!-- Form -->
+  <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+    <form method="POST" action="/admin/promo-settings">
+
+      <div class="px-6 py-6 space-y-5">
+
+        <!-- Nama Promo -->
+        <div>
+          <label for="label" class="block text-sm font-medium text-gray-700 mb-1.5">
+            Nama Promo
+          </label>
+          <input
+            type="text"
+            id="label"
+            name="label"
+            maxlength="120"
+            value="<%= val.label ? String(val.label) : '' %>"
+            placeholder="Contoh: Diskon Awal Tahun"
+            class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors"
+          />
+          <p class="mt-1.5 text-xs text-gray-500">
+            Ditampilkan pada banner promo di halaman publik. Wajib bila promo diaktifkan.
+          </p>
+        </div>
+
+        <!-- Harga Promo -->
+        <div>
+          <label for="promo_price" class="block text-sm font-medium text-gray-700 mb-1.5">
+            Harga Promo (Rp)
+          </label>
+          <input
+            type="number"
+            id="promo_price"
+            name="promo_price"
+            min="0"
+            step="1000"
+            value="<%= val.promo_price != null ? val.promo_price : '' %>"
+            placeholder="Contoh: 50000"
+            class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors"
+          />
+          <p class="mt-1.5 text-xs text-gray-500">
+            Harga default — dipakai untuk training yang TIDAK punya harga khusus di bawah.
+            Menggantikan harga normal per kategori (Umum / Mahasiswa &amp; Alumni / Karyawan) selama promo aktif.
+          </p>
+        </div>
+
+        <!-- Per Training -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1.5">
+            Training yang Ikut Promo
+          </label>
+          <% if (trainings.length === 0) { %>
+            <p class="text-sm text-gray-500">Belum ada training — tidak ada yang bisa dipilih.</p>
+          <% } else { %>
+          <div class="space-y-2 max-h-72 overflow-y-auto border border-gray-200 rounded-lg p-3">
+            <% trainings.forEach(function(t, idx) { %>
+              <%
+                const tid = t.id
+                const isSel = selectedIds.indexOf(String(tid)) !== -1
+              %>
+              <div class="flex items-center gap-3 py-1.5 border-b border-gray-100 last:border-0">
+                <label class="flex items-center gap-2 flex-1 min-w-0 text-sm text-gray-700">
+                  <input
+                    type="checkbox"
+                    name="training_ids[]"
+                    value="<%= tid %>"
+                    <%= isSel ? 'checked' : '' %>
+                    data-promo-price-input="<%= 'promoPriceInput_' + tid %>"
+                    class="rounded text-brand-600 focus:ring-brand-500 shrink-0"
+                  />
+                  <span class="truncate"><%= t.title %></span>
+                </label>
+                <input
+                  type="number"
+                  name="promo_prices[]"
+                  id="promoPriceInput_<%= tid %>"
+                  min="0"
+                  step="1000"
+                  value="<%= priceFor(tid, idx) %>"
+                  placeholder="default"
+                  class="w-32 rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-gray-900 placeholder-gray-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors shrink-0"
+                />
+              </div>
+            <% }) %>
+          </div>
+          <p class="mt-1.5 text-xs text-gray-500">
+            Centang training mana yang ikut promo. Kolom kanan = harga promo khusus training itu;
+            kosongkan untuk memakai harga default di atas. Hanya training yang dicentang yang
+            menampilkan banner promo di halaman publik — training lain tetap harga normal.
+          </p>
+          <% } %>
+        </div>
+
+        <!-- Periode -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label for="promo_starts_at" class="block text-sm font-medium text-gray-700 mb-1.5">Mulai</label>
+            <input
+              type="datetime-local"
+              id="promo_starts_at"
+              name="promo_starts_at"
+              value="<%= val.promo_starts_at ? String(val.promo_starts_at).slice(0, 16) : '' %>"
+              class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors"
+            />
+          </div>
+          <div>
+            <label for="promo_ends_at" class="block text-sm font-medium text-gray-700 mb-1.5">Berakhir</label>
+            <input
+              type="datetime-local"
+              id="promo_ends_at"
+              name="promo_ends_at"
+              value="<%= val.promo_ends_at ? String(val.promo_ends_at).slice(0, 16) : '' %>"
+              class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-colors"
+            />
+          </div>
+        </div>
+
+        <!-- Aktifkan -->
+        <div>
+          <label class="flex items-center gap-2 text-sm font-medium text-gray-700">
+            <input
+              type="checkbox"
+              name="is_active"
+              value="1"
+              <%= val.is_active ? 'checked' : '' %>
+              class="rounded text-brand-600 focus:ring-brand-500"
+            />
+            Aktifkan promo
+          </label>
+          <p class="mt-1.5 text-xs text-gray-500">
+            Hanya 1 promo aktif dalam satu waktu. Mencentang ini akan menonaktifkan promo lama yang masih aktif.
+          </p>
+        </div>
+
+      </div>
+
+      <!-- Form Actions -->
+      <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex items-center gap-3">
+        <button
+          type="submit"
+          class="inline-flex items-center gap-2 bg-navy-700 hover:bg-navy-700 active:bg-brand-700 text-white font-semibold px-5 py-2.5 rounded-lg shadow-sm transition-colors text-sm"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+          Simpan
+        </button>
+        <a
+          href="/admin/dashboard"
+          class="text-sm text-gray-600 hover:text-gray-800 hover:underline transition-colors"
+        >
+          Batal
+        </a>
+      </div>
+
+    </form>
+  </div>
+
+</div>
+</div>
+
+<script>
+  // Disable input harga saat training tak dicentang (pola sama dengan
+  // views/admin/trainings/form.ejs — input di-disable sesuai kondisi).
+  document.querySelectorAll('[data-promo-price-input]').forEach(function(cb) {
+    var inp = document.getElementById(cb.getAttribute('data-promo-price-input'))
+    function sync() { if (inp) inp.disabled = !cb.checked }
+    cb.addEventListener('change', sync)
+    sync()
+  })
+</script>
+
+<%- include('../layout/admin-footer') %>

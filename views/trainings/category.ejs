@@ -249,13 +249,38 @@
                 <span class="text-base leading-none" aria-hidden="true"><%= isOnlineCard ? '💻' : '🏢' %></span>
                 <span><%= isOnlineCard ? 'Online' : 'Offline' %></span>
               </div>
-              <div class="flex items-center gap-2">
+              <div class="flex items-center gap-2 flex-wrap">
                 <svg class="w-4 h-4 shrink-0 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
                 </svg>
+                <%
+                  const catPromo = (function(){
+                    if (typeof promo === 'undefined' || !promo || !promo.is_active) return null
+                    const now = Date.now()
+                    const starts = promo.promo_starts_at ? new Date(promo.promo_starts_at).getTime() : null
+                    const ends = promo.promo_ends_at ? new Date(promo.promo_ends_at).getTime() : null
+                    if (starts !== null && now < starts) return null
+                    if (ends !== null && now > ends) return null
+                    // Harga per training (byTraining) bila ada, selain itu
+                    // fallback ke harga default global.
+                    const p = promo.byTraining && promo.byTraining[training.id] != null
+                      ? Number(promo.byTraining[training.id])
+                      : Number(promo.promo_price)
+                    if (isNaN(p) || p < 0) return null
+                    if (isFreeTraining) return null
+                    const prices = [Number(training.price_general)||0, Number(training.price_student_uad)||0, Number(training.price_employee_uad)||0].filter(x => x > 0)
+                    const minNormal = prices.length ? Math.min.apply(null, prices) : 0
+                    return p < minNormal ? p : null
+                  })()
+                %>
                 <% if (isFreeTraining) { %>
                   <span class="font-bold text-navy-700">Gratis — Rp 0, opsi Paket Lengkap tersedia</span>
+                <% } else if (catPromo != null) { %>
+                  <span class="text-gray-500">Mulai dari</span>
+                  <span class="text-xs text-gray-400 line-through"><%= fmt.format(training.price_general) %></span>
+                  <span class="font-bold text-amber-600"><%= fmt.format(catPromo) %></span>
+                  <span class="inline-block bg-amber-100 text-amber-700 text-xs font-semibold px-2 py-0.5 rounded-full">Promo</span>
                 <% } else { %>
                   <span class="text-gray-500">Mulai dari</span>
                   <span class="font-bold text-navy-700"><%= fmt.format(training.price_general) %></span>

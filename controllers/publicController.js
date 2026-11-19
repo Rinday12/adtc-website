@@ -1,6 +1,17 @@
 // controllers/publicController.js
 const Training = require('../models/Training')
 const Service  = require('../models/Service')
+const PromoSetting = require('../models/PromoSetting')
+
+/** Ambil promo aktif untuk ditampilkan di view; tak me-error bila tabel
+ *  belum ada (migrasi belum jalan) atau query gagal. */
+async function getActivePromo() {
+  try {
+    return await PromoSetting.findActive()
+  } catch (_) {
+    return null
+  }
+}
 
 const publicController = {
 
@@ -32,12 +43,14 @@ const publicController = {
       const groupMap = new Map()
       groups.forEach(g => groupMap.set(g.category, g))
       const totalActive = groups.reduce((sum, g) => sum + g.trainings.length, 0)
+      const promo = await getActivePromo()
 
       res.render('trainings/catalog', {
         groups,
         categories,
         groupMap,
         totalActive,
+        promo,
         activeCategory: req.query.category || null,
         title: 'Katalog Pelatihan ADTC'
       })
@@ -89,10 +102,12 @@ const publicController = {
         services = []
       }
 
+      const promo = await getActivePromo()
       res.render('trainings/category', {
         category,
         trainings,
         services,
+        promo,
         total: trainings.length,
         title: `${category.category} — ADTC`
       })
@@ -119,9 +134,11 @@ const publicController = {
           message: 'Pelatihan tidak ditemukan', code: 404
         })
       }
+      const promo = await getActivePromo()
       res.render('trainings/detail', {
         training,
         title: training.title,
+        promo,
         certFee: Number(process.env.CERT_FEE || 0),
       })
     } catch (err) {

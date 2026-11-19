@@ -8,6 +8,7 @@ const adminBenefitController = require('../controllers/adminBenefitController')
 const adminTrainingController = require('../controllers/adminTrainingController')
 const adminCategoryController = require('../controllers/adminCategoryController')
 const adminServiceController = require('../controllers/adminServiceController')
+const adminPromoController = require('../controllers/adminPromoController')
 const { isAuthenticated }    = require('../middleware/auth')
 const upload                 = require('../middleware/upload')
 
@@ -116,5 +117,10 @@ router.post('/services',            isAuthenticated, adminServiceController.post
 router.get('/services/:id/edit',    isAuthenticated, adminServiceController.getEdit)
 router.post('/services/:id/update', isAuthenticated, adminServiceController.postUpdate)
 router.post('/services/:id/delete', isAuthenticated, adminServiceController.postDelete)
+
+// ─── Promo Settings Routes ───────────────────────────────────────────────────
+// Setting promo global (bukan CRUD — 1 form saja, menyimpan promo aktif).
+router.get('/promo-settings', isAuthenticated, adminPromoController.getForm)
+router.post('/promo-settings', isAuthenticated, adminPromoController.postSave)
 
 module.exports = router

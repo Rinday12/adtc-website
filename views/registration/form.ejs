@@ -37,6 +37,51 @@
     </div>
   <% } %>
 
+  <!-- Banner Promo (hanya untuk kategori berbayar, bila promo aktif & lebih murah) -->
+  <%
+    const promoNow = (function(){
+      if (typeof promo === 'undefined' || !promo || !promo.is_active) return null
+      const now = Date.now()
+      const starts = promo.promo_starts_at ? new Date(promo.promo_starts_at).getTime() : null
+      const ends = promo.promo_ends_at ? new Date(promo.promo_ends_at).getTime() : null
+      if (starts !== null && now < starts) return null
+      if (ends !== null && now > ends) return null
+      // Harga per training (byTraining) bila ada, selain itu fallback ke
+      // harga default global.
+      const p = promo.byTraining && promo.byTraining[training.id] != null
+        ? Number(promo.byTraining[training.id])
+        : Number(promo.promo_price)
+      if (isNaN(p) || p < 0) return null
+      // Promo hanya relevan untuk kategori berbayar; tier gratis tak tersentuh.
+      if (training.is_free_tier) return null
+      const prices = [Number(training.price_general)||0, Number(training.price_student_uad)||0, Number(training.price_employee_uad)||0].filter(x => x > 0)
+      const minNormal = prices.length ? Math.min.apply(null, prices) : 0
+      return p < minNormal ? promo : null
+    })()
+    // Harga efektif untuk training ini (dipakai di banner) — per training
+    // bila ada, selain itu harga default global.
+    const promoDisplayPrice = promo && promo.byTraining && promo.byTraining[training.id] != null
+      ? Number(promo.byTraining[training.id])
+      : (promo ? Number(promo.promo_price) : 0)
+  %>
+  <% if (promoNow) { %>
+  <div class="mb-6 rounded-xl border border-amber-300 bg-amber-50 px-5 py-4 flex flex-wrap items-center gap-x-3 gap-y-2">
+    <span class="text-amber-500 text-lg" aria-hidden="true">&#127873;</span>
+    <div class="min-w-0">
+      <p class="text-sm font-semibold text-amber-800">
+        <%= promoNow.label || 'Promo' %> — Rp <%= promoDisplayPrice.toLocaleString('id-ID') %>
+      </p>
+      <p class="text-xs text-amber-700 mt-0.5">
+        Berlaku
+        <%= promoNow.promo_starts_at ? new Date(promoNow.promo_starts_at).toLocaleDateString('id-ID') : '' %>
+        s.d.
+        <%= promoNow.promo_ends_at ? new Date(promoNow.promo_ends_at).toLocaleDateString('id-ID') : 'tidak ditentukan' %>
+        — harga ini diterapkan otomatis saat mendaftar.
+      </p>
+    </div>
+  </div>
+  <% } %>
+
   <!-- Registration Form -->
   <form
     action="/trainings/<%= training.slug %>/register"

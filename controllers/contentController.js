@@ -3,9 +3,18 @@
 //
 // Persyaratan: 1.1, 1.3, 1.4, 1.6, 2.2, 2.3, 2.5, 3.1, 3.2, 3.3, 3.4, 4.1, 4.2, 4.3
 
-const Training = require('../models/Training')
-const News     = require('../models/News')
-const Benefit  = require('../models/Benefit')
+const Training   = require('../models/Training')
+const News       = require('../models/News')
+const Benefit    = require('../models/Benefit')
+const PromoSetting = require('../models/PromoSetting')
+
+async function getActivePromo() {
+  try {
+    return await PromoSetting.findActive()
+  } catch (_) {
+    return null
+  }
+}
 
 const contentController = {
 
@@ -44,6 +53,7 @@ const contentController = {
         console.error('[getHome] Benefit query failed:', benefitsResult.reason)
       }
 
+      const promo = await getActivePromo()
       res.render('home', {
         title:     'Beranda',
         metaDescription:
@@ -51,7 +61,8 @@ const contentController = {
           'Pelatihan UAD dan Pelatihan K3 berlisensi, sertifikasi ' +
           'BNSP untuk tenaga kerja profesional di Yogyakarta.',
         trainings,
-        benefits
+        benefits,
+        promo
       })
     } catch (err) {
       console.error('[getHome] Unexpected error:', err)
