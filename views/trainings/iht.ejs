@@ -1,0 +1,362 @@
+<%- include('../layout/header') %>
+
+<%
+  const fmt = new Intl.NumberFormat('id-ID', {
+    style: 'currency', currency: 'IDR', minimumFractionDigits: 0
+  })
+  const _svcs = services || []
+  const wa = waNumber || ''
+  const waLink = wa ? 'https://wa.me/' + wa : '#'
+  const waDisplay = wa ? wa.replace(/^(\d{2})(\d{3})(\d+)$/, '$1-$2-$3') : ''
+%>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     HERO — background foto training dengan overlay navy gelap
+     (sesuai hukumonline.com/events/iht)
+══════════════════════════════════════════════════════════════════ -->
+<div class="relative overflow-hidden text-white"
+     style="background:
+       linear-gradient(135deg, rgba(14,31,58,0.94) 0%, rgba(27,58,107,0.92) 50%, rgba(47,95,168,0.88) 100%),
+       url('/images/logo/adtc-og-image.png') center/cover no-repeat;">
+
+  <!-- Dekorasi grid titik halus -->
+  <div class="absolute inset-0 opacity-[0.05] pointer-events-none"
+       style="background-image: radial-gradient(circle, white 1px, transparent 1px); background-size: 28px 28px;"></div>
+
+  <!-- Blob blur dekoratif -->
+  <div class="absolute -top-24 -right-16 w-96 h-96 rounded-full bg-teal-500/10 blur-3xl animate-pulse-slow pointer-events-none"></div>
+  <div class="absolute -bottom-16 -left-10 w-72 h-72 rounded-full bg-white/5 blur-2xl pointer-events-none"></div>
+
+  <div class="max-w-6xl mx-auto px-4 pt-16 md:pt-24 pb-20 md:pb-28 relative z-10">
+
+    <!-- Breadcrumb -->
+    <nav class="mb-8 flex items-center gap-2 text-sm text-white/60 animate-fade-up" aria-label="Breadcrumb">
+      <a href="/" class="hover:text-white transition-colors">Beranda</a>
+      <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+      <a href="/trainings" class="hover:text-white transition-colors">Katalog Pelatihan</a>
+      <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+      <span class="text-white/90 font-medium">In-House Training</span>
+    </nav>
+
+    <!-- Headline -->
+    <div class="max-w-2xl animate-fade-up delay-2">
+      <span class="inline-block bg-teal-500/20 border border-teal-400/30 text-teal-300 text-xs font-bold tracking-widest uppercase px-4 py-1.5 rounded-full mb-5">
+        Event &amp; Training
+      </span>
+      <h1 class="text-4xl md:text-5xl lg:text-[3.25rem] font-extrabold tracking-tight leading-[1.1]">
+        Datangkan Narasumber<br class="hidden md:block" />
+        Kompeten ke Kantor Anda!
+      </h1>
+      <p class="mt-5 text-lg md:text-xl text-white/80 leading-relaxed max-w-xl">
+        Layanan In-House Training ADTC didukung tim profesional — kurikulum
+        disesuaikan kebutuhan tim Anda, jadwal fleksibel, dan narasumber
+        yang sesuai tujuan bisnis Anda.
+      </p>
+
+      <!-- CTA Request Penawaran -->
+      <div class="mt-8 flex flex-wrap items-center gap-4 animate-fade-up delay-3">
+        <a href="<%= waLink %>" target="_blank" rel="noopener noreferrer"
+           class="inline-flex items-center gap-2.5 bg-amber-400 hover:bg-amber-300 text-navy-900
+                  font-bold text-base px-7 py-3.5 rounded-xl shadow-lg transition-colors">
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12.89 12.35c-.77-.3-1.46-.94-1.76-1.71-.27-.7-.22-1.47.12-2.1l.35-.67a.5.5 0 000-.46l-.69-1.43a.5.5 0 00-.46-.27l-.98-.09a.5.5 0 00-.43.22l-.4.63a.5.5 0 01-.4.25H6.12a.5.5 0 00-.45.28l-.43.8a.5.5 0 01-.34.27l-1.05.16a.5.5 0 00-.39.55l.21 1.04a.5.5 0 00.43.4l.6.09a.5.5 0 01.44.25l.3.55a.5.5 0 010 .48l-.35.67a.5.5 0 000 .5l.4.63a.5.5 0 00.43.22l.98.09a.5.5 0 01.46.27l.69 1.43a.5.5 0 00.46.27h.94a.5.5 0 01.4.2l.37.56a.5.5 0 00.4.22l1.05.02a.5.5 0 00.48-.37l.23-.98a.5.5 0 01.3-.34l.87-.24a.5.5 0 00.36-.32l.25-.95a.5.5 0 00-.22-.49z"/>
+          </svg>
+          Request Penawaran
+        </a>
+        <% if (waDisplay) { %>
+          <a href="tel:+<%= wa %>"
+             class="inline-flex items-center gap-2 text-white/70 hover:text-white text-sm transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M3 5a2 2 0 012-2h3.28a1 1 0 01.95.68l1.5 4.5a1 1 0 01-.5 1.21l-1.16.6a16 16 0 006.5 6.5l.6-1.16a1 1 0 011.21-.5l4.5 1.5a1 1 0 01.68.95V19a2 2 0 01-2 2h-1A19 19 0 013 5z"/>
+            </svg>
+            <%= waDisplay %>
+          </a>
+        <% } %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Wave divider -->
+  <div class="text-gray-50 leading-none relative z-10">
+    <svg class="block w-full h-8 md:h-10" viewBox="0 0 1440 48" preserveAspectRatio="none" fill="currentColor" aria-hidden="true">
+      <path d="M0,48 C240,8 480,0 720,16 C960,32 1200,40 1440,24 L1440,48 L0,48 Z"/>
+    </svg>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     SECTION: MENGAPA LAYANAN IHT?
+     (2 kolom: ilustrasi kiri + 4 poin kanan, layout ringkas)
+══════════════════════════════════════════════════════════════════ -->
+<section class="max-w-6xl mx-auto px-4 py-14 md:py-20" aria-label="Mengapa layanan In-House Training">
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14 items-center">
+
+    <!-- Kiri: ilustrasi kartu training in-house -->
+    <div>
+      <div class="relative rounded-2xl overflow-hidden shadow-xl border border-blue-800/30 bg-blue-900">
+        <div class="aspect-[4/3] flex flex-col items-center justify-center px-8">
+          <div class="w-20 h-20 rounded-2xl bg-teal-500/20 border border-teal-400/30 flex items-center justify-center mb-5 shadow-lg">
+            <svg class="w-10 h-10 text-teal-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.25">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15A1.5 1.5 0 0121 4.5v9A1.5 1.5 0 0119.5 15H4.5A1.5 1.5 0 013 13.5v-9A1.5 1.5 0 014.5 3zm4.5 3.75v3h3v-3h-3zm4.5 0v3h3v-3h-3zM9 12v3m4.5-3v3" />
+            </svg>
+          </div>
+          <div class="text-base font-bold text-white tracking-wide mb-1">Pelatihan di Kantor Anda</div>
+          <div class="text-sm text-blue-200">Kurikulum &amp; jadwal sesuai kebutuhan tim</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Kanan: heading + 4 poin (kartu bernomor, layout ringkas) -->
+    <div>
+      <h2 class="text-3xl md:text-4xl font-extrabold text-navy-900 tracking-tight leading-tight mb-3">
+        Mengapa Layanan<br />
+        In-House Training ADTC?
+      </h2>
+      <p class="text-gray-500 text-base leading-relaxed mb-7">
+        Empat alasan utama tim Anda memilih ADTC untuk in-house training
+        di kantor institusi Anda.
+      </p>
+
+      <div class="grid grid-cols-1 gap-4">
+        <% const features = [
+          { title: 'Narasumber Kompeten', desc: 'Fasilitator berpengalaman dengan materi terkini dan ToR yang terarah.' },
+          { title: 'Jadwal Fleksibel', desc: 'Disesuaikan waktu, budget, dan kebutuhan — di hari kerja maupun akhir pekan.' },
+          { title: 'Kurikulum Disesuaikan', desc: 'Topik dan kedalaman dirancang khusus sesuai tujuan dan konteks pekerjaan tim Anda.' },
+          { title: 'Timeline Jelas', desc: 'Bekerja sesuai timeline yang disepakati — dari proposal, pelaksanaan, hingga pelaporan.' }
+        ] %>
+        <% features.forEach(function(f, idx) { %>
+          <div class="flex items-center gap-4 bg-white border border-gray-100 rounded-xl p-4 shadow-sm hover:shadow-md hover:border-teal-200 transition-all">
+            <span class="shrink-0 w-8 h-8 rounded-full bg-teal-50 border border-teal-100 flex items-center justify-center text-teal-700 text-sm font-bold">
+              <%= idx + 1 %>
+            </span>
+            <div>
+              <h3 class="font-bold text-navy-800 text-base leading-tight"><%= f.title %></h3>
+              <p class="text-gray-500 text-sm leading-relaxed mt-0.5"><%= f.desc %></p>
+            </div>
+          </div>
+        <% }) %>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════���══════════���═══════════════════════
+     SECTION: KAMI MENGATUR SEMUA UNTUK ANDA
+     (mirror hukumonline: 7 item checklist 2 kolom)
+══════════════════════════════════════════════════════════════════ -->
+<section class="bg-navy-900 text-white" aria-label="Kami mengatur semua untuk Anda">
+  <div class="max-w-6xl mx-auto px-4 py-14 md:py-20">
+    <div class="text-center mb-12">
+      <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight mb-4">
+        Kami Mengatur Semua untuk Anda
+      </h2>
+      <p class="text-white/60 text-base max-w-2xl mx-auto leading-relaxed">
+        Fokus tim Anda pada materi — kami urus seluruh aspek logistik dan
+        teknis pelatihan dari awal hingga selesai.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+      <% const checklist = [
+        'Proposal Training &amp; ToR',
+        'Narasumber &amp; Moderator',
+        'Training Kit (modul)',
+        'Tempat Training',
+        'MC, Notulen, Floor Asst',
+        'Dokumentasi &amp; Laporan'
+      ] %>
+      <% checklist.forEach(function(item, i) { %>
+        <div class="flex items-center gap-4 bg-white/10 border border-white/15 rounded-xl px-6 py-5 h-full hover:bg-white/15 transition-colors">
+          <span class="shrink-0 w-9 h-9 rounded-full bg-teal-500/25 border border-teal-400/40 flex items-center justify-center text-teal-300 text-sm font-bold">
+            <%= i + 1 %>
+          </span>
+          <span class="text-base font-semibold text-white leading-snug"><%= item %></span>
+        </div>
+      <% }) %>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     CTA STRIP — Hubungi kami
+     (mirror hukumonline: phone + email + CTA Request)
+══════════════════════════════════════════════════════════════════ -->
+<section class="max-w-6xl mx-auto px-4 py-12 md:py-16" aria-label="Hubungi kami">
+  <div class="bg-gradient-to-r from-teal-50 to-navy-50 border border-teal-100 rounded-2xl p-8 md:p-12 text-center">
+    <h2 class="text-2xl md:text-3xl font-extrabold text-navy-900 mb-3 tracking-tight">
+      Datangkan narasumber kompeten ke kantor Anda
+    </h2>
+    <p class="text-gray-500 mb-7 text-base">Hubungi kami sekarang dan dapatkan penawaran khusus.</p>
+
+    <div class="flex flex-col items-center gap-4">
+      <% if (wa) { %>
+        <a href="<%= waLink %>" target="_blank" rel="noopener noreferrer"
+           class="inline-flex items-center gap-3 bg-teal-600 hover:bg-teal-500 text-white font-bold text-base
+                  px-7 py-3.5 rounded-xl shadow-md transition-colors">
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.477-.883-.788-1.48-1.761-1.658-2.059-.178-.297-.019-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.397-.025-.569l-.521-1.381c-.145-.32-.442-.32-.651-.332-.209-.008-.448-.011-.685-.011-.238 0-.635.089-.968.446-.333.357-1.283 1.245-1.283 3.022 0 1.777 1.296 3.489 1.445 3.711.148.222.215.298.348.507.133.209.569.635.668.735.099.099.355.423.421.5.067.075.16.21.179.332.019.122.019.15.019.202 0 .051-.059.179-.158.278l-.47.471c-.1.099-.259.148-.393.148-.134 0-2.302-.971-3.438-2.969-.961-1.761-1.036-3.149-1.036-3.282 0-.134.019-.458.05-.458.031-.066.047-.132.047-.167-.047-.164-.274-.224-.473-.14-.198.084-.618.269-.735.316-.116.048-.243.07-.376.07-.238-.008-.697-.079-1.114-.548-.269-.324-.066-.5.092-.615.178-.13.465-.289.623-.389.158-.099.232-.154.232-.224-.019-.067-.019-.328.04-.527.059-.198.328-.548.462-.714.134-.166.289-.359.359-.429.07-.071.171-.145.24-.195.071-.048.179-.132.214-.151.035-.019.122-.066.188-.066.066 0 .142.04.189.131.047.09.215.4.349.599.133.2.215.165.315.149.1-.017.234-.061.334-.107.099-.048.214-.114.316-.214.102-.1.214-.27.303-.436.089-.166.233-.479.233-.479l.485 1.455c.04.108.15.188.261.188h.529c.111 0 .222-.084.284-.188.062-.104.247-.465.275-.505.028-.04.171-.314.026-.314z"/>
+          </svg>
+          Hubungi via WhatsApp
+          <% if (waDisplay) { %><span class="text-sm font-normal opacity-75"><%= waDisplay %></span><% } %>
+        </a>
+      <% } %>
+
+      <div class="text-sm text-gray-400">
+        atau <a href="mailto:info@adtc.uad.ac.id" class="text-teal-600 hover:underline font-medium">info@adtc.uad.ac.id</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════���══════════════
+     PROGRAM IHT TERSEDIA (bila ada training di kategori ini)
+     Tampilkan card training bila tersedia — seperti hukumonline section
+     "Narasumber" (di sini = program IHT yang bisa dipilih).
+══════════════════════════════════════════════════════════════════ -->
+<% if (trainings.length > 0) { %>
+<section class="max-w-6xl mx-auto px-4 pb-14 md:pb-20" aria-label="Program IHT tersedia">
+  <div class="flex items-center gap-3 mb-6">
+    <h2 class="text-2xl font-bold text-gray-900">Program IHT Tersedia</h2>
+    <span class="text-base text-gray-400">(<%= trainings.length %>)</span>
+  </div>
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    <% trainings.forEach(function(training) { %>
+      <%
+        const formattedDate = training.start_date
+          ? new Date(training.start_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
+          : 'Jadwal fleksibel'
+        const registeredCount = training.registered_count || 0
+        const isFull = registeredCount >= training.quota
+        const isPostpone = training.status === 'postpone'
+        const isCompleted = !isFull && (training.reschedule_date || training.start_date) && new Date(training.reschedule_date || training.start_date) < new Date()
+        const isBlocked = isFull || isCompleted
+        const isOnlineCard = training.exec_mode === 'online'
+      %>
+      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col
+                  hover:shadow-xl hover:-translate-y-1 hover:border-teal-200 transition-all duration-300">
+        <% if (training.cover_image) { %>
+          <div class="relative h-40 rounded-t-2xl overflow-hidden">
+            <img src="/<%= training.cover_image %>" alt="<%= training.title %>" class="w-full h-full object-cover">
+            <% if (!isBlocked) { %>
+              <div class="absolute top-3 right-3">
+                <span class="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full
+                             bg-green-100 text-green-800 border border-green-200">
+                  <span class="w-2 h-2 rounded-full bg-green-500"></span>Buka
+                </span>
+              </div>
+            <% } else if (isCompleted) { %>
+              <div class="absolute top-3 right-3">
+                <span class="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full
+                             bg-blue-100 text-blue-800 border border-blue-200">
+                  <span class="w-2 h-2 rounded-full bg-blue-500"></span>Selesai
+                </span>
+              </div>
+            <% } else { %>
+              <div class="absolute top-3 right-3">
+                <span class="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full
+                             bg-red-100 text-red-800 border border-red-200">
+                  <span class="w-2 h-2 rounded-full bg-red-500"></span>Kuota Penuh
+                </span>
+              </div>
+            <% } %>
+            <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent px-4 py-3">
+              <h3 class="text-base font-bold text-white leading-snug"><%= training.title %></h3>
+            </div>
+          </div>
+        <% } else { %>
+          <div class="bg-navy-700 px-5 py-4 rounded-t-2xl">
+            <h3 class="text-base font-bold text-white leading-snug"><%= training.title %></h3>
+          </div>
+        <% } %>
+
+        <div class="px-5 py-4 flex flex-col flex-1 gap-3">
+          <div class="space-y-2 text-sm">
+            <div class="flex items-center gap-2 text-gray-500">
+              <svg class="w-4 h-4 shrink-0 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+              </svg>
+              <span><%= formattedDate %></span>
+            </div>
+            <div class="flex items-center gap-2 text-gray-500">
+              <span class="text-base leading-none" aria-hidden="true"><%= isOnlineCard ? '💻' : '🏢' %></span>
+              <span><%= isOnlineCard ? 'Online' : 'Offline' %></span>
+            </div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <svg class="w-4 h-4 shrink-0 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
+              </svg>
+              <span class="text-gray-500">Mulai dari</span>
+              <span class="font-bold text-navy-700"><%= fmt.format(training.price_general) %></span>
+            </div>
+          </div>
+
+          <div class="flex-1"></div>
+
+          <div class="flex flex-col gap-2">
+            <% if (isBlocked) { %>
+              <button disabled class="w-full flex items-center justify-center gap-2
+                      bg-gray-100 text-gray-600 font-semibold text-sm
+                      px-4 py-2.5 rounded-xl cursor-not-allowed border border-gray-200">
+                <span class="w-2 h-2 rounded-full <%= isCompleted ? 'bg-blue-500' : 'bg-red-500' %>"></span>
+                <%= isCompleted ? 'Sudah Selesai' : 'Kuota Penuh' %>
+              </button>
+            <% } else { %>
+              <a href="/trainings/<%= training.slug %>/register"
+                 class="w-full flex items-center justify-center gap-1.5
+                        bg-teal-600 hover:bg-teal-500 text-white font-bold text-sm
+                        px-4 py-2.5 rounded-xl transition-colors shadow-sm">
+                Daftar Sekarang
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+                </svg>
+              </a>
+            <% } %>
+            <a href="/trainings/<%= training.slug %>"
+               class="w-full flex items-center justify-center
+                      border border-gray-200 text-gray-600 hover:border-teal-400 hover:text-teal-700
+                      font-medium text-sm px-4 py-2 rounded-xl transition-colors">
+              Lihat Detail
+            </a>
+          </div>
+        </div>
+      </div>
+    <% }) %>
+  </div>
+</section>
+<% } %>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     LAYANAN / KONSULTASI IHT (bila ada services di kategori ini)
+══════════════════════════════════════════════════════════════════ -->
+<% if (_svcs.length > 0) { %>
+<section class="max-w-6xl mx-auto px-4 pb-14" aria-label="Layanan IHT">
+  <div class="flex items-center gap-3 mb-6">
+    <h2 class="text-2xl font-bold text-gray-900">Layanan &amp; Konsultasi</h2>
+    <span class="text-base text-gray-400">(<%= _svcs.length %>)</span>
+  </div>
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    <% _svcs.forEach(function(svc) { %>
+      <div class="group bg-white rounded-2xl border border-gray-100 p-6 shadow-sm
+                  hover:shadow-xl hover:-translate-y-1 hover:border-teal-200 transition-all duration-300 flex flex-col items-center text-center">
+        <% if (svc.icon) { %>
+          <div class="text-4xl leading-none mb-4" aria-hidden="true"><%= svc.icon %></div>
+        <% } %>
+        <h3 class="text-lg font-bold text-navy-700 leading-tight mb-2"><%= svc.name %></h3>
+        <p class="text-sm text-navy-400 leading-relaxed mb-5 max-w-xs"><%= svc.description %></p>
+        <div class="mt-auto">
+          <a href="<%= waLink %>" target="_blank" rel="noopener noreferrer"
+             class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full border-2 border-teal-500 text-teal-600
+                    font-bold text-sm hover:bg-teal-500 hover:text-white transition-colors">
+            Hubungi Kami
+          </a>
+        </div>
+      </div>
+    <% }) %>
+  </div>
+</section>
+<% } %>
+
+<%- include('../layout/footer') %>

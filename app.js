@@ -8,6 +8,7 @@ const flash = require('connect-flash')
 const path = require('path')
 
 const Training     = require('./models/Training')
+const Service      = require('./models/Service')
 const publicRoutes = require('./routes/publicRoutes')
 const adminRoutes = require('./routes/adminRoutes')
 const News         = require('./models/News')
@@ -89,7 +90,15 @@ app.use((req, res, next) => {
 app.use(async (req, res, next) => {
   try {
     if (!req.path.startsWith('/admin')) {
-      res.locals.navCategories = await Training.findCategories()
+      const cats = await Training.findCategories()
+      // Tambahkan jumlah layanan aktif per kategori (anchor)
+      try {
+        const svcCounts = await Service.countActiveByCategory()
+        cats.forEach(c => { c.serviceCount = svcCounts.get(c.anchor) || 0 })
+      } catch (_) {
+        cats.forEach(c => { c.serviceCount = 0 })
+      }
+      res.locals.navCategories = cats
     } else {
       res.locals.navCategories = []
     }

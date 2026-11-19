@@ -21,7 +21,7 @@ Fix #61 (commit 3ffa870) & Fix #62 (fix TDZ + display promo di detail.ejs) seles
 - Opsi A dipilih: kategori gratis boleh dipromokan.
 
 ## Langkah berikutnya
-1. Commit Fix #62 (perubahan view form.ejs & detail.ejs).
+1. ~~Commit Fix #62~~ — selesai, commit e53d01f.
 2. Deploy: jalankan KEDUA migrasi promo (`2026-11-18_add_promo_settings.sql`,
    `2026-11-19_add_promo_trainings.sql`) di DB prod bila belum.
 3. Deploy: jalankan migration `2026-11-12_add_institution_social_proof_to_registrations.sql`

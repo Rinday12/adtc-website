@@ -136,9 +136,14 @@
                      class="flex items-center justify-between gap-2 px-4 py-2.5 text-sm text-gray-700
                             hover:bg-navy-50 hover:text-navy-700 transition-colors
                             <%= catIdx === _cats.length - 1 ? 'rounded-b-xl' : '' %>">
-                    <span class="flex items-center gap-2">
-                      <span class="w-2 h-2 rounded-full <%= dotCls %> shrink-0"></span>
-                      <span class="font-medium"><%= cat.icon ? cat.icon + ' ' : '' %><%= cat.category %></span>
+                    <span class="flex flex-col gap-0.5">
+                      <span class="flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full <%= dotCls %> shrink-0"></span>
+                        <span class="font-medium"><%= cat.icon ? cat.icon + ' ' : '' %><%= cat.category %></span>
+                      </span>
+                      <% if (typeof cat.serviceCount !== 'undefined' && cat.serviceCount > 0) { %>
+                        <span class="ml-4 text-xs text-teal-600">Layanan &amp; Konsultasi (<%= cat.serviceCount %>)</span>
+                      <% } %>
                     </span>
                     <span class="flex items-center gap-1 text-gray-400">
                       <span class="text-xs bg-gray-100 text-gray-500 rounded-full px-1.5 py-0.5 font-medium">
@@ -235,6 +240,9 @@
                      class="px-3 py-1.5 rounded-lg text-sm text-white/70 hover:text-white hover:bg-white/10 transition-colors flex items-center gap-2">
                     <span class="w-1.5 h-1.5 rounded-full <%= dotClsM %> shrink-0"></span>
                     <%= cat.icon ? cat.icon + ' ' : '' %><%= cat.category %>
+                    <% if (typeof cat.serviceCount !== 'undefined' && cat.serviceCount > 0) { %>
+                      <span class="ml-auto text-xs text-teal-300">(<%= cat.serviceCount %>)</span>
+                    <% } %>
                   </a>
                 <% }) %>
               <% } %>

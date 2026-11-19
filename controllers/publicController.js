@@ -104,7 +104,7 @@ const publicController = {
       }
 
       const promo = await getActivePromo()
-      res.render('trainings/category', {
+      const renderCtx = {
         category,
         trainings,
         services,
@@ -112,7 +112,9 @@ const publicController = {
         certFee: Number(process.env.CERT_FEE || 0),
         total: trainings.length,
         title: `${category.category} — ADTC`
-      })
+      }
+      // Halaman IHT punya layout khusus (hero + "Mengapa IHT" + "Kami Atur Semua" + CTA)
+      res.render(anchor === 'in-house-training' ? 'trainings/iht' : 'trainings/category', renderCtx)
     } catch (err) {
       next(err)
     }

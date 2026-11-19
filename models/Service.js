@@ -32,6 +32,17 @@ const Service = {
     return rows
   },
 
+  /**
+   * Hitung jumlah layanan aktif per category_anchor — satu query untuk semua kategori.
+   * Hasil: Map<string, number> (anchor → jumlah).
+   */
+  async countActiveByCategory() {
+    const [rows] = await db.execute(
+      "SELECT category_anchor, COUNT(*) AS cnt FROM services WHERE status = 'aktif' GROUP BY category_anchor"
+    )
+    return new Map(rows.map(r => [r.category_anchor, r.cnt]))
+  },
+
   async findById(id) {
     const [rows] = await db.execute(
       'SELECT * FROM services WHERE id = ? LIMIT 1',
