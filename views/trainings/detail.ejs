@@ -179,6 +179,25 @@
       %>
       <section aria-labelledby="price-heading">
         <h2 id="price-heading" class="text-lg font-semibold text-gray-800 mb-4">Biaya Pendaftaran</h2>
+        <%
+          // Kategori gratis + Fix #61: banner promo muncul bila harga promo
+          // per training < certFee (paket sertifikat).
+          const freePromoNow = (function(){
+            if (!promo || !promo.is_active || !training.is_free_tier) return null
+            const now = Date.now()
+            const starts = promo.promo_starts_at ? new Date(promo.promo_starts_at).getTime() : null
+            const ends = promo.promo_ends_at ? new Date(promo.promo_ends_at).getTime() : null
+            if (starts !== null && now < starts) return null
+            if (ends !== null && now > ends) return null
+            const p = promo.byTraining && promo.byTraining[training.id] != null
+              ? Number(promo.byTraining[training.id])
+              : Number(promo.promo_price)
+            if (isNaN(p) || p < 0) return null
+            const _cf = Number(certFee || 0)
+            if (!_cf || p >= _cf) return null
+            return p
+          })()
+        %>
         <% if (isFree) { %>
           <!-- Kategori gratis: semua harga Rp 0, tapi ada opsi Paket Lengkap -->
           <div class="rounded-xl border border-green-200 bg-green-50 px-5 py-4 flex items-start gap-3">
@@ -188,7 +207,14 @@
               <p class="text-xs text-green-700 mt-0.5">
                 <% if (training.cert_override === 0) { %>Ikut pelatihan Rp 0 — tanpa e-sertifikat, termasuk Soft File Materi, QnA, dan Group Discussion.<% } else { %>Ikut pelatihan Rp 0 — sudah termasuk e-sertifikat, Soft File Materi, QnA, dan Group Discussion.<% } %>
               </p>
-              <% if (certFee > 0) { %>
+              <% if (freePromoNow !== null) { %>
+              <p class="text-xs text-amber-700 mt-2">
+                Opsi tambahan: <strong>Paket Lengkap</strong>
+                <s class="text-gray-400"><%= fmt.format(certFee) %></s>
+                <span class="text-green-700 font-semibold"><%= fmt.format(freePromoNow) %> (promo)</span> —
+                termasuk Sertifikat Digital, Info Lowongan Kerja, Recording, Networking, dan Diskusi dengan Ahli.
+              </p>
+              <% } else if (certFee > 0) { %>
               <p class="text-xs text-amber-700 mt-2">
                 Opsi tambahan: <strong>Paket Lengkap</strong> <%= fmt.format(certFee) %> —
                 termasuk Sertifikat Digital, Info Lowongan Kerja, Recording, Networking, dan Diskusi dengan Ahli.

@@ -56,8 +56,8 @@
         // Opsi A (Fix #61): kategori gratis + "Dengan Sertifikat" boleh dipromokan.
         // Promo hanya tampilkan bila p < CERT_FEE (paket sertifikat) — opsi "gratis"
         // tetap Rp 0 tak tersentuh, jadi banner cuma relevan saat p < certFee.
-        const certFee = Number((typeof certFee !== 'undefined') ? certFee : 0)
-        if (!certFee || p >= certFee) return null
+        const _cf = Number((typeof certFee !== 'undefined') ? certFee : 0)
+        if (!_cf || p >= _cf) return null
         return promo
       }
       const prices = [Number(training.price_general)||0, Number(training.price_student_uad)||0, Number(training.price_employee_uad)||0].filter(x => x > 0)
@@ -69,6 +69,11 @@
     const promoDisplayPrice = promo && promo.byTraining && promo.byTraining[training.id] != null
       ? Number(promo.byTraining[training.id])
       : (promo ? Number(promo.promo_price) : 0)
+    // Harga efektif untuk kategori gratis + sertifikat (Fix #61):
+    // min(certFee, promoDisplayPrice) — hanya relevan saat promoNow non-null
+    // (artinya promo aktif & lebih murah dari certFee).
+    const effCertPrice = promoNow ? Math.min(Number(certFee), promoDisplayPrice) : Number(certFee)
+    const certHasPromo = !!promoNow && effCertPrice < Number(certFee)
   %>
   <% if (promoNow) { %>
   <div class="mb-6 rounded-xl border border-amber-300 bg-amber-50 px-5 py-4 flex flex-wrap items-center gap-x-3 gap-y-2">
@@ -231,8 +236,6 @@
             <%= (typeof formData !== 'undefined' && formData.payment_option === 'sertifikat') ? 'checked' : '' %>
             class="mt-0.5 text-brand-600 focus:ring-brand-500"
           />
-          <% const effCertPrice = (promoNow && promoNow < certFee) ? promoNow : certFee %>
-          <% const certHasPromo = (promoNow && promoNow < certFee) %>
           <span>
             <span class="block text-sm font-semibold text-gray-800">Paket Lengkap</span>
             <span class="block text-xs text-gray-500"><% if (certHasPromo) { %><s class="text-gray-400"><%= fmt.format(certFee) %></s> <span class="text-green-700 font-semibold"><%= fmt.format(effCertPrice) %> (promo)</span><% } else { %><%= fmt.format(certFee) %><% } %> — Soft File, QnA, Group Discussion, Sertifikat, Info Lowongan, Recording, Networking, Diskusi Ahli</span>
