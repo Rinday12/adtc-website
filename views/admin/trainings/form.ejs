@@ -55,12 +55,13 @@
                   class="w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-brand-500 focus:ring-brand-500">
             <% catList.forEach(function(c) { %>
               <%
-                // Label tier: kategori gratis murni (cert_available=0) dan
-                // gratis-dengan-paket dibedakan agar admin tahu konsekuensinya.
+                // Label tier: 4 varian — berbayar / gratis murni / gratis+paket / gratis terkunci
+                var lockFlag = c.lock_paid_option === 1
                 var freeLabel = !c.is_free_tier ? ''
-                  : (c.cert_available === 0) ? '  (full free — Rp 0 default, opsi Paket Lengkap tersedia)' : '  (gratis + e-sertifikat berbayar)'
+                  : lockFlag ? '  (gratis — terkunci, tanpa opsi berbayar)'
+                  : (c.cert_available === 0) ? '  (pelatihan gratis)' : '  (gratis + e-sertifikat berbayar)'
               %>
-              <option value="<%= c.name %>" data-free="<%= c.is_free_tier ? 1 : 0 %>" data-certavail="<%= c.cert_available === 0 ? 0 : 1 %>" <%= currentCat === c.name ? 'selected' : '' %>>
+              <option value="<%= c.name %>" data-free="<%= c.is_free_tier ? 1 : 0 %>" data-certavail="<%= c.cert_available === 0 ? 0 : 1 %>" data-lock="<%= lockFlag ? 1 : 0 %>" <%= currentCat === c.name ? 'selected' : '' %>>
                 <%= c.name %><%= freeLabel %>
               </option>
             <% }) %>
@@ -136,21 +137,24 @@
 
               function updateBanner(){
                 var opt = sel.options[sel.selectedIndex]
-                var showPaket, showPure
+                var showPaket, showPure, isLocked
                 if (sel.value === '__new__') {
                   var isNewFree = freeCb && freeCb.checked
                   showPaket = isNewFree
                   showPure  = false
+                  isLocked  = false
                 } else {
-                  showPaket = opt && opt.dataset.free === '1' && opt.dataset.certavail !== '0'
+                  showPaket = opt && opt.dataset.free === '1' && opt.dataset.certavail !== '0' && opt.dataset.lock !== '1'
                   showPure  = opt && opt.dataset.free === '1' && opt.dataset.certavail === '0'
+                  isLocked  = opt && opt.dataset.lock === '1'
                 }
                 if (banner) banner.classList.toggle('hidden', !showPaket)
-                if (pureBanner) pureBanner.classList.toggle('hidden', !showPure)
+                // Pure banner tampil saat kategori gratis (termasuk locked)
+                if (pureBanner) pureBanner.classList.toggle('hidden', !(showPure || isLocked))
                 // Section radio override hanya tampil saat kategori pakai paket
-                // (showPaket). Full free (showPure) tidak perlu override.
-                if (certWrap) certWrap.classList.toggle('hidden', !showPaket)
-                setPricesDisabled(showPaket || showPure)
+                // (showPaket). Full free / locked → tidak perlu override.
+                if (certWrap) certWrap.classList.toggle('hidden', !(showPaket))
+                setPricesDisabled(showPaket || showPure || isLocked)
               }
 
               function sync(){
@@ -274,14 +278,16 @@
         // cert_override: pilihan per-training untuk kategori gratis.
         //   default = NULL  → ikut default kategori
         //   paket   = 1     → kategori gratis tapi tetap tawarkan paket e-sertifikat
-        //   pure    = 0     → kategori gratis tapi TIDAK ada paket e-sertifikat (full free)
+        //   pure    = 0     → kategori gratis, tanpa e-sertifikat, opsi 75k tetap ada
+        //   full_free = 2  → kategori gratis, Rp 0 total, TIDAK ada opsi 75k sama sekali
         //
-        // Saat edit: training.cert_override adalah 0/1/null (setelah findBySlug
+        // Saat edit: training.cert_override adalah 0/1/2/null (setelah findBySlug
         // sudah dihapus NULL-nya; null berarti default).
         var existingCertOverride = isEdit ? training?.cert_override : undefined
-        // Konversi ke nilai form: null/undefined → 'paket' (default ikut kategori),
-        // 0 → 'pure', 1 → 'paket'
-        var certOverrideForm = (existingCertOverride === 0) ? 'pure' : 'paket'
+        // Konversi ke nilai form: null/undefined/1 → 'paket', 0 → 'pure', 2 → 'full_free'
+        var certOverrideForm = (existingCertOverride === 0) ? 'pure'
+                        : (existingCertOverride === 2) ? 'full_free'
+                        : 'paket'
         // Banner yang dirender server: bila training sudah diset 'pure',
         // teks banner harus sudah benar sejak load (tanpa perlu JS).
         var bannerShowPure = bannerPaketNow && certOverrideForm === 'pure'
@@ -341,6 +347,12 @@
                 ' tetap tersedia (e-sertifikat + Soft File, QnA, Group Discussion, ' +
                 'Sertifikat Digital, Info Lowongan, Recording, Networking, Diskusi Ahli). ' +
                 'Kolom harga di bawah <strong>dinonaktifkan otomatis</strong> dan disimpan sebagai 0.'
+            } else if (val === 'full_free') {
+              title.textContent = 'Kategori bertipe gratis — Rp 0 PENUH, tanpa opsi berbayar'
+              body.innerHTML =
+                'Peserta selalu membayar <strong>Rp 0 total</strong> — form pendaftaran ' +
+                'TIDAK menampilkan opsi ' + feeTxt + '. ' +
+                'Kolom harga di bawah <strong>dinonaktifkan otomatis</strong> dan disimpan sebagai 0.'
             } else {
               title.textContent = 'Kategori bertipe gratis — e-sertifikat tersedia'
               body.innerHTML =
@@ -394,6 +406,20 @@
                 (e-sertifikat + Soft File, QnA, Group Discussion,
                 Sertifikat Digital, Info Lowongan, Recording, Networking,
                 Diskusi dengan Ahli)
+              </span>
+            </span>
+          </label>
+          <label class="flex items-start gap-2 cursor-pointer">
+            <input
+              type="radio" name="cert_override" value="full_free"
+              <%= certOverrideForm === 'full_free' ? 'checked' : '' %>
+              class="mt-0.5 text-brand-600 focus:ring-brand-500"
+            >
+            <span>
+              <span class="block text-sm font-medium text-gray-800">Full Free (Rp 0 Penuh)</span>
+              <span class="block text-xs text-gray-500">
+                Rp 0 untuk semua peserta — TIDAK ada opsi <%= certFeeFmt || 'Rp 75.000' %> (Paket Lengkap)
+                di form pendaftaran. Cocok untuk program CSR atau gratis total.
               </span>
             </span>
           </label>

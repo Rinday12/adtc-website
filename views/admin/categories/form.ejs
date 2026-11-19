@@ -91,15 +91,22 @@
              Field is_free_tier & free_pure diteruskan lewat hidden agar controller
              tidak berubah. -->
         <%
-          var currentTier = (category && category.is_free_tier)
-            ? (category.cert_available === 0 ? 'free_pure' : 'free_pkg')
-            : 'paid'
+          // currentTier: 4 nilai — paid / free_pure / free_pkg / free_nopaid
+          // free_nopaid: is_free_tier=1, cert_available=0, lock_paid_option=1
+          var currentTier
+          if (category && category.is_free_tier) {
+            if (category.cert_available === 0 && category.lock_paid_option === 1) currentTier = 'free_nopaid'
+            else if (category.cert_available === 0) currentTier = 'free_pure'
+            else currentTier = 'free_pkg'
+          } else {
+            currentTier = 'paid'
+          }
         %>
         <fieldset>
           <legend class="text-sm font-medium text-gray-700 mb-2">Tipe biaya kategori</legend>
           <div class="space-y-2">
             <label class="flex items-start gap-3 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 cursor-pointer hover:border-gray-300">
-              <input type="radio" name="price_tier" value="paid" data-is_free="off" data-free_pure="off"
+              <input type="radio" name="price_tier" value="paid" data-is_free="off" data-free_pure="off" data-lock="off"
                 <%= currentTier === 'paid' ? 'checked' : '' %>
                 class="mt-0.5 w-4 h-4 accent-brand-500">
               <span class="text-sm text-gray-700">
@@ -109,7 +116,7 @@
             </label>
 
             <label class="flex items-start gap-3 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 cursor-pointer hover:border-gray-300">
-              <input type="radio" name="price_tier" value="free_pure" data-is_free="on" data-free_pure="on"
+              <input type="radio" name="price_tier" value="free_pure" data-is_free="on" data-free_pure="on" data-lock="off"
                 <%= currentTier === 'free_pure' ? 'checked' : '' %>
                 class="mt-0.5 w-4 h-4 accent-brand-500">
               <span class="text-sm text-gray-700">
@@ -119,7 +126,7 @@
             </label>
 
             <label class="flex items-start gap-3 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 cursor-pointer hover:border-gray-300">
-              <input type="radio" name="price_tier" value="free_pkg" data-is_free="on" data-free_pure="off"
+              <input type="radio" name="price_tier" value="free_pkg" data-is_free="on" data-free_pure="off" data-lock="off"
                 <%= currentTier === 'free_pkg' ? 'checked' : '' %>
                 class="mt-0.5 w-4 h-4 accent-brand-500">
               <span class="text-sm text-gray-700">
@@ -127,35 +134,51 @@
                 <p class="text-xs text-gray-500 mt-0.5">Ikut Rp 0; bila mau e-sertifikat, peserta membayar <%= certFeeFmt || 'Rp 75.000' %> (diverifikasi admin).</p>
               </span>
             </label>
+
+            <label class="flex items-start gap-3 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 cursor-pointer hover:border-gray-300">
+              <input type="radio" name="price_tier" value="free_nopaid" data-is_free="on" data-free_pure="on" data-lock="on"
+                <%= currentTier === 'free_nopaid' ? 'checked' : '' %>
+                class="mt-0.5 w-4 h-4 accent-brand-500">
+              <span class="text-sm text-gray-700">
+                <span class="font-medium">Full gratis — tanpa opsi berbayar</span>
+                <p class="text-xs text-gray-500 mt-0.5">
+                  Rp 0 untuk semua peserta — TIDAK ada opsi Paket Lengkap (<%= certFeeFmt || 'Rp 75.000' %>)
+                  di form pendaftaran. Kunci berlaku untuk seluruh pelatihan di kategori ini;
+                  override per-pelatihan tidak dapat membuka opsi berbayar.
+                </p>
+              </span>
+            </label>
           </div>
         </fieldset>
 
         <!-- Field tersembunyi yang dibaca controller -->
-        <input type="hidden" name="is_free_tier" id="is_free_tier_hidden" value="off">
-        <input type="hidden" name="free_pure"   id="free_pure_hidden"   value="off">
+        <input type="hidden" name="is_free_tier"     id="is_free_tier_hidden"  value="off">
+        <input type="hidden" name="free_pure"        id="free_pure_hidden"     value="off">
+        <input type="hidden" name="lock_paid_option" id="lock_paid_option_hidden" value="off">
 
         <script>
           document.addEventListener('DOMContentLoaded', function(){
-            // 1) Sinkronkan radio "price_tier" → hidden is_free_tier / free_pure
+            // 1) Sinkronkan radio "price_tier" → hidden is_free_tier / free_pure / lock_paid_option
             //    + toggle visibility sub-radio certOptionWrap
-            var radios   = document.querySelectorAll('input[name="price_tier"]')
-            var hide     = document.getElementById('is_free_tier_hidden')
-            var freePure = document.getElementById('free_pure_hidden')
-            var certWrap = document.getElementById('certOptionWrap')
-            if (!hide || !freePure) return
+            var radios      = document.querySelectorAll('input[name="price_tier"]')
+            var hide        = document.getElementById('is_free_tier_hidden')
+            var freePure    = document.getElementById('free_pure_hidden')
+            var lockHidden  = document.getElementById('lock_paid_option_hidden')
+            var certWrap    = document.getElementById('certOptionWrap')
+            if (!hide || !freePure || !lockHidden) return
 
             function sync(){
               for (var i = 0; i < radios.length; i++){
                 if (radios[i].checked){
                   var isFree = radios[i].dataset.is_free === 'on'
-                  hide.value = isFree ? 'on' : 'off'
+                  hide.value   = isFree ? 'on' : 'off'
+                  lockHidden.value = radios[i].dataset.lock === 'on' ? 'on' : 'off'
                   // Sub-radio: tampilkan hanya saat free_pkg (gratis + e-sertifikat)
                   var showSub = isFree && radios[i].value === 'free_pkg'
                   if (certWrap) certWrap.classList.toggle('hidden', !showSub)
-                  // free_pure: radio utama free_pure → on; paid → off;
-                  // free_pkg → biarkan sub-radio yang atur (dipanggil syncCert)
-                  if (radios[i].value === 'free_pure') freePure.value = 'on'
-                  else if (!isFree)                     freePure.value = 'off'
+                  // free_pure & free_nopaid → free_pure=on; paid & free_pkg → off
+                  if (radios[i].value === 'free_pure' || radios[i].value === 'free_nopaid') freePure.value = 'on'
+                  else if (!isFree) freePure.value = 'off'
                   // free_pkg: jangan overwrite di sini — syncCert() yang urus
                   break
                 }

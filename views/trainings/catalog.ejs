@@ -193,6 +193,7 @@
                       // Promo aktif & lebih murah dari harga normal terendah → tampilkan harga promo
                       const cardPromo = (function(){
                         if (typeof promo === 'undefined' || !promo || !promo.is_active) return null
+                        if (training.cert_available === false) return null
                         const now = Date.now()
                         const starts = promo.promo_starts_at ? new Date(promo.promo_starts_at).getTime() : null
                         const ends = promo.promo_ends_at ? new Date(promo.promo_ends_at).getTime() : null

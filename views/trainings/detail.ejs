@@ -184,6 +184,7 @@
           // per training < certFee (paket sertifikat).
           const freePromoNow = (function(){
             if (!promo || !promo.is_active || !training.is_free_tier) return null
+            if (training.cert_available === false) return null
             const now = Date.now()
             const starts = promo.promo_starts_at ? new Date(promo.promo_starts_at).getTime() : null
             const ends = promo.promo_ends_at ? new Date(promo.promo_ends_at).getTime() : null
@@ -199,7 +200,17 @@
           })()
         %>
         <% if (isFree) { %>
-          <!-- Kategori gratis: semua harga Rp 0, tapi ada opsi Paket Lengkap -->
+          <% if (training.cert_available === false) { %>
+          <!-- full_free (cert_override=2): Rp 0 penuh, tanpa opsi Paket Lengkap -->
+          <div class="rounded-xl border border-green-200 bg-green-50 px-5 py-4 flex items-start gap-3">
+            <span class="text-green-600 text-lg flex-shrink-0" aria-hidden="true">&#9989;</span>
+            <div>
+              <p class="text-sm font-semibold text-green-800">Pendaftaran Gratis Penuh</p>
+              <p class="text-xs text-green-700 mt-0.5">Rp 0 untuk semua — termasuk e-sertifikat, Soft File Materi, QnA, dan Group Discussion. Tanpa biaya apa pun.</p>
+            </div>
+          </div>
+          <% } else { %>
+          <!-- Kategori gratis biasa: Rp 0, tapi ada opsi Paket Lengkap -->
           <div class="rounded-xl border border-green-200 bg-green-50 px-5 py-4 flex items-start gap-3">
             <span class="text-green-600 text-lg flex-shrink-0" aria-hidden="true">&#9989;</span>
             <div>
@@ -222,6 +233,7 @@
               <% } %>
             </div>
           </div>
+          <% } %>
         <% } else { %>
           <%
             // Harga normal per kategori; promo (bila ada & aktif & lebih

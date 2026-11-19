@@ -74,15 +74,18 @@ const Category = {
     // hanya dipaksa 0 bila EXPLICIT diberi false — agar pemanggil lama yang
     // tidak tahu field ini tetap dapat perilaku wajar.
     const certAvail = data.cert_available === false ? 0 : 1
+    // lock_paid_option: 1 = kunci opsi berbayar (cert_override per-training tak berlaku)
+    const lockPaid = data.lock_paid_option ? 1 : 0
     const [result] = await db.execute(
-      `INSERT INTO categories (name, anchor, sort_order, is_free_tier, cert_available, status, accent, icon)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO categories (name, anchor, sort_order, is_free_tier, cert_available, lock_paid_option, status, accent, icon)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         name,
         anchor,
         parseInt(data.sort_order, 10) || 0,
         data.is_free_tier ? 1 : 0,
         certAvail,
+        lockPaid,
         data.status === 'nonaktif' ? 'nonaktif' : 'aktif',
         accent,
         icon
@@ -103,19 +106,22 @@ const Category = {
     const certAvail = data.cert_available === undefined
       ? null // ditangani di bawah via CASE
       : (data.cert_available ? 1 : 0)
+    const lockPaid = data.lock_paid_option ? 1 : 0
     const [result] = await db.execute(
       certAvail === null
         ? `UPDATE categories
-            SET name = ?, anchor = ?, sort_order = ?, is_free_tier = ?, status = ?, accent = ?, icon = ?
+            SET name = ?, anchor = ?, sort_order = ?, is_free_tier = ?,
+                cert_available = 1, lock_paid_option = ?, status = ?, accent = ?, icon = ?
             WHERE id = ?`
         : `UPDATE categories
-            SET name = ?, anchor = ?, sort_order = ?, is_free_tier = ?, cert_available = ?, status = ?, accent = ?, icon = ?
+            SET name = ?, anchor = ?, sort_order = ?, is_free_tier = ?,
+                cert_available = ?, lock_paid_option = ?, status = ?, accent = ?, icon = ?
             WHERE id = ?`,
       certAvail === null
         ? [name, anchor, parseInt(data.sort_order, 10) || 0, data.is_free_tier ? 1 : 0,
-           data.status === 'nonaktif' ? 'nonaktif' : 'aktif', accent, icon, id]
+           lockPaid, data.status === 'nonaktif' ? 'nonaktif' : 'aktif', accent, icon, id]
         : [name, anchor, parseInt(data.sort_order, 10) || 0, data.is_free_tier ? 1 : 0, certAvail,
-           data.status === 'nonaktif' ? 'nonaktif' : 'aktif', accent, icon, id]
+           lockPaid, data.status === 'nonaktif' ? 'nonaktif' : 'aktif', accent, icon, id]
     )
     return result.affectedRows
   },

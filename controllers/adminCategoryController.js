@@ -92,15 +92,22 @@ const adminCategoryController = {
         })
       }
 
+      // price_tier radio (form mengirim 4 nilai: paid / free_pure / free_pkg / free_nopaid)
+      // free_pure  → is_free_tier=1, cert_available=0, lock_paid_option=0
+      // free_nopaid→ is_free_tier=1, cert_available=0, lock_paid_option=1
+      // free_pkg   → is_free_tier=1, cert_available=1, lock_paid_option=0
+      // paid       → is_free_tier=0, cert_available=1, lock_paid_option=0
+      const tier = req.body.price_tier || 'paid'
+      const isFree = tier === 'free_pure' || tier === 'free_pkg' || tier === 'free_nopaid'
+      const certAvail = tier === 'free_pure' || tier === 'free_nopaid' ? 0 : 1
+      const lockPaid = tier === 'free_nopaid' ? 1 : 0
+
       await Category.create({
         name:        req.body.name.trim(),
         sort_order:  req.body.sort_order,
-        is_free_tier: req.body.is_free_tier === 'on' ? 1 : 0,
-        // Checkbox "Gratis murni" (free_pure): dicentang → kategori gratis
-        // TANPA opsi paket/sertifikat berbayar. Tidak dikirim = tak
-        // dicentang = opsi paket tersedia. Boolean, bukan 0/1: model
-        // Category.create hanya memaksa 0 saat diberi `false` eksplisit.
-        cert_available: req.body.free_pure !== 'on',
+        is_free_tier: isFree ? 1 : 0,
+        cert_available: certAvail === 1,
+        lock_paid_option: lockPaid === 1,
         status:      'aktif',
         accent:      req.body.accent || 'blue',
         icon:        req.body.icon ? req.body.icon.trim() : ''
@@ -155,13 +162,18 @@ const adminCategoryController = {
         })
       }
 
-      // free_pure hanya relevan saat kategori gratis; form selalu mengirimnya
-      // (checked / tidak), jadi aman ditagih langsung.
+      // Sama logika create: 4 radio value → is_free_tier + cert_available + lock_paid_option
+      const tier = req.body.price_tier || 'paid'
+      const isFree = tier === 'free_pure' || tier === 'free_pkg' || tier === 'free_nopaid'
+      const certAvail = tier === 'free_pure' || tier === 'free_nopaid' ? 0 : 1
+      const lockPaid = tier === 'free_nopaid' ? 1 : 0
+
       await Category.update(req.params.id, {
         name:        req.body.name.trim(),
         sort_order:  req.body.sort_order,
-        is_free_tier: req.body.is_free_tier === 'on' ? 1 : 0,
-        cert_available: req.body.free_pure === 'on' ? 0 : 1,
+        is_free_tier: isFree ? 1 : 0,
+        cert_available: certAvail === 1,
+        lock_paid_option: lockPaid === 1,
         status:      req.body.status === 'nonaktif' ? 'nonaktif' : 'aktif',
         accent:      req.body.accent || 'blue',
         icon:        req.body.icon ? req.body.icon.trim() : ''

@@ -161,7 +161,9 @@ const Training = {
               (SELECT is_free_tier FROM categories c
                 WHERE c.name = t.category LIMIT 1) AS is_free_tier,
               (SELECT cert_available FROM categories c
-                WHERE c.name = t.category LIMIT 1) AS cert_available
+                WHERE c.name = t.category LIMIT 1) AS cert_available,
+              (SELECT lock_paid_option FROM categories c
+                WHERE c.name = t.category LIMIT 1) AS lock_paid_option
        FROM trainings t
        WHERE t.slug = ? LIMIT 1`,
       [slug]
@@ -171,16 +173,26 @@ const Training = {
       // NULL (kategori tak dikenal / DB lama) → anggap paket tersedia,
       // agar perilaku kategori gratis lama tidak berubah.
       rows[0].cert_available = rows[0].cert_available !== 0
+      // lock_paid_option: 1 = opsi berbayar DIKUNCI di level kategori;
+      // cert_override per-training tak bisa re-aktifkan.
+      // Set flag dulu agar di bawah kita skip cert_override bila lock=1.
+      rows[0].lock_paid_option = rows[0].lock_paid_option === 1
       // cert_override (per training, di luar kategori):
       //   NULL = ikut default kategori (tidak mengubah perilaku lama)
       //   0    = "Tanpa e-Sertifikat": Rp 0 tidak termasuk e-sertifikat,
       //          tapi opsi Paket Lengkap (Rp certFee) tetap tersedia
       //   1    = "Dengan e-Sertifikat": Rp 0 sudah termasuk e-sertifikat,
       //          opsi Paket Lengkap (Rp certFee) tetap tersedia
-      // cert_available tetap mengikuti default kategori — override hanya
-      // mengubah deskripsi/label di view, bukan menyembunyikan opsi berbayar.
-      if (rows[0].cert_override === 1) {
+      //   2    = "Full Free": Rp 0 untuk semua, TIDAK ada opsi Paket Lengkap
+      //          (cert_available dipaksa false → form publik menyembunyikan
+      //          blok radio "Jenis Pembayaran" dan resolveFinalPrice = 0).
+      if (rows[0].lock_paid_option) {
+        // Kunci kategori: cert_available dipaksa false, cert_override diabaikan
+        rows[0].cert_available = false
+      } else if (rows[0].cert_override === 1) {
         rows[0].cert_available = true
+      } else if (rows[0].cert_override === 2) {
+        rows[0].cert_available = false
       }
       // cert_override=0: tidak mengubah cert_available (opsi Rp 75.000 tetap ada),
       // hanya label "Rp 0" yang berbeda (tanpa e-sertifikat).
@@ -221,12 +233,26 @@ const Training = {
     const [rows] = await db.execute(
       `SELECT t.*,
               (SELECT COUNT(*) FROM registrations r
-               WHERE r.training_id = t.id AND r.status != 'rejected') AS registered_count
+               WHERE r.training_id = t.id AND r.status != 'rejected') AS registered_count,
+              (SELECT is_free_tier FROM categories c
+                WHERE c.name = t.category LIMIT 1) AS is_free_tier,
+              (SELECT cert_available FROM categories c
+                WHERE c.name = t.category LIMIT 1) AS cert_available,
+              (SELECT lock_paid_option FROM categories c
+                WHERE c.name = t.category LIMIT 1) AS lock_paid_option
        FROM trainings t
        WHERE t.category = ? AND t.status != 'postpone'
        ORDER BY t.category_order ASC, t.start_date ASC`,
       [categoryName]
     )
+    if (rows.length) {
+      for (const row of rows) {
+        row.is_free_tier = row.is_free_tier === 1
+        row.cert_available = row.cert_available !== 0
+        row.lock_paid_option = row.lock_paid_option === 1
+        if (row.lock_paid_option) row.cert_available = false
+      }
+    }
     return rows
   },
 
@@ -242,11 +268,24 @@ const Training = {
     const [rows] = await db.execute(
       `SELECT t.*,
               (SELECT COUNT(*) FROM registrations r
-               WHERE r.training_id = t.id AND r.status != 'rejected') AS registered_count
+               WHERE r.training_id = t.id AND r.status != 'rejected') AS registered_count,
+              (SELECT is_free_tier FROM categories c
+                WHERE c.name = t.category LIMIT 1) AS is_free_tier,
+              (SELECT cert_available FROM categories c
+                WHERE c.name = t.category LIMIT 1) AS cert_available,
+              (SELECT lock_paid_option FROM categories c
+                WHERE c.name = t.category LIMIT 1) AS lock_paid_option
        FROM trainings t
        WHERE t.category IN (SELECT name FROM categories WHERE status = 'aktif')
        ORDER BY t.category_order ASC, t.start_date ASC`
     )
+    // Normalisasi field kategori di tiap row (sama pola dengan findBySlug)
+    for (const row of rows) {
+      row.is_free_tier = row.is_free_tier === 1
+      row.cert_available = row.cert_available !== 0
+      row.lock_paid_option = row.lock_paid_option === 1
+      if (row.lock_paid_option) row.cert_available = false
+    }
     const map = new Map()
     for (const row of rows) {
       if (!map.has(row.category)) {
@@ -280,6 +319,7 @@ const Training = {
               c.anchor,
               c.is_free_tier,
               c.cert_available,
+              c.lock_paid_option,
               c.accent,
               c.icon,
               (SELECT COUNT(*) FROM trainings t
@@ -288,19 +328,23 @@ const Training = {
        WHERE c.status = 'aktif'
        ORDER BY c.sort_order ASC, c.name ASC`
     )
-    return rows.map(r => ({
-      category:     r.category,
-      anchor:       r.anchor,
-      count:        r.cnt,
-      is_free_tier: r.is_free_tier === 1,
-      // NULL (DB lama / kolom belum migrasi) → anggap paket tersedia,
-      // sama dengan findBySlug — perilaku kategori gratis lama tak berubah.
-      // cert_override per-training (0=null-pure free, 1=tetap ada paket)
-      // di-hitung di subquery findBySlug; di sini hanya level kategori.
-      cert_available: r.cert_available !== 0,
-      accent:       r.accent || 'blue',
-      icon:         r.icon || ''
-    }))
+    return rows.map(r => {
+      const lockPaid = r.lock_paid_option === 1
+      return {
+        category:     r.category,
+        anchor:       r.anchor,
+        count:        r.cnt,
+        is_free_tier: r.is_free_tier === 1,
+        // NULL (DB lama / kolom belum migrasi) → anggap paket tersedia,
+        // sama dengan findBySlug — perilaku kategori gratis lama tak berubah.
+        // cert_override per-training (0=null-pure free, 1=tetap ada paket)
+        // di-hitung di subquery findBySlug; di sini hanya level kategori.
+        cert_available: lockPaid ? false : r.cert_available !== 0,
+        lock_paid_option: lockPaid,
+        accent:       r.accent || 'blue',
+        icon:         r.icon || ''
+      }
+    })
   },
 
   /**

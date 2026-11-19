@@ -177,18 +177,16 @@ const adminTrainingController = {
       const training_document = req.body.training_document?.trim() || null
 
       // cert_override: hanya relevan untuk kategori free tier.
-      // Form mengirim: 'paket' (=1) atau 'pure' (=0) atau kosong (=null/NULL).
+      // Form mengirim: 'paket' (=1), 'pure' (=0), 'full_free' (=2), atau kosong (=null/NULL).
       // Kategori berbayar → NULL (override tidak berlaku).
       let certOverride = null
       if (freeTier) {
         const rawOverride = req.body.cert_override
         if (rawOverride === 'paket')      certOverride = 1
-        else if (rawOverride === 'pure') certOverride = 0
-        // 'default'/kosong → NULL = ikut default kategori
+        else if (rawOverride === 'pure')  certOverride = 0
+        else if (rawOverride === 'full_free') certOverride = 2
+        // kosong → NULL = ikut default kategori
       }
-
-      // Auto-buat kategori bila nama baru belum terdaftar; centang
-      // "new_cat_is_free" hanya relevan saat kategori ini baru dibuat.
       await ensureCategory(req.body.category, req.body.new_cat_is_free === 'on' ? 1 : 0)
 
       await Training.create({
@@ -270,8 +268,9 @@ const adminTrainingController = {
       if (freeTier) {
         const rawOverride = req.body.cert_override
         if (rawOverride === 'paket')      certOverride = 1
-        else if (rawOverride === 'pure') certOverride = 0
-        // 'default'/kosong → NULL = ikut default kategori
+        else if (rawOverride === 'pure')  certOverride = 0
+        else if (rawOverride === 'full_free') certOverride = 2
+        // kosong → NULL = ikut default kategori
       }
 
       // Auto-buat kategori bila nama baru belum terdaftar (centang free
